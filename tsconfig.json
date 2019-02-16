@@ -1,0 +1,16 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "allowSyntheticDefaultImports": true,
+    "esModuleInterop": true,
+    "target": "esnext",
+    "sourceMap": true,
+    "sourceRoot": "src",
+    "outDir": "dist",
+    "inlineSourceMap": false,
+    "declaration": true
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}

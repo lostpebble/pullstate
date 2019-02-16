@@ -1,0 +1,34 @@
+{
+  "name": "pullstate",
+  "version": "0.0.3",
+  "description": "Simple state stores using immer and React hooks",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "clean": "rimraf ./dist",
+    "build": "npm run clean && tsc",
+    "prepublish": "in-publish && npm run build"
+  },
+  "keywords": [
+    "immer",
+    "state",
+    "store",
+    "react",
+    "hooks"
+  ],
+  "author": "Paul Myburgh",
+  "license": "MIT",
+  "dependencies": {
+    "immer": "^2.0.0",
+    "fbjs": "^1.0.0",
+    "react": "^16.8.2"
+  },
+  "devDependencies": {
+    "typescript": "^3.3.3",
+    "in-publish": "^2.0.0"
+  },
+  "peerDependencies": {
+    "react": "^16.8.2"
+  }
+}
