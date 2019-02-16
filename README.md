@@ -7,7 +7,7 @@ And its tiny at ~485B minified and gzipped!
 
 _Inspired by a now seemingly abandoned library - [bey](https://github.com/jamiebuilds/bey), sharing
 much of the same interface - but with a hooks implementation. Which was in turn inspired by
-[react-copy-wrote](https://github.com/aweary/react-copy-write)._
+[react-copy-write](https://github.com/aweary/react-copy-write)._
 
 **Let's dive right in**
 
@@ -94,7 +94,15 @@ our store will only update when that specific return value is actually
 changed in our store. This enhances our app's performance by ignoring anything in the store
 this component does not care about.
 
-**E.g** If we had to update the value of `message` in the `UIStore`, nothing would happen here.
+**E.g** If we had to update the value of `message` in the `UIStore`, nothing would happen here since we are only listening
+for changes on `theme`.
+
+If you want you can leave out the second argument altogether:
+```typescript
+const storeState = useStore(UIStore);
+```
+
+This will return the entire stores state - and listen to all changes on the store - so it is generally not recommended.
 
 Lastly, lets look at how we update our stores:
 
