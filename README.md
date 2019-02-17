@@ -115,8 +115,6 @@ The above will sort you out nicely if you are simply running a client-rendered a
 
 ### Create a central place for all your stores using `createPullstate()`
 
-After creating your individual stores like before:
-
 ```typescript jsx
 import { UIStore } from "./UIStore";
 import { UserStore } from "./UserStore";
@@ -128,7 +126,7 @@ export const Pullstate = createPullstate({
 });
 ```
 
-This creates a centralized object from which Pullstate can instantiate your state before each render.
+You pass in the stores you created before. This creates a centralized object from which Pullstate can instantiate your state before each render.
 
 ### Using your stores on the server
 
@@ -139,19 +137,24 @@ import { PullstateProvider } from "pullstate";
 
 // A server request
 async function someRequest(req) {
-  const { stores } = Pullstate.instantiate();
+  const instance = Pullstate.instantiate();
   
   const user = await UserApi.getUser(id);
   
-  stores.UserStore.update(userStore => {
+  instance.stores.UserStore.update(userStore => {
     userStore.userName = user.name;
   });
   
   const html = ReactDOMServer.renderToString(
-    <PullstateProvider stores={stores}>
+    <PullstateProvider stores={instance.stores}>
       <App />
     </PullstateProvider>
   );
+  
+  
+  const body = `
+<script>window.__PULLSTATE__ = '${JSON.stringify(instance.getAllState())}'</script>
+${html}`;
   
   // do something with the generated html and send response
 }
@@ -161,7 +164,26 @@ async function someRequest(req) {
 * Manipulate your state directly during your server's request by using the `stores` property of the instantiated object.
 * Notice we called `update()` directly on the `UserStore` here - this is a convenience method (which is actually available on
 all stores).
-* Finally we pass the stores into the rendering function. We use `<PullstateProvider>` to do so, providing `stores` prop from the instantiated object.
+* We pass the stores into the rendering function. We use `<PullstateProvider>` to do so, providing `stores` prop from the instantiated object.
+* Lastly, we need to return this state to the client somehow. Here we set it on `window.__PULLSTATE__`, to be parsed and hydrated on the client.
+
+### Client state hydration
+
+```typescript jsx
+const hydrateState = JSON.parse(window.__PULLSTATE__ || "null");
+
+const instance = Pullstate.instantiate({ hydrateState });
+
+ReactDOM.render(
+  <PullstateProvider stores={instance.stores}>
+    <App />
+  </PullstateProvider>,
+  document.getElementById("react-mount")
+);
+```
+
+* We create a new instance on the client using the same method as above, except this time we can pass
+`hydrateState`, which will instantiate our new stores with the state where our server left off.
 
 ### Using our stores throughout our React app
 
