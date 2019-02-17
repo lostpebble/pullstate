@@ -25,7 +25,8 @@
   },
   "devDependencies": {
     "typescript": "^3.3.3",
-    "in-publish": "^2.0.0"
+    "in-publish": "^2.0.0",
+    "react": "^16.8.2"
   },
   "peerDependencies": {
     "react": "^16.8.2"

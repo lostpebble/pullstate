@@ -3,7 +3,7 @@
 > Ridiculously simple state stores with performant retrieval anywhere
 in your React tree using the wonderful concept of React hooks!
 
-* tiny at ~485B minified and gzipped!
+* tiny at ~485B minified and gzipped! (excluding Immer and React)
 * Built with Typescript, providing a great dev experience if you're using it too
 
 _Inspired by a now seemingly abandoned library - [bey](https://github.com/jamiebuilds/bey), sharing
