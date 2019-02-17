@@ -111,7 +111,7 @@ you can also work with state using the `<InjectStoreState>` component, like so:
 import { InjectStoreState } from "pullstate";
 
 // ... somewhere in your JSX :
-<InjectStoreState store={UIStore} getSubState={s => s.message}>{message => <h2>{message}</h2>}</InjectStoreState>
+<InjectStoreState store={UIStore} on={s => s.message}>{message => <h2>{message}</h2>}</InjectStoreState>
 ```
 
 ## Server Rendering
