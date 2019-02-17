@@ -106,7 +106,7 @@ you can also work with state using the `<InjectStoreState>` component, like so:
 import { InjectStoreState } from "pullstate";
 
 // ... somewhere in your JSX :
-<InjectStoreState store={UIStore} getSubState={s => s.message}>{message => message}</InjectStoreState>
+<InjectStoreState store={UIStore} getSubState={s => s.message}>{message => <h2>{message}</h2>}</InjectStoreState>
 ```
 
 ## Server Rendering
@@ -130,56 +130,50 @@ export const Pullstate = createPullstate({
 
 This creates a centralized object from which Pullstate can instantiate your state before each render.
 
-### Instantiate fresh stores before each render using `instantiate()`
+### Using your stores on the server
 
 ```typescript jsx
 import { Pullstate } from "./stores/Pullstate";
-
-const stateInstance = Pullstate.instantiate();
-```
-
-Now we have an instance of fresh stores which we can manipulate before rendering our React app to HTML.
-
-### Manipulate state and render app
-
-```typescript jsx
-const user = await UserApi.getUser(id);
-
-stateInstance.stores.UserStore.update(userStore => {
-  userStore.userName = user.name;
-});
-```
-
-Manipulating your state directly during your server's request by using the `stores` property of the instantiated object.
-
-Notice we called `update()` directly on the `UserStore` here - this is a convenience method which is available on
-all created stores.
-
-```typescript jsx
 import ReactDOMServer from "react-dom/server";
 import { PullstateProvider } from "pullstate";
 
-const html = ReactDOMServer.renderToString(
-  <PullstateProvider stores={stateInstance.stores}>
-    <App />
-  </PullstateProvider>
-);
+// A server request
+async function someRequest(req) {
+  const { stores } = Pullstate.instantiate();
+  
+  const user = await UserApi.getUser(id);
+  
+  stores.UserStore.update(userStore => {
+    userStore.userName = user.name;
+  });
+  
+  const html = ReactDOMServer.renderToString(
+    <PullstateProvider stores={stores}>
+      <App />
+    </PullstateProvider>
+  );
+  
+  // do something with the generated html and send response
+}
 ```
 
-Finally we pass the state needed to render our React app how we wish into the rendering function. We use `<PullstateProvider>` to do so,
-passing in the `stores` prop from the instantiated stores.
+* Instantiate fresh stores before each render using `instantiate()`
+* Manipulate your state directly during your server's request by using the `stores` property of the instantiated object.
+* Notice we called `update()` directly on the `UserStore` here - this is a convenience method (which is actually available on
+all stores).
+* Finally we pass the stores into the rendering function. We use `<PullstateProvider>` to do so, providing `stores` prop from the instantiated object.
 
 ### Using our stores throughout our React app
 
-So now that we have our state properly injected into our react app through `<PullstateProvider>`, we need to actually make use of
-the data in them. Because we are server rendering, we can't use the singleton-type stores we made before - we need to target these specific
-instances directly.
+So now that we have our stores properly injected into our react app through `<PullstateProvider>`, we need to actually
+make use of them correctly. Because we are server rendering, we can't use the singleton-type stores we made
+before - we need to target these injected store instances directly.
 
 For that we need a new hook - `useStores()`.
 
 This hook uses React's context to obtain the current render's stores, given to us by `<PullstateProvider>`.
 
-Lets refactor the above (client-side only) example to work with Server Rendering:
+Lets refactor the previous client-side-only example to work with Server Rendering:
 
 ```typescript jsx
 import { useStoreState, update, useStores } from "pullstate";
