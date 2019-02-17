@@ -29,14 +29,14 @@ export const UIStore = new Store({
 });
 ```
 
-Then, in React, we can start using parts of that store using a simple hook `useStore()`:
+Then, in React, we can start using the state of that store using a simple hook `useStoreState()`:
 
 ```typescript jsx
 import { UIStore } from "./stores/UIStore";
-import { useStore, update } from "pullstate";
+import { useStoreState, update } from "pullstate";
 
 const App = () => {
-  const theme = useStore(UIStore, s => s.theme);
+  const theme = useStoreState(UIStore, s => s.theme);
 
   return (
     <ThemeProvider theme={theme}>
@@ -55,25 +55,25 @@ const App = () => {
 ```
 
 Notice, that we also made use of `update()`, which allows us to update our stores' state anywhere
-we please - (literally anywhere in your JS code, not only inside React components) - over here we simply did it inside a click event to change the theme.
+we please - (literally anywhere in your JS code, not only inside React components - __but if you are using Server Rendering, see below 👇__) - over here we simply did it inside a click event to change the theme.
 
-Also notice, the second argument to `useStore()`:
+Also notice, the second argument to `useStoreState()`:
 
 ```typescript jsx
-const theme = useStore(UIStore, s => s.theme);
+const theme = useStoreState(UIStore, s => s.theme);
 ```
 
 This selects a sub-state within our store. This ensures that this specific "hook" into
 our store will only update when that specific return value is actually
-changed in our store. This enhances our app's performance by ignoring anything in the store
-this component does not care about.
+changed in our store. This enhances our app's performance by ignoring any changes in the store
+this component does not care about, preventing unnecessary renders.
 
 **E.g** If we had to update the value of `message` in the `UIStore`, nothing would happen here since we are only listening
 for changes on `theme`.
 
 If you want you can leave out the second argument altogether:
 ```typescript
-const storeState = useStore(UIStore);
+const storeState = useStoreState(UIStore);
 ```
 
 This will return the entire store's state - and listen to all changes on the store - so it is generally not recommended.
@@ -81,7 +81,7 @@ This will return the entire store's state - and listen to all changes on the sto
 To listen to more parts of the state within a store simply pick out more values:
 
 ```typescript jsx
-const { theme, message } = useStore(UIStore, s => ({ theme: s.theme, message: s.message }));
+const { theme, message } = useStoreState(UIStore, s => ({ theme: s.theme, message: s.message }));
 ```
 
 Lastly, lets look at how we update our stores:
@@ -98,3 +98,121 @@ the current state of our store to mutate however we like! For more information o
 go check out [immer](https://github.com/mweststrate/immer). Its great.
 
 And that's pretty much it!
+
+As an added convenience (and for those who still enjoy using components directly for accessing these things),
+you can also work with state using the `<InjectStoreState>` component, like so:
+
+```typescript jsx
+import { InjectStoreState } from "pullstate";
+
+// ... somewhere in your JSX :
+<InjectStoreState store={UIStore} getSubState={s => s.message}>{message => message}</InjectStoreState>
+```
+
+## Server Rendering
+
+The above will sort you out nicely if you are simply running a client-rendered app. But Server Rendering is a little more involved (although not much).
+
+### Create a central place for all your stores using `createPullstate()`
+
+After creating your individual stores like before:
+
+```typescript jsx
+import { UIStore } from "./UIStore";
+import { UserStore } from "./UserStore";
+import { createPullstate } from "pullstate";
+
+export const Pullstate = createPullstate({
+  UIStore,
+  UserStore,
+});
+```
+
+This creates a centralized object from which Pullstate can instantiate your state before each render.
+
+### Instantiate fresh stores before each render using `instantiate()`
+
+```typescript jsx
+import { Pullstate } from "./stores/Pullstate";
+
+const stateInstance = Pullstate.instantiate();
+```
+
+Now we have an instance of fresh stores which we can manipulate before rendering our React app to HTML.
+
+### Manipulate state and render app
+
+```typescript jsx
+const user = await UserApi.getUser(id);
+
+stateInstance.stores.UserStore.update(userStore => {
+  userStore.userName = user.name;
+});
+```
+
+Manipulating your state directly during your server's request by using the `stores` property of the instantiated object.
+
+Notice we called `update()` directly on the `UserStore` here - this is a convenience method which is available on
+all created stores.
+
+```typescript jsx
+import ReactDOMServer from "react-dom/server";
+import { PullstateProvider } from "pullstate";
+
+const html = ReactDOMServer.renderToString(
+  <PullstateProvider stores={stateInstance.stores}>
+    <App />
+  </PullstateProvider>
+);
+```
+
+Finally we pass the state needed to render our React app how we wish into the rendering function. We use `<PullstateProvider>` to do so,
+passing in the `stores` prop from the instantiated stores.
+
+### Using our stores throughout our React app
+
+So now that we have our state properly injected into our react app through `<PullstateProvider>`, we need to actually make use of
+the data in them. Because we are server rendering, we can't use the singleton-type stores we made before - we need to target these specific
+instances directly.
+
+For that we need a new hook - `useStores()`.
+
+This hook uses React's context to obtain the current render's stores, given to us by `<PullstateProvider>`.
+
+Lets refactor the above (client-side only) example to work with Server Rendering:
+
+```typescript jsx
+import { useStoreState, update, useStores } from "pullstate";
+
+const App = () => {
+  const { UIStore, UserStore } = useStores();
+  const theme = useStoreState(UIStore, s => s.theme);
+  const userName = useStoreState(UserStore, s => s.userName)
+
+  return (
+    <ThemeProvider theme={theme}>
+      <button
+        onClick={() => {
+          UIStore.update(s => {
+            s.theme.mode = theme.mode === EThemeMode.DARK ? EThemeMode.LIGHT : EThemeMode.DARK;
+          });
+        }}
+      >
+        Switch it up, {userName}!
+      </button>
+    </ThemeProvider>
+  );
+};
+```
+
+Basically, all you need to do is replace the import
+
+```
+import { UIStore } from "./stores/UIStore";
+```
+
+with the context hook:
+
+```
+const { UIStore } = useStores();
+```

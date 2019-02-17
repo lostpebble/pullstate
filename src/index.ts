@@ -1,6 +1,7 @@
 import shallowEqual from "fbjs/lib/shallowEqual";
 import immer from "immer";
 import React, { useEffect, useState } from "react";
+import { createPullstate, useStores, PullstateProvider } from "./serverRenderingUtils";
 
 export type TPullstateUpdateListener = () => void;
 
@@ -92,4 +93,4 @@ function InjectStoreState<S = any, SS = any>({
   return children(state);
 }
 
-export { useStoreState, update, Store, InjectStoreState };
+export { useStoreState, update, Store, InjectStoreState, PullstateProvider, useStores, createPullstate };
