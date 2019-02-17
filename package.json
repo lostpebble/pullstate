@@ -26,7 +26,8 @@
   "devDependencies": {
     "typescript": "^3.3.3",
     "in-publish": "^2.0.0",
-    "react": "^16.8.2"
+    "react": "^16.8.2",
+    "prettier": "^1.16.4"
   },
   "peerDependencies": {
     "react": "^16.8.2"
