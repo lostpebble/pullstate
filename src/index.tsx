@@ -20,6 +20,10 @@ class Store<S = any> {
     return this.currentState;
   }
 
+  _getInitialState(): S {
+    return this.initialState;
+  }
+
   _updateState(nextState: S) {
     this.currentState = nextState;
     this.updateListeners.forEach(listener => listener());
@@ -79,16 +83,16 @@ function useStoreState(store: Store, getSubState?: (state) => any): any {
 
 export interface IPropsInjectStoreState<S extends any = any, SS extends any = any> {
   store: Store<S>;
-  getSubState?: (state: S) => SS;
+  on?: (state: S) => SS;
   children: (output: SS) => React.ReactElement;
 }
 
 function InjectStoreState<S = any, SS = any>({
   store,
+  on = s => s as any,
   children,
-  getSubState = s => s as any,
 }: IPropsInjectStoreState<S, SS>) {
-  const state: SS = useStoreState(store, getSubState);
+  const state: SS = useStoreState(store, on);
   return children(state);
 }
 
@@ -142,11 +146,11 @@ export class PullstateSingleton<T extends IPullstateAllStores = IPullstateAllSto
 
     for (const storeName of Object.keys(this.allInitialStores)) {
       if (hydrateState == null) {
-        newStores[storeName] = new Store(this.allInitialStores[storeName]._getState());
+        newStores[storeName] = new Store(this.allInitialStores[storeName]._getInitialState());
       } else if (hydrateState.hasOwnProperty(storeName)) {
         newStores[storeName] = new Store(hydrateState[storeName]);
       } else {
-        newStores[storeName] = new Store(this.allInitialStores[storeName]._getState());
+        newStores[storeName] = new Store(this.allInitialStores[storeName]._getInitialState());
         console.warn(
           `Pullstate (instantiate): store [${storeName}] didn't hydrate any state (data was non-existent on hydration object)`
         );

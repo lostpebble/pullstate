@@ -1,6 +1,6 @@
 {
   "name": "pullstate",
-  "version": "0.0.3",
+  "version": "0.0.4",
   "description": "Simple state stores using immer and React hooks",
   "main": "dist/index.js",
   "types": "dist/index.d.ts",
@@ -24,12 +24,38 @@
     "fbjs": "^1.0.0"
   },
   "devDependencies": {
+    "@types/jest": "23.3.10",
+    "@types/react": "^16.8.3",
+    "@types/react-dom": "^16.8.2",
     "typescript": "^3.3.3",
     "in-publish": "^2.0.0",
     "react": "^16.8.2",
-    "prettier": "^1.16.4"
+    "react-dom": "^16.8.2",
+    "react-test-renderer": "^16.8.2",
+    "prettier": "^1.16.4",
+    "ts-jest": "^23.10.5",
+    "jest": "23.6.0",
+    "jest-environment-jsdom": "23.4.0",
+    "jest-environment-jsdom-global": "1.1.0"
   },
   "peerDependencies": {
     "react": "^16.8.2"
+  },
+  "jest": {
+    "bail": false,
+    "moduleFileExtensions": [
+      "ts",
+      "tsx",
+      "js",
+      "jsx",
+      "json",
+      "node"
+    ],
+    "testEnvironment": "jsdom",
+    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "transform": {
+      "^.+\\.tsx?$": "ts-jest"
+    },
+    "verbose": true
   }
 }

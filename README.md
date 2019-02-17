@@ -5,9 +5,10 @@ in your React tree using the wonderful concept of React hooks!
 
 * ~1.1KB minified and gzipped! (excluding Immer and React)
 * Built with Typescript, providing a great dev experience if you're using it too
+* Provides `<InjectStateStore>` render-prop component for those who don't like change 🐌
 
-_Inspired by a now seemingly abandoned library - [bey](https://github.com/jamiebuilds/bey), sharing
-much of the same interface - but with a hooks implementation. Bey was in turn inspired by
+_Inspired by the now seemingly abandoned library - [bey](https://github.com/jamiebuilds/bey), sharing
+a similar interface but with a hooks implementation (and server-side rendering). Bey was in turn inspired by
 [react-copy-write](https://github.com/aweary/react-copy-write)._
 
 **Let's dive right in**
@@ -232,3 +233,47 @@ with the context hook:
 ```
 const { UIStore } = useStores();
 ```
+
+### Last note about Server Rendering
+
+On the client side, when instantiating your stores, you can choose to instantiate using the "origin" stores
+by passing the `reuseStores: true` like so:
+
+```typescript jsx
+const hydrateState = JSON.parse(window.__PULLSTATE__ || "null");
+
+const instance = Pullstate.instantiate({ reuseStores: true, hydrateState })
+
+ReactDOM.render(
+  <PullstateProvider stores={instance.stores}>
+    <App />
+  </PullstateProvider>,
+  document.getElementById("react-mount")
+);
+```
+
+Basically, what this does is re-uses the exact stores that you originally created.
+
+This allows us to directly update those original stores on the client and we will receive updates
+as usual. Regularly, calling `instantiate()` creates a fresh copy of your stores (which is required on the
+server, because each client request needs to maintain its own state), but on the client code - its perfectly
+fine to directly update your created stores because the state is contained to that client alone. But to do this,
+you need to pass `reuseStores: true` as mentioned above.
+
+For example, something like this:
+
+```typescript jsx
+import { UIStore, GraphStore } from "./stores"
+
+async function refreshGraphData() {
+  UIStore.update(s => { s.refreshing = true; });
+  const newData = await GraphDataApi.getNewData();
+  GraphStore.update(s => { s.data = newData; });
+  UIStore.update(s => { s.refreshing = false; });
+}
+```
+
+⚠ __Caution Though__ - While this option allows for much more ease of use for playing around with state on the client,
+you must make sure that these state updates are _strictly_ client-side only updates - as they will not apply
+on the server and you will get unexpected results. Think of these updates as updates that will run after the
+page has already loaded completely for the user (UI responses, dynamic data loading, loading screen popups etc.).
