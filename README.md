@@ -3,7 +3,7 @@
 > Ridiculously simple state stores with performant retrieval anywhere
 in your React tree using the wonderful concept of React hooks!
 
-* tiny at ~485B minified and gzipped! (excluding Immer and React)
+* ~1.1KB minified and gzipped! (excluding Immer and React)
 * Built with Typescript, providing a great dev experience if you're using it too
 
 _Inspired by a now seemingly abandoned library - [bey](https://github.com/jamiebuilds/bey), sharing
@@ -145,7 +145,7 @@ async function someRequest(req) {
     userStore.userName = user.name;
   });
   
-  const html = ReactDOMServer.renderToString(
+  const reactHtml = ReactDOMServer.renderToString(
     <PullstateProvider stores={instance.stores}>
       <App />
     </PullstateProvider>
@@ -154,7 +154,7 @@ async function someRequest(req) {
   
   const body = `
 <script>window.__PULLSTATE__ = '${JSON.stringify(instance.getAllState())}'</script>
-${html}`;
+${reactHtml}`;
   
   // do something with the generated html and send response
 }
