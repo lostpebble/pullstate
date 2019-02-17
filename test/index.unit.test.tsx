@@ -1,18 +1,13 @@
 import React from "react";
-import { createPullstate, InjectStoreState, PullstateProvider, Store, update, useStoreState } from "./index";
+import { createPullstate, InjectStoreState, PullstateProvider, Store, update, useStoreState } from "../src/index";
 import ReactDOMServer from "react-dom/server";
-import renderer from "react-test-renderer";
 
-/*interface IUIStore {
+interface IUIStore {
   count: number;
   message: string;
 }
 
-interface IAllStores extends IPullstateAllStores {
-  UIStore: Store<IUIStore>;
-}*/
-
-const UIStore = new Store({
+const UIStore = new Store<IUIStore>({
   count: 5,
   message: "what what!",
 });
@@ -67,7 +62,6 @@ const App = () => {
 };
 
 describe("Pullstate with context", () => {
-  // const Pullstate = createPullstate({ UIStore });
   const instance = Pullstate.instantiate();
 
   const ReactApp = (
@@ -79,6 +73,4 @@ describe("Pullstate with context", () => {
   it("Should be able to display its data", () => {
     expect(ReactDOMServer.renderToString(ReactApp)).toMatchSnapshot();
   });
-
-  it("Should update the value");
 });

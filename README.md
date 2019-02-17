@@ -11,7 +11,11 @@ _Inspired by the now seemingly abandoned library - [bey](https://github.com/jami
 a similar interface but with a hooks implementation (and server-side rendering). Bey was in turn inspired by
 [react-copy-write](https://github.com/aweary/react-copy-write)._
 
-**Let's dive right in**
+Try out a quick example:
+
+[![Edit Pullstate Client-only Example](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/myvj8zzypp)
+
+## **Let's dive right in**
 
 ```
 yarn add pullstate
