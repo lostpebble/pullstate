@@ -7,11 +7,13 @@
     "target": "esnext",
     "sourceMap": true,
     "sourceRoot": "src",
-    "outDir": "dist",
+    "rootDir": "./src",
+    "outDir": "./dist",
     "inlineSourceMap": false,
     "declaration": true
   },
   "exclude": [
-    "node_modules"
+    "node_modules",
+    "./test"
   ]
 }
