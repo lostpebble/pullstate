@@ -3,10 +3,11 @@
 > Ridiculously simple state stores with performant retrieval anywhere
 in your React tree using the wonderful concept of React hooks!
 
-And its tiny at ~485B minified and gzipped!
+* tiny at ~485B minified and gzipped!
+* Built with Typescript, providing a great dev experience if you're using it too
 
 _Inspired by a now seemingly abandoned library - [bey](https://github.com/jamiebuilds/bey), sharing
-much of the same interface - but with a hooks implementation. Which was in turn inspired by
+much of the same interface - but with a hooks implementation. Bey was in turn inspired by
 [react-copy-write](https://github.com/aweary/react-copy-write)._
 
 **Let's dive right in**
@@ -21,33 +22,6 @@ After installing, lets define a store by passing an initial state to `new Store(
 import { Store } from "pullstate";
 
 export const UIStore = new Store({
-  theme: {
-    mode: EThemeMode.DARK,
-  },
-  message: `What a lovely day`,
-});
-```
-
-With **Typescript**: (Recommended)
-
-```typescript
-import { Store } from "pullstate";
-
-export enum EThemeMode {
-  DARK = "DARK",
-  LIGHT = "LIGHT",
-}
-
-export interface IAppTheme {
-  mode: EThemeMode;
-}
-
-export interface IUIStore {
-  theme: IAppTheme;
-  message: string;
-}
-
-export const UIStore = new Store<IUIStore>({
   theme: {
     mode: EThemeMode.DARK,
   },

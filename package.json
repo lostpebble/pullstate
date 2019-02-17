@@ -21,8 +21,7 @@
   "license": "MIT",
   "dependencies": {
     "immer": "^2.0.0",
-    "fbjs": "^1.0.0",
-    "react": "^16.8.2"
+    "fbjs": "^1.0.0"
   },
   "devDependencies": {
     "typescript": "^3.3.3",
