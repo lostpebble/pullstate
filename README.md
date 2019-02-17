@@ -55,7 +55,7 @@ const App = () => {
 ```
 
 Notice, that we also made use of `update()`, which allows us to update our stores' state anywhere
-we please - over here we simply did it inside a click event to change the theme.
+we please - (literally anywhere in your JS code, not only inside React components) - over here we simply did it inside a click event to change the theme.
 
 Also notice, the second argument to `useStore()`:
 
@@ -76,7 +76,13 @@ If you want you can leave out the second argument altogether:
 const storeState = useStore(UIStore);
 ```
 
-This will return the entire stores state - and listen to all changes on the store - so it is generally not recommended.
+This will return the entire store's state - and listen to all changes on the store - so it is generally not recommended.
+
+To listen to more parts of the state within a store simply pick out more values:
+
+```typescript jsx
+const { theme, message } = useStore(UIStore, s => ({ theme: s.theme, message: s.message }));
+```
 
 Lastly, lets look at how we update our stores:
 
