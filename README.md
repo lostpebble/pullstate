@@ -39,7 +39,7 @@ Then, in React, we can start using the state of that store using a simple hook `
 
 ```typescript jsx
 import { UIStore } from "./stores/UIStore";
-import { useStoreState, update } from "pullstate";
+import { useStoreState } from "pullstate";
 
 const App = () => {
   const theme = useStoreState(UIStore, s => s.theme);
@@ -204,7 +204,7 @@ This hook uses React's context to obtain the current render's stores, given to u
 Lets refactor the previous client-side-only example to work with Server Rendering:
 
 ```typescript jsx
-import { useStoreState, update, useStores } from "pullstate";
+import { useStoreState, useStores } from "pullstate";
 
 const App = () => {
   const { UIStore, UserStore } = useStores();
