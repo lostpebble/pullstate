@@ -212,7 +212,7 @@ const App = () => {
   const userName = useStoreState(UserStore, s => s.userName)
 
   return (
-    <ThemeProvider theme={theme}>
+    <div className={`app ${theme}`}>
       <button
         onClick={() => {
           UIStore.update(s => {
@@ -222,7 +222,7 @@ const App = () => {
       >
         Switch it up, {userName}!
       </button>
-    </ThemeProvider>
+    </div>
   );
 };
 ```
@@ -260,12 +260,12 @@ ReactDOM.render(
 Basically, what this does is re-uses the exact stores that you originally created.
 
 This allows us to directly update those original stores on the client and we will receive updates
-as usual. Regularly, calling `instantiate()` creates a fresh copy of your stores (which is required on the
+as usual. Usually, calling `instantiate()` creates a fresh copy of your stores (which is required on the
 server, because each client request needs to maintain its own state), but on the client code - its perfectly
 fine to directly update your created stores because the state is contained to that client alone. But to do this,
 you need to pass `reuseStores: true` as mentioned above.
 
-For example, something like this:
+For example, you could now do something like this:
 
 ```typescript jsx
 import { UIStore, GraphStore } from "./stores"
