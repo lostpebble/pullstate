@@ -6,6 +6,7 @@ in your React tree using the wonderful concept of React hooks!
 * ~1.1KB minified and gzipped! (excluding Immer and React)
 * Built with Typescript, providing a great dev experience if you're using it too
 * Provides `<InjectStateStore>` render-prop component for those who don't like change 🐌
+* Uses [immer](https://github.com/mweststrate/immer) for state updates - easily and safely mutate your state directly!
 
 _Inspired by the now seemingly abandoned library - [bey](https://github.com/jamiebuilds/bey), sharing
 a similar interface but with a hooks implementation (and server-side rendering). Bey was in turn inspired by
@@ -44,17 +45,17 @@ const App = () => {
   const theme = useStoreState(UIStore, s => s.theme);
 
   return (
-    <ThemeProvider theme={theme}>
+    <div className={`app ${theme}`}>
       <button
         onClick={() => {
-          update(UIStore, s => {
+          UIStore.update(s => {
             s.theme.mode = theme.mode === EThemeMode.DARK ? EThemeMode.LIGHT : EThemeMode.DARK;
           });
         }}
       >
         Switch it up!
       </button>
-    </ThemeProvider>
+    </div>
   );
 };
 ```
@@ -92,7 +93,7 @@ const { theme, message } = useStoreState(UIStore, s => ({ theme: s.theme, messag
 Lastly, lets look at how we update our stores:
 
 ```typescript jsx
-update(UIStore, s => {
+UIStore.update(s => {
   s.theme.mode = theme.mode === EThemeMode.DARK ? EThemeMode.LIGHT : EThemeMode.DARK;
 });
 ```
