@@ -5,7 +5,7 @@ in your React tree using the wonderful concept of React hooks!
 
 * ~1.1KB minified and gzipped! (excluding Immer and React)
 * Built with Typescript, providing a great dev experience if you're using it too
-* Provides `<InjectStateStore>` component for those who don't like change 🐌
+* Provides `<InjectStoreState>` component for those who don't like change 🐌
 * Uses [immer](https://github.com/mweststrate/immer) for state updates - easily and safely mutate your state directly!
 
 _Inspired by the now seemingly abandoned library - [bey](https://github.com/jamiebuilds/bey), sharing
