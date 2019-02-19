@@ -39,7 +39,20 @@ class Store<S = any> {
   update(updater: (state: S) => void) {
     update(this, updater);
   }
+
+  /*asyncUpdate(updater: (state: S) => Promise<void>): Promise<void> {
+    return asyncUpdate(this, updater);
+  }*/
 }
+
+/*async function asyncUpdate<S = any>(store: Store<S>, updater: (state: S) => Promise<void>): Promise<void> {
+  const stateBeforeAsync: S = store._getState();
+  const nextState: S = await immer(stateBeforeAsync as any, updater);
+  const stateAfterAsync: S = store._getState();
+  if (nextState !== stateAfterAsync) {
+    store._updateState(nextState);
+  }
+}*/
 
 function update<S = any>(store: Store<S>, updater: (state: S) => void) {
   const currentState: S = store._getState();
