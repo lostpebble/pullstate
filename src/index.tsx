@@ -11,7 +11,6 @@ class Store<S = any> {
   private readonly initialState: S;
 
   constructor(initialState: S) {
-    console.log(`Constructing ${this.constructor.name}`);
     this.currentState = initialState;
     this.initialState = initialState;
   }
