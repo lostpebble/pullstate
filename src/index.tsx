@@ -4,19 +4,24 @@ import React, { useEffect, useState, useContext } from "react";
 
 export type TPullstateUpdateListener = () => void;
 
+export interface IStoreInternalOptions {
+  ssr: boolean;
+}
+
 // S = State
 class Store<S = any> {
   private updateListeners: TPullstateUpdateListener[] = [];
   private currentState: S;
   private readonly initialState: S;
+  private ssr: boolean = false;
 
   constructor(initialState: S) {
     this.currentState = initialState;
     this.initialState = initialState;
   }
 
-  _getState(): S {
-    return this.currentState;
+  _setInternalOptions({ ssr }: IStoreInternalOptions) {
+    this.ssr = ssr;
   }
 
   _getInitialState(): S {
@@ -25,7 +30,9 @@ class Store<S = any> {
 
   _updateState(nextState: S) {
     this.currentState = nextState;
-    this.updateListeners.forEach(listener => listener());
+    if (!this.ssr) {
+      this.updateListeners.forEach(listener => listener());
+    }
   }
 
   _addUpdateListener(listener: TPullstateUpdateListener) {
@@ -34,6 +41,10 @@ class Store<S = any> {
 
   _removeUpdateListener(listener: TPullstateUpdateListener) {
     this.updateListeners = this.updateListeners.filter(f => f !== listener);
+  }
+
+  getRawState(): S {
+    return this.currentState;
   }
 
   update(updater: (state: S) => void) {
@@ -55,7 +66,7 @@ class Store<S = any> {
 }*/
 
 function update<S = any>(store: Store<S>, updater: (state: S) => void) {
-  const currentState: S = store._getState();
+  const currentState: S = store.getRawState();
   const nextState: S = immer(currentState as any, updater);
   if (nextState !== currentState) {
     store._updateState(nextState);
@@ -71,7 +82,7 @@ function useStoreState(store: Store, getSubState?: (state) => any): any {
   let shouldUpdate = true;
 
   function onStoreUpdate() {
-    const nextSubState = getSubState ? getSubState(store._getState()) : store._getState();
+    const nextSubState = getSubState ? getSubState(store.getRawState()) : store.getRawState();
     if (shouldUpdate && !shallowEqual(subState, nextSubState)) {
       setSubState(nextSubState);
     }
@@ -87,7 +98,7 @@ function useStoreState(store: Store, getSubState?: (state) => any): any {
   });
 
   if (subState === null) {
-    return getSubState ? getSubState(store._getState()) : store._getState();
+    return getSubState ? getSubState(store.getRawState()) : store.getRawState();
   }
 
   return subState;
@@ -103,7 +114,7 @@ function InjectStoreState<S = any, SS = any>({
   store,
   on = s => s as any,
   children,
-}: IPropsInjectStoreState<S, SS>) {
+}: IPropsInjectStoreState<S, SS>): React.ReactElement {
   const state: SS = useStoreState(store, on);
   return children(state);
 }
@@ -112,17 +123,19 @@ export interface IPullstateAllStores {
   [storeName: string]: Store<any>;
 }
 
-const PullstateContext = React.createContext<IPullstateAllStores>({});
+const PullstateContext = React.createContext<PullstateInstance | null>(null);
 
 const PullstateProvider = <T extends IPullstateAllStores = IPullstateAllStores>({
-  stores,
+  instance,
   children,
 }: {
-  stores: T;
+  instance: PullstateInstance<T>;
   children?: any;
 }) => {
-  return <PullstateContext.Provider value={stores}>{children}</PullstateContext.Provider>;
+  return <PullstateContext.Provider value={instance}>{children}</PullstateContext.Provider>;
 };
+
+export type IUseAsyncWatcherResponse<ET extends string[] = string[]> = [boolean, boolean, ET];
 
 let singleton: PullstateSingleton | null = null;
 
@@ -143,8 +156,13 @@ export class PullstateSingleton<T extends IPullstateAllStores = IPullstateAllSto
   instantiate({
     hydrateState = null,
     reuseStores = false,
-  }: { hydrateState?: any; reuseStores?: boolean } = {}): PullstateInstance<T> {
+    ssr = false,
+  }: { hydrateState?: any; reuseStores?: boolean; ssr?: boolean } = {}): PullstateInstance<T> {
     if (reuseStores) {
+      if (ssr) {
+        console.error(`Pullstate (instantiate): Can's set { ssr: true } when using reuseStores (client-side only)`);
+      }
+
       const instantiated = new PullstateInstance(this.allInitialStores);
 
       if (hydrateState != null) {
@@ -167,31 +185,143 @@ export class PullstateSingleton<T extends IPullstateAllStores = IPullstateAllSto
           `Pullstate (instantiate): store [${storeName}] didn't hydrate any state (data was non-existent on hydration object)`
         );
       }
+
+      newStores[storeName]._setInternalOptions({ ssr });
     }
 
     return new PullstateInstance(newStores);
   }
 
-  useStores() {
-    return useContext(PullstateContext) as T;
+  useAsyncStateWatcher<ET extends string = string>(
+    asyncAction: (stores: T) => Promise<Array<ET>>,
+    keyValue: any
+  ): IUseAsyncWatcherResponse<Array<ET>> {
+    const key = JSON.stringify(keyValue);
+    // const [key, setKey] = useState(keyValue);
+    // const [firstRun, setFirstRun] = useState(true);
+    const [response, setResponse] = useState({ finished: true, error: false, endTags: [] });
+    const pullstate = useContext(PullstateContext);
+
+    let shouldUpdate = true;
+    useEffect(() => () => {
+      shouldUpdate = false;
+    });
+
+    if (pullstate._asyncContext.register.hasOwnProperty(keyValue)) {
+      console.log(`Pullstate Async: [${keyValue}] Already been run - do nothing`);
+      return [
+        true,
+        pullstate._asyncContext.register[keyValue].error,
+        pullstate._asyncContext.register[keyValue].endTags as ET[],
+      ];
+    } else {
+      console.log(`Pullstate Async: [${keyValue}] NEW async action`);
+      if (typeof window === "undefined") {
+        // on the server
+        pullstate._asyncContext.actions[keyValue] = () => asyncAction(pullstate.stores as T);
+      } else {
+        // on the client
+        asyncAction(pullstate.stores as T)
+          .then((endTags) => {
+            if (shouldUpdate) {
+              setResponse({ finished: true, error: false, endTags });
+            }
+          })
+          .catch(() => {
+            if (shouldUpdate) {
+              setResponse({ finished: false, error: true, endTags: [] });
+            }
+          });
+      }
+    }
+
+    /*if (hasOrPromise === true) {
+      return [false, false];
+    } else if (firstRun || !shallowEqual(key, keyValue)) {
+      setFirstRun(false);
+      setKey(keyValue);
+
+      if (typeof window === "undefined") {
+        // on the server
+        pullstate._asyncContext.registered[JSON.stringify(keyValue)] = () => hasOrPromise(pullstate.stores as T);
+      } else {
+        // on the client
+        hasOrPromise(pullstate.stores as T)
+          .then(() => {
+            if (shouldUpdate) {
+              setResponse({ loading: false, error: false });
+            }
+          })
+          .catch(() => {
+            if (shouldUpdate) {
+              setResponse({ loading: false, error: true });
+            }
+          });
+      }
+    }*/
+
+    // return [response.loading, response.error];
   }
+
+  useStores() {
+    return useContext(PullstateContext).stores as T;
+  }
+
+  createAsyncAction() {
+    return;
+  }
+}
+
+interface IPullstateAsyncRegister<ET extends string = string> {
+  [key: string]: {
+    error: boolean;
+    endTags: ET[];
+  };
+}
+
+interface IPullstateAsync<ET extends string = string> {
+  register: IPullstateAsyncRegister<ET>;
+  actions: {
+    [key: string]: () => Promise<Array<ET>>;
+  };
 }
 
 class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> {
   private readonly _stores: T = {} as T;
+  _asyncContext: IPullstateAsync = {
+    // resolved: {},
+    register: {},
+    actions: {},
+  };
 
   constructor(allStores: T) {
     this._stores = allStores;
   }
 
-  getAllState(): { [storeName: string]: any } {
+  getPullstateSnapshot(): { allState: { [storeName: string]: any }; asyncRegister: IPullstateAsyncRegister } {
     const allState = {};
 
     for (const storeName of Object.keys(this._stores)) {
-      allState[storeName] = this._stores[storeName]._getState();
+      allState[storeName] = this._stores[storeName].getRawState();
     }
 
-    return allState;
+    return { allState, asyncRegister: this._asyncContext.register };
+  }
+
+  async resolveAsyncState() {
+    const promises = Object.keys(this._asyncContext.actions).map(key =>
+      this._asyncContext.actions[key]().then(endTags => {
+        this._asyncContext.register[key].error = false;
+        this._asyncContext.register[key].endTags = endTags;
+      }).catch(e => {
+        this._asyncContext.register[key].error = true;
+      }).then(() => {
+        console.log(`Should run after each promise error / success`);
+        delete this._asyncContext.actions[key];
+      })
+    );
+
+    return Promise.all(promises);
   }
 
   get stores(): T {
@@ -214,7 +344,7 @@ function createPullstate<T extends IPullstateAllStores = IPullstateAllStores>(al
 }
 
 function useStores<T extends IPullstateAllStores = {}>() {
-  return useContext(PullstateContext) as T;
+  return useContext(PullstateContext).stores as T;
 }
 
 export { useStoreState, update, Store, InjectStoreState, PullstateProvider, useStores, createPullstate };

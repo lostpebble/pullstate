@@ -7,7 +7,7 @@
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1",
     "clean": "rimraf ./dist",
-    "build": "npm run clean && tsc && npm run uglify",
+    "build": "npm run clean && tsc",
     "uglify": "terser ./dist/index.js -o ./dist/index.js",
     "prepublish": "in-publish && npm run build"
   },
