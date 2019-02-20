@@ -98,8 +98,7 @@ UIStore.update(s => {
 });
 ```
 
-Using the power of [immer](https://github.com/mweststrate/immer), we update a store by passing
-it to a function called `update()`. The second argument is the updater function, which is given
+Using the power of [immer](https://github.com/mweststrate/immer), we update a store by calling a function called `update()` on it. The argument is the updater function, which is given
 the current state of our store to mutate however we like! For more information on how this works,
 go check out [immer](https://github.com/mweststrate/immer). Its great.
 
