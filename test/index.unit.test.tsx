@@ -1,5 +1,5 @@
 import React from "react";
-import { createPullstate, InjectStoreState, PullstateProvider, Store, update, useStoreState } from "../src/index";
+import { createPullstate, InjectStoreState, PullstateProvider, Store, update, useStoreState } from "../dist/index";
 import ReactDOMServer from "react-dom/server";
 
 interface IUIStore {

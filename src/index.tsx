@@ -15,10 +15,6 @@ class Store<S = any> {
     this.initialState = initialState;
   }
 
-  _getState(): S {
-    return this.currentState;
-  }
-
   _getInitialState(): S {
     return this.initialState;
   }
@@ -34,6 +30,10 @@ class Store<S = any> {
 
   _removeUpdateListener(listener: TPullstateUpdateListener) {
     this.updateListeners = this.updateListeners.filter(f => f !== listener);
+  }
+
+  getRawState(): S {
+    return this.currentState;
   }
 
   update(updater: (state: S) => void) {
@@ -55,7 +55,7 @@ class Store<S = any> {
 }*/
 
 function update<S = any>(store: Store<S>, updater: (state: S) => void) {
-  const currentState: S = store._getState();
+  const currentState: S = store.getRawState();
   const nextState: S = immer(currentState as any, updater);
   if (nextState !== currentState) {
     store._updateState(nextState);
@@ -67,11 +67,12 @@ function update<S = any>(store: Store<S>, updater: (state: S) => void) {
 function useStoreState<S = any>(store: Store<S>): S;
 function useStoreState<S = any, SS = any>(store: Store<S>, getSubState: (state: S) => SS): SS;
 function useStoreState(store: Store, getSubState?: (state) => any): any {
-  const [subState, setSubState] = useState<any | null>(null);
+  const [subState, setSubState] = useState<any | null>(() => getSubState ? getSubState(store.getRawState()) : store.getRawState());
+
   let shouldUpdate = true;
 
   function onStoreUpdate() {
-    const nextSubState = getSubState ? getSubState(store._getState()) : store._getState();
+    const nextSubState = getSubState ? getSubState(store.getRawState()) : store.getRawState();
     if (shouldUpdate && !shallowEqual(subState, nextSubState)) {
       setSubState(nextSubState);
     }
@@ -85,10 +86,6 @@ function useStoreState(store: Store, getSubState?: (state) => any): any {
       store._removeUpdateListener(onStoreUpdate);
     };
   });
-
-  if (subState === null) {
-    return getSubState ? getSubState(store._getState()) : store._getState();
-  }
 
   return subState;
 }
@@ -188,7 +185,7 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> {
     const allState = {};
 
     for (const storeName of Object.keys(this._stores)) {
-      allState[storeName] = this._stores[storeName]._getState();
+      allState[storeName] = this._stores[storeName].getRawState();
     }
 
     return allState;
