@@ -28,7 +28,7 @@ type TAsyncActionWatch<A, R> = (args?: A) => [boolean, boolean, R, boolean];
 type TAsyncActionRun<A, R> = (args?: A, treatAsUpdate?: boolean) => Promise<[boolean, R]>;
 // type TAsyncActionClearCache<A> = (args?: A) => void;
 
-export interface IOCreateAsyncActionOutput<A = any, R = any> {
+export interface IOCreateAsyncActionOutput<A, R> {
   watch: TAsyncActionWatch<A, R>;
   run: TAsyncActionRun<A, R>;
   // clearCache: TAsyncActionClearCache<A>;
@@ -50,7 +50,7 @@ export function createAsyncAction<A, R, S extends IPullstateAllStores = IPullsta
   action: TPullstateAsyncAction<A, S, R>,
   defaultArgs: A = {} as A,
   clientStores: S = {} as S,
-): IOCreateAsyncActionOutput {
+): IOCreateAsyncActionOutput<A, R> {
   const ordinal: number = asyncCreationOrdinal++;
   const onServer: boolean = typeof window === "undefined";
   console.log(`Creating async action with ordinal: ${ordinal} - action name: ${action.name}`);
