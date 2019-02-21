@@ -47,10 +47,6 @@ export class PullstateSingleton<T extends IPullstateAllStores = IPullstateAllSto
     ssr = false,
   }: { hydrateSnapshot?: IPullstateSnapshot; reuseStores?: boolean; ssr?: boolean } = {}): PullstateInstance<T> {
     if (!ssr) {
-      // if (ssr) {
-      //   console.error(`Pullstate (instantiate): Can's set { ssr: true } when using reuseStores (client-side only)`);
-      // }
-
       const instantiated = new PullstateInstance(this.originStores);
 
       if (hydrateSnapshot != null) {
@@ -80,52 +76,6 @@ export class PullstateSingleton<T extends IPullstateAllStores = IPullstateAllSto
     return new PullstateInstance(newStores);
   }
 
-  /*useAsyncStateWatcher<ET extends string = string>(
-    asyncAction: (stores: T) => Promise<Array<ET>>,
-    keyValue: any
-  ): IUseAsyncWatcherResponse<Array<ET>> {
-    const key = JSON.stringify(keyValue);
-    const [response, setResponse] = useState({ finished: true, error: false, endTags: [] });
-    const pullstate = useContext(PullstateContext);
-
-    let shouldUpdate = true;
-    useEffect(() => () => {
-      shouldUpdate = false;
-    });
-
-    if (pullstate._asyncCache.results.hasOwnProperty(keyValue)) {
-      console.log(`Pullstate Async: [${keyValue}] Already been run - do nothing`);
-      return [
-        true,
-        pullstate._asyncCache.results[keyValue].error,
-        pullstate._asyncCache.results[keyValue].endTags as ET[],
-      ];
-    } else {
-      console.log(`Pullstate Async: [${keyValue}] NEW async action`);
-      if (typeof window === "undefined") {
-        // on the server
-        pullstate._asyncCache.actions[keyValue] = () => asyncAction(pullstate.stores as T);
-      } else {
-        // on the client
-        asyncAction(pullstate.stores as T)
-          .then(endTags => {
-            if (shouldUpdate) {
-              pullstate._asyncCache.results[keyValue] = { endTags, error: false };
-              setResponse({ finished: true, error: false, endTags });
-            }
-          })
-          .catch(() => {
-            if (shouldUpdate) {
-              pullstate._asyncCache.results[keyValue] = { endTags: [], error: true };
-              setResponse({ finished: false, error: true, endTags: [] });
-            }
-          });
-      }
-    }
-
-    return [response.finished, response.error, response.endTags];
-  }*/
-
   useStores() {
     return useContext(PullstateContext).stores as T;
   }
@@ -135,20 +85,6 @@ export class PullstateSingleton<T extends IPullstateAllStores = IPullstateAllSto
   }
 }
 
-/*interface IPullstateAsyncRegister<ET extends string = string> {
-  [key: string]: {
-    error: boolean;
-    endTags: ET[];
-  };
-}*/
-
-/*interface IPullstateAsync<ET extends string = string> {
-  register: IPullstateAsyncRegister<ET>;
-  actions: {
-    [key: string]: () => Promise<Array<ET>>;
-  };
-}*/
-
 interface IPullstateSnapshot {
   allState: { [storeName: string]: any };
   asyncResults: IPullstateAsyncState;
@@ -157,7 +93,6 @@ interface IPullstateSnapshot {
 class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> {
   private readonly _stores: T = {} as T;
   _asyncCache: IPullstateAsyncCache = {
-    // resolved: {},
     listeners: {},
     results: {},
     actions: {},
