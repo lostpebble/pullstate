@@ -1,12 +1,28 @@
 import _ from "lodash";
 import Benchmark from "benchmark";
+import { keyFromObject } from "../../src/async";
 
-/*const args = {
+const testArgs = {
   limit: 300,
+  deeper: {
+    something: null,
+    cor: "false",
+    far: true,
+    egg: [false, null, undefined, 312, "eggs"],
+  },
   queryString: "bring-it-on-three",
   isItGood: true,
   anything: false,
-};*/
+};
+
+console.log(`\nkeyFromObject()`);
+console.log(keyFromObject(testArgs));
+console.log(`\ncustomKeyCreator()`);
+console.log(customKeyCreator(testArgs));
+console.log(`\nJSON.stringify()`);
+console.log(JSON.stringify(testArgs));
+console.log(`\nJSON stringify replace quotes:`);
+console.log(jsonStringifyReplaceQuotes(testArgs));
 
 const randomNumbers = [100, 200, 300, 400, 500];
 const randomQueryString = [
@@ -19,37 +35,37 @@ const randomQueryString = [
 const randomBools = [true, false, true, false, false];
 const randomAny = [null, undefined, 123, false, "asdasduqoweuh"];
 
-function keyFromObject(jsonObject) {
-  if (typeof jsonObject !== "object" || Array.isArray(jsonObject)) {
-    // not an object, stringify using native function
+/*function keyFromObject(jsonObject: any): string {
+  if (typeof jsonObject !== "object" || Array.isArray(jsonObject) || jsonObject === null || jsonObject === undefined) {
     if (typeof jsonObject === "string") {
       return `${jsonObject}`;
     }
     return JSON.stringify(jsonObject);
   }
-  // Implements recursive object serialization according to JSON spec
-  // but without quotes around the keys.
+
   let props = Object.keys(jsonObject)
     .sort()
     .map(key => `${key}:${keyFromObject(jsonObject[key])}`)
     .join(",");
-  return `{${props}}`;
-}
+  return `${props}`;
+}*/
 
-function customKeyCreator(json: any) {
+function customKeyCreator(json: any): string {
   if (json == null) {
     return `${json}`;
   }
 
   let prefix = "";
 
-  for (const key of Object.keys(json)) {
+  for (const key of Object.keys(json).sort()) {
     prefix += key;
 
     if (typeof json[key] == null) {
       prefix += JSON.stringify(json[key]);
-    } else if (typeof json[key] === "string" || typeof json[key] === "boolean" || typeof json[key] === "number") {
-      prefix += `${json[key]}`;
+    } else if (typeof json[key] === "string" ) {
+      prefix += `~${json[key]}~`;
+    } else if (typeof json[key] === "boolean" || typeof json[key] === "number") {
+      prefix += json[key];
     } else {
       prefix += customKeyCreator(json[key]);
     }
@@ -93,23 +109,32 @@ const suite = new Benchmark.Suite();
 // console.log(keyFromObject(args[0]));
 // console.log(JSON.stringify(args[0]));
 
+const args = createRandomArgs(200);
+
+function jsonStringifyReplaceQuotes(obj: any) {
+  return JSON.stringify(obj).replace("\"", "-");
+}
+
+console.log("\n");
+
 suite
   .add(`JSON.stringify()`, function() {
-    const args = createRandomArgs(200);
     runKeyCreator(JSON.stringify, args);
   })
-  .add(`customKeyCreator()`, function() {
-    const args = createRandomArgs(200);
-    runKeyCreator(customKeyCreator, args);
+  .add(`JSON.stringify()-replace-quotes`, function() {
+    runKeyCreator(jsonStringifyReplaceQuotes, args);
   })
   .add(`keyFromObject()`, function() {
-    const args = createRandomArgs(200);
     runKeyCreator(keyFromObject, args);
   })
+  .add(`customKeyCreator()`, function() {
+    runKeyCreator(customKeyCreator, args);
+  })
   .on("cycle", function(event) {
+    // console.log(event);
     console.log(String(event.target));
   })
   .on("complete", function() {
     console.log("Fastest is " + this.filter("fastest").map("name"));
   })
-  .run({ async: true });
+  .run();

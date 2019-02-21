@@ -19,10 +19,7 @@ export interface IPullstateAsyncCache {
   };
 }
 
-export type TPullstateAsyncAction<A, S extends IPullstateAllStores, R> = (
-  args: A,
-  stores: S
-) => Promise<R>;
+export type TPullstateAsyncAction<A, S extends IPullstateAllStores, R> = (args: A, stores: S) => Promise<R>;
 
 type TAsyncActionWatch<A, R> = (args?: A) => [boolean, boolean, R, boolean];
 type TAsyncActionRun<A, R> = (args?: A, treatAsUpdate?: boolean) => Promise<[boolean, R]>;
@@ -42,14 +39,38 @@ export const clientAsyncCache: IPullstateAsyncCache = {
 
 let asyncCreationOrdinal = 0;
 
+export function keyFromObject(json: any): string {
+  if (json == null) {
+    return `${json}`;
+  }
+
+  let prefix = "";
+
+  for (const key of Object.keys(json).sort()) {
+    prefix += key;
+
+    if (typeof json[key] == null) {
+      prefix += JSON.stringify(json[key]);
+    } else if (typeof json[key] === "string") {
+      prefix += `~${json[key]}~`;
+    } else if (typeof json[key] === "boolean" || typeof json[key] === "number") {
+      prefix += json[key];
+    } else {
+      prefix += keyFromObject(json[key]);
+    }
+  }
+
+  return prefix;
+}
+
 function createKey(ordinal, args: any) {
-  return `${ordinal}-${JSON.stringify(args)}`;
+  return `${ordinal}-${keyFromObject(args)}`;
 }
 
 export function createAsyncAction<A, R, S extends IPullstateAllStores = IPullstateAllStores>(
   action: TPullstateAsyncAction<A, S, R>,
   defaultArgs: A = {} as A,
-  clientStores: S = {} as S,
+  clientStores: S = {} as S
 ): IOCreateAsyncActionOutput<A, R> {
   const ordinal: number = asyncCreationOrdinal++;
   const onServer: boolean = typeof window === "undefined";
@@ -59,10 +80,12 @@ export function createAsyncAction<A, R, S extends IPullstateAllStores = IPullsta
     const key = createKey(ordinal, args);
     let shouldUpdate = true;
 
-    const cache: IPullstateAsyncCache = onServer ? useContext(PullstateContext)._asyncCache : clientAsyncCache;
-    const stores = onServer ? useContext(PullstateContext).stores as S : clientStores;
+    // console.log(`Got args: with key: ${key}`);
 
-    const [response, setResponse] = useState<[boolean, boolean, R, boolean]>(() => {
+    const cache: IPullstateAsyncCache = onServer ? useContext(PullstateContext)._asyncCache : clientAsyncCache;
+    const stores = onServer ? (useContext(PullstateContext).stores as S) : clientStores;
+
+    function checkKeyAndReturnResponse(key: string): [boolean, boolean, R, boolean] {
       if (cache.results.hasOwnProperty(key)) {
         console.log(`Pullstate Async: [${key}] Already been run - do nothing`);
         return [true, false, null, false];
@@ -93,7 +116,17 @@ export function createAsyncAction<A, R, S extends IPullstateAllStores = IPullsta
       }
 
       return [false, false, null, false];
+    }
+
+    const [prevKey, setPrevKey] = useState<string>(key);
+    const [response, setResponse] = useState<[boolean, boolean, R, boolean]>(() => {
+      return checkKeyAndReturnResponse(key);
     });
+
+    if (prevKey !== key) {
+      setPrevKey(key);
+      setResponse(checkKeyAndReturnResponse(key));
+    }
 
     // only listen for updates when on client
     if (!onServer) {
