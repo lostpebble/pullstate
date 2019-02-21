@@ -1,6 +1,6 @@
 import React, { useEffect, useState, useContext } from "react";
 import { Store } from "./index";
-import { IPullstateAsyncCache, IPullstateAsyncRegister } from "./async";
+import { IPullstateAsyncCache, IPullstateAsyncState } from "./async";
 
 export interface IPullstateAllStores {
   [storeName: string]: Store<any>;
@@ -88,12 +88,12 @@ export class PullstateSingleton<T extends IPullstateAllStores = IPullstateAllSto
       shouldUpdate = false;
     });
 
-    if (pullstate._asyncCache.register.hasOwnProperty(keyValue)) {
+    if (pullstate._asyncCache.results.hasOwnProperty(keyValue)) {
       console.log(`Pullstate Async: [${keyValue}] Already been run - do nothing`);
       return [
         true,
-        pullstate._asyncCache.register[keyValue].error,
-        pullstate._asyncCache.register[keyValue].endTags as ET[],
+        pullstate._asyncCache.results[keyValue].error,
+        pullstate._asyncCache.results[keyValue].endTags as ET[],
       ];
     } else {
       console.log(`Pullstate Async: [${keyValue}] NEW async action`);
@@ -105,13 +105,13 @@ export class PullstateSingleton<T extends IPullstateAllStores = IPullstateAllSto
         asyncAction(pullstate.stores as T)
           .then(endTags => {
             if (shouldUpdate) {
-              pullstate._asyncCache.register[keyValue] = { endTags, error: false };
+              pullstate._asyncCache.results[keyValue] = { endTags, error: false };
               setResponse({ finished: true, error: false, endTags });
             }
           })
           .catch(() => {
             if (shouldUpdate) {
-              pullstate._asyncCache.register[keyValue] = { endTags: [], error: true };
+              pullstate._asyncCache.results[keyValue] = { endTags: [], error: true };
               setResponse({ finished: false, error: true, endTags: [] });
             }
           });
@@ -146,7 +146,7 @@ export class PullstateSingleton<T extends IPullstateAllStores = IPullstateAllSto
 
 interface IPullstateSnapshot {
   allState: { [storeName: string]: any };
-  asyncRegister: IPullstateAsyncRegister;
+  asyncRegister: IPullstateAsyncState;
 }
 
 class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> {
@@ -154,7 +154,7 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> {
   _asyncCache: IPullstateAsyncCache = {
     // resolved: {},
     listeners: {},
-    register: {},
+    results: {},
     actions: {},
   };
 
@@ -169,17 +169,17 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> {
       allState[storeName] = this._stores[storeName].getRawState();
     }
 
-    return { allState, asyncRegister: this._asyncCache.register };
+    return { allState, asyncRegister: this._asyncCache.results };
   }
 
   async resolveAsyncState() {
     const promises = Object.keys(this._asyncCache.actions).map(key =>
       this._asyncCache.actions[key]()
         .then(endTags => {
-          this._asyncCache.register[key] = { error: false, endTags };
+          this._asyncCache.results[key] = { error: false, endTags };
         })
         .catch(e => {
-          this._asyncCache.register[key] = { error: true, endTags: [] };
+          this._asyncCache.results[key] = { error: true, endTags: [] };
         })
         .then(() => {
           console.log(`Should run after each promise error / success`);
@@ -203,7 +203,7 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> {
       }
     }
 
-    this._asyncCache.register = snapshot.asyncRegister;
+    this._asyncCache.results = snapshot.asyncRegister;
   }
 }
 
