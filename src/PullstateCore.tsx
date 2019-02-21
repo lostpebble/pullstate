@@ -1,6 +1,12 @@
 import React, { useEffect, useState, useContext } from "react";
 import { Store } from "./index";
-import { IPullstateAsyncCache, IPullstateAsyncState } from "./async";
+import {
+  clientAsyncCache,
+  createAsyncAction,
+  IPullstateAsyncCache,
+  IPullstateAsyncState,
+  TPullstateAsyncAction
+} from "./async";
 
 export interface IPullstateAllStores {
   [storeName: string]: Store<any>;
@@ -23,7 +29,7 @@ export type IUseAsyncWatcherResponse<ET extends string[] = string[]> = [boolean,
 let singleton: PullstateSingleton | null = null;
 
 export class PullstateSingleton<T extends IPullstateAllStores = IPullstateAllStores> {
-  private readonly allInitialStores: T = {} as T;
+  private readonly originStores: T = {} as T;
 
   constructor(allStores: T) {
     if (singleton !== null) {
@@ -33,20 +39,19 @@ export class PullstateSingleton<T extends IPullstateAllStores = IPullstateAllSto
     }
 
     singleton = this;
-    this.allInitialStores = allStores;
+    this.originStores = allStores;
   }
 
   instantiate({
     hydrateSnapshot = null,
-    reuseStores = false,
     ssr = false,
   }: { hydrateSnapshot?: IPullstateSnapshot; reuseStores?: boolean; ssr?: boolean } = {}): PullstateInstance<T> {
-    if (reuseStores) {
-      if (ssr) {
-        console.error(`Pullstate (instantiate): Can's set { ssr: true } when using reuseStores (client-side only)`);
-      }
+    if (!ssr) {
+      // if (ssr) {
+      //   console.error(`Pullstate (instantiate): Can's set { ssr: true } when using reuseStores (client-side only)`);
+      // }
 
-      const instantiated = new PullstateInstance(this.allInitialStores);
+      const instantiated = new PullstateInstance(this.originStores);
 
       if (hydrateSnapshot != null) {
         instantiated.hydrateFromSnapshot(hydrateSnapshot);
@@ -57,13 +62,13 @@ export class PullstateSingleton<T extends IPullstateAllStores = IPullstateAllSto
 
     const newStores = {} as T;
 
-    for (const storeName of Object.keys(this.allInitialStores)) {
+    for (const storeName of Object.keys(this.originStores)) {
       if (hydrateSnapshot == null) {
-        newStores[storeName] = new Store(this.allInitialStores[storeName]._getInitialState());
+        newStores[storeName] = new Store(this.originStores[storeName]._getInitialState());
       } else if (hydrateSnapshot.hasOwnProperty(storeName)) {
         newStores[storeName] = new Store(hydrateSnapshot.allState[storeName]);
       } else {
-        newStores[storeName] = new Store(this.allInitialStores[storeName]._getInitialState());
+        newStores[storeName] = new Store(this.originStores[storeName]._getInitialState());
         console.warn(
           `Pullstate (instantiate): store [${storeName}] didn't hydrate any state (data was non-existent on hydration object)`
         );
@@ -75,7 +80,7 @@ export class PullstateSingleton<T extends IPullstateAllStores = IPullstateAllSto
     return new PullstateInstance(newStores);
   }
 
-  useAsyncStateWatcher<ET extends string = string>(
+  /*useAsyncStateWatcher<ET extends string = string>(
     asyncAction: (stores: T) => Promise<Array<ET>>,
     keyValue: any
   ): IUseAsyncWatcherResponse<Array<ET>> {
@@ -119,14 +124,14 @@ export class PullstateSingleton<T extends IPullstateAllStores = IPullstateAllSto
     }
 
     return [response.finished, response.error, response.endTags];
-  }
+  }*/
 
   useStores() {
     return useContext(PullstateContext).stores as T;
   }
 
-  createAsyncAction() {
-    return;
+  createAsyncAction<A = any, R = any>(action: TPullstateAsyncAction<A, T, R>, defaultArgs: A = {} as A) {
+    return createAsyncAction<A, R, T>(action, defaultArgs, this.originStores);
   }
 }
 
@@ -146,7 +151,7 @@ export class PullstateSingleton<T extends IPullstateAllStores = IPullstateAllSto
 
 interface IPullstateSnapshot {
   allState: { [storeName: string]: any };
-  asyncRegister: IPullstateAsyncState;
+  asyncResults: IPullstateAsyncState;
 }
 
 class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> {
@@ -169,17 +174,17 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> {
       allState[storeName] = this._stores[storeName].getRawState();
     }
 
-    return { allState, asyncRegister: this._asyncCache.results };
+    return { allState, asyncResults: this._asyncCache.results };
   }
 
   async resolveAsyncState() {
     const promises = Object.keys(this._asyncCache.actions).map(key =>
       this._asyncCache.actions[key]()
-        .then(endTags => {
-          this._asyncCache.results[key] = { error: false, endTags };
+        .then(resp => {
+          this._asyncCache.results[key] = [true, false, resp, false];
         })
         .catch(e => {
-          this._asyncCache.results[key] = { error: true, endTags: [] };
+          this._asyncCache.results[key] = [true, true, null, false];
         })
         .then(() => {
           console.log(`Should run after each promise error / success`);
@@ -203,7 +208,7 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> {
       }
     }
 
-    this._asyncCache.results = snapshot.asyncRegister;
+    clientAsyncCache.results = snapshot.asyncResults;
   }
 }
 
