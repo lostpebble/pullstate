@@ -153,6 +153,7 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> {
   private readonly _stores: T = {} as T;
   _asyncCache: IPullstateAsyncCache = {
     // resolved: {},
+    listeners: {},
     register: {},
     actions: {},
   };
