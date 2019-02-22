@@ -1,5 +1,4 @@
 import { IPullstateAllStores, PullstateContext } from "./PullstateCore";
-// import shallowEqual from "fbjs/lib/shallowEqual";
 const shallowEqual = require("fbjs/lib/shallowEqual");
 import { useContext, useEffect, useState } from "react";
 
@@ -87,7 +86,7 @@ export function createAsyncAction<A, R, S extends IPullstateAllStores = IPullsta
 ): IOCreateAsyncActionOutput<A, R> {
   const ordinal: number = asyncCreationOrdinal++;
   const onServer: boolean = typeof window === "undefined";
-  console.log(`Creating async action with ordinal: ${ordinal} - action name: ${action.name}`);
+  // console.log(`Creating async action with ordinal: ${ordinal} - action name: ${action.name}`);
 
   const watch: TAsyncActionWatch<A, R> = (args = defaultArgs) => {
     const key = createKey(ordinal, args);
@@ -98,11 +97,11 @@ export function createAsyncAction<A, R, S extends IPullstateAllStores = IPullsta
 
     function checkKeyAndReturnResponse(key: string): TPullstateAsyncResponse<R> {
       if (cache.results.hasOwnProperty(key)) {
-        console.log(`Pullstate Async: [${key}] Already been run - do nothing`);
+        // console.log(`Pullstate Async: [${key}] Already been run - do nothing`);
         return [true, null, false];
       }
 
-      console.log(`Pullstate Async: [${key}] has no results yet`);
+      // console.log(`Pullstate Async: [${key}] has no results yet`);
 
       // check if it is already pending as an action
       if (!cache.actions.hasOwnProperty(key)) {
@@ -119,7 +118,6 @@ export function createAsyncAction<A, R, S extends IPullstateAllStores = IPullsta
             })
             .then(() => {
               delete cache.actions[key];
-              console.log(`Notifying listeners on key [${key}] after async action completes`);
               notifyListeners(key);
             });
         }
@@ -131,7 +129,6 @@ export function createAsyncAction<A, R, S extends IPullstateAllStores = IPullsta
     // only listen for updates when on client
     if (!onServer) {
       function onAsyncStateChanged() {
-        console.log(`Need to react to a new load or finish`);
         if (shouldUpdate && !shallowEqual(response, cache.results[key])) {
           setResponse(checkKeyAndReturnResponse(key));
         }
@@ -142,12 +139,12 @@ export function createAsyncAction<A, R, S extends IPullstateAllStores = IPullsta
           cache.listeners[key] = [];
         }
 
-        console.log(`Adding listener for key: ${key}`);
+        // console.log(`Adding listener for key: ${key}`);
         cache.listeners[key].push(onAsyncStateChanged);
 
         return () => {
           shouldUpdate = false;
-          console.log(`Removing listener for key: ${key}`);
+          // console.log(`Removing listener for key: ${key}`);
           cache.listeners[key] = cache.listeners[key].filter(f => f !== onAsyncStateChanged);
         };
       }, [key]);

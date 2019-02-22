@@ -1,21 +1,13 @@
 import React from "react";
-import { createPullstate, InjectStoreState, PullstateProvider, Store, update, useStoreState } from "../dist/index";
+import { createPullstate, InjectStoreState, PullstateProvider, Store, update, useStoreState } from "../../src/index";
 import ReactDOMServer from "react-dom/server";
+import { TestUIStore } from "./testStores/TestUIStore";
+const beautify = require('js-beautify').html;
 
-interface IUIStore {
-  count: number;
-  message: string;
-}
-
-const UIStore = new Store<IUIStore>({
-  count: 5,
-  message: "what what!",
-});
-
-const Pullstate = createPullstate({ UIStore });
+const Pullstate = createPullstate({ TestUIStore });
 
 const Counter = () => {
-  const { UIStore: ui } = Pullstate.useStores();
+  const { TestUIStore: ui } = Pullstate.useStores();
   const count = useStoreState(ui, s => s.count);
 
   return (
@@ -23,7 +15,7 @@ const Counter = () => {
       <b>{count}</b> -{" "}
       <button
         onClick={() =>
-          update(UIStore, s => {
+          update(ui, s => {
             s.count++;
           })
         }
@@ -35,7 +27,7 @@ const Counter = () => {
 };
 
 const App = () => {
-  const { UIStore: ui } = Pullstate.useStores();
+  const { TestUIStore: ui } = Pullstate.useStores();
 
   return (
     <div>
@@ -61,16 +53,20 @@ const App = () => {
   );
 };
 
-describe("Pullstate with context", () => {
-  const instance = Pullstate.instantiate();
+describe("Server Side Rendering tests", () => {
+  const instance = Pullstate.instantiate({ ssr: true });
+
+  instance.stores.TestUIStore.update(s => {
+    s.message = "hey there!";
+  });
 
   const ReactApp = (
-    <PullstateProvider stores={instance.stores}>
+    <PullstateProvider instance={instance}>
       <App />
     </PullstateProvider>
   );
 
-  it("Should be able to display its data", () => {
-    expect(ReactDOMServer.renderToString(ReactApp)).toMatchSnapshot();
+  it("Should be able to display data that's been changed on the server directly", () => {
+    expect(beautify(ReactDOMServer.renderToString(ReactApp))).toMatchSnapshot();
   });
 });

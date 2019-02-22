@@ -1,0 +1,15 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Pullstate on client only Should be able to render its data 1`] = `
+"<div data-reactroot=\\"\\">
+    <h1>Some test</h1>
+    <div>
+        <h2>what what!</h2><input value=\\"what what!\\" />
+    </div>
+    <h2>5</h2>
+    <div>
+        <h3>Count:
+            <!-- -->5</h3><button>PLUS</button>
+    </div>
+</div>"
+`;

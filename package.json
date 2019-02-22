@@ -7,7 +7,7 @@
   "types": "dist/index.d.ts",
   "files": ["dist"],
   "scripts": {
-    "test": "echo \"Error: no test specified\" && exit 1",
+    "test": "jest",
     "clean": "rimraf ./dist",
     "build": "npm run clean && rollup -c",
     "build-full": "npm run clean && tsc",
@@ -33,7 +33,7 @@
   "devDependencies": {
     "@types/benchmark": "^1.0.31",
     "@types/jest": "23.3.10",
-    "@types/react": "^16.8.3",
+    "@types/react": "^16.8.4",
     "@types/react-dom": "^16.8.2",
     "benchmark": "^2.1.4",
     "in-publish": "^2.0.0",
@@ -43,6 +43,8 @@
     "lodash": "^4.17.11",
     "prettier": "^1.16.4",
     "react-test-renderer": "^16.8.2",
+    "react": "^16.8.3",
+    "react-dom": "^16.8.3",
     "rollup": "^1.2.2",
     "rollup-plugin-typescript2": "^0.19.2",
     "rollup-plugin-commonjs": "^9.2.0",
@@ -52,7 +54,8 @@
     "ts-node": "^8.0.2",
     "typescript": "^3.3.3333",
     "webpack": "^4.29.5",
-    "webpack-cli": "^3.2.3"
+    "webpack-cli": "^3.2.3",
+    "js-beautify": "^1.9.0-beta5"
   },
   "peerDependencies": {
     "react": "^16.8.2"
@@ -68,7 +71,7 @@
       "node"
     ],
     "testEnvironment": "jsdom",
-    "testRegex": "(/__tests__/.*|(\\.|/)(test|spec))\\.(jsx?|tsx?)$",
+    "testRegex": "((test|spec)|(tests|specs))\\.(jsx?|tsx?)$",
     "transform": {
       "^.+\\.tsx?$": "ts-jest"
     },

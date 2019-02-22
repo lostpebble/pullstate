@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useMemo } from "react";
 import { Store } from "./Store";
 import { useStoreState } from "./useStoreState";
 
@@ -14,5 +14,5 @@ export function InjectStoreState<S = any, SS = any>({
   children,
 }: IPropsInjectStoreState<S, SS>): React.ReactElement {
   const state: SS = useStoreState(store, on);
-  return children(state);
+  return useMemo(() => children(state), [state]);
 }

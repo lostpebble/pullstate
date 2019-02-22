@@ -1,0 +1,13 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Server Side Rendering tests Should be able to display data that's been changed on the server directly 1`] = `
+"<div>
+    <h1>Some test</h1>
+    <div>
+        <h2>hey there!</h2><input value=\\"hey there!\\" />
+    </div>
+    <h2>5</h2>
+    <div><b>5</b> -
+        <!-- --> <button>+</button></div>
+</div>"
+`;

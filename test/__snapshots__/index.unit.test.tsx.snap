@@ -1,3 +1,0 @@
-// Jest Snapshot v1, https://goo.gl/fbAQLP
-
-exports[`Pullstate with context Should be able to display its data 1`] = `"<div><h1>Some test</h1><div><h2>what what!</h2><input value=\\"what what!\\"/></div><h2>5</h2><div><b>5</b> -<!-- --> <button>+</button></div></div>"`;
