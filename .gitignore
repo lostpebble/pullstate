@@ -1,3 +1,5 @@
 node_modules
 .idea
 dist
+yarn-error.log
+.rpt2_cache
