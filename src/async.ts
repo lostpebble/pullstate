@@ -1,12 +1,14 @@
 import { IPullstateAllStores, PullstateContext } from "./PullstateCore";
-import shallowEqual from "fbjs/lib/shallowEqual";
+// import shallowEqual from "fbjs/lib/shallowEqual";
+const shallowEqual = require("fbjs/lib/shallowEqual");
 import { useContext, useEffect, useState } from "react";
 
 type TPullstateAsyncUpdateListener = () => void;
 
+export type TPullstateAsyncResponse<R> = [boolean, null | R, boolean];
 // result state = [ finished, error, resp, updating ]
 export interface IPullstateAsyncState {
-  [key: string]: [boolean, boolean, any, boolean];
+  [key: string]: TPullstateAsyncResponse<any>;
 }
 
 export interface IPullstateAsyncCache {
@@ -19,16 +21,16 @@ export interface IPullstateAsyncCache {
   };
 }
 
-export type TPullstateAsyncAction<A, S extends IPullstateAllStores, R> = (args: A, stores: S) => Promise<R>;
+export type TPullstateAsyncAction<A, R, S extends IPullstateAllStores> = (args: A, stores: S) => Promise<R>;
 
-type TAsyncActionWatch<A, R> = (args?: A) => [boolean, boolean, R, boolean];
-type TAsyncActionRun<A, R> = (args?: A, treatAsUpdate?: boolean) => Promise<[boolean, R]>;
-// type TAsyncActionClearCache<A> = (args?: A) => void;
+type TAsyncActionWatch<A, R> = (args?: A) => TPullstateAsyncResponse<R>;
+type TAsyncActionRun<A, R> = (args?: A, options?: IAsyncActionRunOptions) => Promise<[boolean, R]>;
+type TAsyncActionClearCache<A> = (args?: A) => void;
 
 export interface IOCreateAsyncActionOutput<A, R> {
   watch: TAsyncActionWatch<A, R>;
   run: TAsyncActionRun<A, R>;
-  // clearCache: TAsyncActionClearCache<A>;
+  clearCache: TAsyncActionClearCache<A>;
 }
 
 export const clientAsyncCache: IPullstateAsyncCache = {
@@ -67,8 +69,19 @@ function createKey(ordinal, args: any) {
   return `${ordinal}-${keyFromObject(args)}`;
 }
 
+function notifyListeners(key: string) {
+  console.log(`Notifying (${clientAsyncCache.listeners[key].length}) listeners for key: ${key}`);
+  for (const listener of clientAsyncCache.listeners[key]) {
+    listener();
+  }
+}
+
+export interface IAsyncActionRunOptions {
+  treatAsUpdate?: boolean;
+}
+
 export function createAsyncAction<A, R, S extends IPullstateAllStores = IPullstateAllStores>(
-  action: TPullstateAsyncAction<A, S, R>,
+  action: TPullstateAsyncAction<A, R, S>,
   defaultArgs: A = {} as A,
   clientStores: S = {} as S
 ): IOCreateAsyncActionOutput<A, R> {
@@ -80,15 +93,13 @@ export function createAsyncAction<A, R, S extends IPullstateAllStores = IPullsta
     const key = createKey(ordinal, args);
     let shouldUpdate = true;
 
-    // console.log(`Got args: with key: ${key}`);
-
     const cache: IPullstateAsyncCache = onServer ? useContext(PullstateContext)._asyncCache : clientAsyncCache;
     const stores = onServer ? (useContext(PullstateContext).stores as S) : clientStores;
 
-    function checkKeyAndReturnResponse(key: string): [boolean, boolean, R, boolean] {
+    function checkKeyAndReturnResponse(key: string): TPullstateAsyncResponse<R> {
       if (cache.results.hasOwnProperty(key)) {
         console.log(`Pullstate Async: [${key}] Already been run - do nothing`);
-        return [true, false, null, false];
+        return [true, null, false];
       }
 
       console.log(`Pullstate Async: [${key}] has no results yet`);
@@ -101,31 +112,20 @@ export function createAsyncAction<A, R, S extends IPullstateAllStores = IPullsta
         if (!onServer) {
           cache.actions[key]()
             .then(resp => {
-              cache.results[key] = [true, false, resp, false];
+              cache.results[key] = [true, resp, false];
             })
             .catch(() => {
-              cache.results[key] = [true, true, null, false];
+              cache.results[key] = [true, null, false];
             })
             .then(() => {
               delete cache.actions[key];
-              for (const listener of cache.listeners[key]) {
-                listener();
-              }
+              console.log(`Notifying listeners on key [${key}] after async action completes`);
+              notifyListeners(key);
             });
         }
       }
 
-      return [false, false, null, false];
-    }
-
-    const [prevKey, setPrevKey] = useState<string>(key);
-    const [response, setResponse] = useState<[boolean, boolean, R, boolean]>(() => {
-      return checkKeyAndReturnResponse(key);
-    });
-
-    if (prevKey !== key) {
-      setPrevKey(key);
-      setResponse(checkKeyAndReturnResponse(key));
+      return [false, null, false];
     }
 
     // only listen for updates when on client
@@ -133,7 +133,7 @@ export function createAsyncAction<A, R, S extends IPullstateAllStores = IPullsta
       function onAsyncStateChanged() {
         console.log(`Need to react to a new load or finish`);
         if (shouldUpdate && !shallowEqual(response, cache.results[key])) {
-          setResponse(cache.results[key]);
+          setResponse(checkKeyAndReturnResponse(key));
         }
       }
 
@@ -142,49 +142,69 @@ export function createAsyncAction<A, R, S extends IPullstateAllStores = IPullsta
           cache.listeners[key] = [];
         }
 
+        console.log(`Adding listener for key: ${key}`);
         cache.listeners[key].push(onAsyncStateChanged);
 
         return () => {
           shouldUpdate = false;
-          cache.listeners[key].filter(f => f !== onAsyncStateChanged);
+          console.log(`Removing listener for key: ${key}`);
+          cache.listeners[key] = cache.listeners[key].filter(f => f !== onAsyncStateChanged);
         };
-      });
+      }, [key]);
+    }
+
+    const [response, setResponse] = useState<TPullstateAsyncResponse<R>>(() => {
+      return checkKeyAndReturnResponse(key);
+    });
+
+    const [prevKey, setPrevKey] = useState<string>(key);
+
+    if (prevKey !== key) {
+      setPrevKey(key);
+      setResponse(checkKeyAndReturnResponse(key));
     }
 
     return response;
   };
 
-  const run: TAsyncActionRun<A, R> = async (args = defaultArgs, treatAsUpdate = false) => {
+  const run: TAsyncActionRun<A, R> = async (args = defaultArgs, { treatAsUpdate = false }: IAsyncActionRunOptions = {}) => {
     const key = createKey(ordinal, args);
 
-    const currentResult = clientAsyncCache.results[key];
+    const [prevFinished, prevResp] = clientAsyncCache.results[key] || [false, null];
 
-    if (currentResult[0] && treatAsUpdate) {
-      clientAsyncCache.results[key] = [true, false, currentResult[2], true];
+    if (prevFinished && treatAsUpdate) {
+      clientAsyncCache.results[key] = [true, prevResp, true];
     } else {
-      clientAsyncCache.results[key] = [false, false, null, false];
+      clientAsyncCache.results[key] = [false, null, false];
     }
 
-    for (const listener of clientAsyncCache.listeners[key]) {
-      listener();
-    }
+    notifyListeners(key);
+
+    // for (const listener of clientAsyncCache.listeners[key]) {
+    //   listener();
+    // }
 
     try {
       const resp = await action(args, clientStores);
-      clientAsyncCache.results[key] = [true, false, resp, false];
+      clientAsyncCache.results[key] = [true, resp, false];
+      notifyListeners(key);
       return [false, resp];
     } catch (e) {
-      clientAsyncCache.results[key] = [true, true, null, false];
+      clientAsyncCache.results[key] = [true, null, false];
+      notifyListeners(key);
       return [true, null];
     }
   };
 
-  /*const clearCache: TAsyncActionClearCache<A> = (args = {} as A) => {
-
-  };*/
+  const clearCache: TAsyncActionClearCache<A> = (args = {} as A) => {
+    const key = createKey(ordinal, args);
+    delete clientAsyncCache.results[key];
+    notifyListeners(key);
+  };
 
   return {
     watch,
     run,
+    clearCache,
   };
 }

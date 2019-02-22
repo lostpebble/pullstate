@@ -1,4 +1,4 @@
-import immer from "immer";
+const immer = require("immer").default;
 
 export type TPullstateUpdateListener = () => void;
 

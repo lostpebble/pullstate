@@ -1,8 +1,8 @@
 import React, { useEffect, useState, useContext } from "react";
-import { Store } from "./index";
+import { Store } from ".";
 import {
   clientAsyncCache,
-  createAsyncAction,
+  createAsyncAction, IOCreateAsyncActionOutput,
   IPullstateAsyncCache,
   IPullstateAsyncState,
   TPullstateAsyncAction
@@ -76,11 +76,11 @@ export class PullstateSingleton<T extends IPullstateAllStores = IPullstateAllSto
     return new PullstateInstance(newStores);
   }
 
-  useStores() {
+  useStores(): T {
     return useContext(PullstateContext).stores as T;
   }
 
-  createAsyncAction<A = any, R = any>(action: TPullstateAsyncAction<A, T, R>, defaultArgs: A = {} as A) {
+  createAsyncAction<A = any, R = any>(action: TPullstateAsyncAction<A, R, T>, defaultArgs: A = {} as A): IOCreateAsyncActionOutput<A, R> {
     return createAsyncAction<A, R, T>(action, defaultArgs, this.originStores);
   }
 }
@@ -116,10 +116,10 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> {
     const promises = Object.keys(this._asyncCache.actions).map(key =>
       this._asyncCache.actions[key]()
         .then(resp => {
-          this._asyncCache.results[key] = [true, false, resp, false];
+          this._asyncCache.results[key] = [true, resp, false];
         })
-        .catch(e => {
-          this._asyncCache.results[key] = [true, true, null, false];
+        .catch(() => {
+          this._asyncCache.results[key] = [true, null, false];
         })
         .then(() => {
           console.log(`Should run after each promise error / success`);

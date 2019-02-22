@@ -1,8 +1,7 @@
 {
   "compilerOptions": {
     "jsx": "react",
-    "module": "commonjs",
-    "allowSyntheticDefaultImports": true,
+    "module": "esnext",
     "esModuleInterop": true,
     "target": "esnext",
     "sourceMap": true,
@@ -10,7 +9,8 @@
     "rootDir": "./src",
     "outDir": "./dist",
     "inlineSourceMap": false,
-    "declaration": true
+    "declaration": true,
+    "removeComments": true
   },
   "exclude": [
     "node_modules",

@@ -1,5 +1,6 @@
 import React from "react";
-import { Store, useStoreState } from "./index";
+import { Store } from "./Store";
+import { useStoreState } from "./useStoreState";
 
 export interface IPropsInjectStoreState<S extends any = any, SS extends any = any> {
   store: Store<S>;
