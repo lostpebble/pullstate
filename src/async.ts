@@ -88,7 +88,7 @@ function createKey(ordinal, args: any) {
 }
 
 function notifyListeners(key: string) {
-  console.log(`Notifying (${clientAsyncCache.listeners[key].length}) listeners for key: ${key}`);
+  // console.log(`Notifying (${clientAsyncCache.listeners[key].length}) listeners for key: ${key}`);
   for (const listener of clientAsyncCache.listeners[key]) {
     listener();
   }

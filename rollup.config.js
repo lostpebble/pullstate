@@ -13,12 +13,13 @@ export default {
     {
       file: pkg.main,
       format: "cjs",
+      compact: true,
     },
     {
       file: pkg.module,
       format: "es",
+      compact: true,
     },
   ],
   external: [...Object.keys(pkg.dependencies || {}), ...Object.keys(pkg.peerDependencies || {})],
-  compact: true,
 };

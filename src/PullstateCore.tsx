@@ -1,11 +1,12 @@
-import React, { useEffect, useState, useContext } from "react";
+import React, { useContext } from "react";
 import { Store } from "./Store";
 import {
   clientAsyncCache,
-  createAsyncAction, IOCreateAsyncActionOutput,
+  createAsyncAction,
+  IOCreateAsyncActionOutput,
   IPullstateAsyncCache,
   IPullstateAsyncState,
-  TPullstateAsyncAction
+  TPullstateAsyncAction,
 } from "./async";
 
 export interface IPullstateAllStores {
@@ -80,7 +81,10 @@ export class PullstateSingleton<T extends IPullstateAllStores = IPullstateAllSto
     return useContext(PullstateContext).stores as T;
   }
 
-  createAsyncAction<A = any, R = any>(action: TPullstateAsyncAction<A, R, T>, defaultArgs: A = {} as A): IOCreateAsyncActionOutput<A, R> {
+  createAsyncAction<A = any, R = any>(
+    action: TPullstateAsyncAction<A, R, T>,
+    defaultArgs: A = {} as A
+  ): IOCreateAsyncActionOutput<A, R> {
     return createAsyncAction<A, R, T>(action, defaultArgs, this.originStores);
   }
 }
@@ -122,7 +126,7 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> {
           this._asyncCache.results[key] = [true, true, null, false];
         })
         .then(() => {
-          console.log(`Should run after each promise error / success`);
+          // console.log(`Should run after each promise error / success`);
           delete this._asyncCache.actions[key];
         })
     );
