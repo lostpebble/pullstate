@@ -46,7 +46,7 @@ export class PullstateSingleton<T extends IPullstateAllStores = IPullstateAllSto
   instantiate({
     hydrateSnapshot = null,
     ssr = false,
-  }: { hydrateSnapshot?: IPullstateSnapshot; reuseStores?: boolean; ssr?: boolean } = {}): PullstateInstance<T> {
+  }: { hydrateSnapshot?: IPullstateSnapshot; ssr?: boolean } = {}): PullstateInstance<T> {
     if (!ssr) {
       const instantiated = new PullstateInstance(this.originStores);
 

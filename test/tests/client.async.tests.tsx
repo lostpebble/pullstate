@@ -27,6 +27,10 @@ async function getNewUser(userId = -1): Promise<IUser> {
   };
 }
 
+const UserApi = {
+  getNewUser,
+}
+
 interface IUserStore {
   user: null | IUser;
 }
@@ -44,10 +48,10 @@ const HydrateNewUserAction = createAsyncAction(async () => {
 });
 
 const GetUserAction = createAsyncAction(async ({ userId }) => {
-  return await getNewUser(userId);
+  return await UserApi.getNewUser(userId);
 }, { userId: 0 });
 
-const UninitatedUserAction = () => {
+const UninitiatedUserAction = () => {
   const [userId, setUserId] = useState(0);
   const [started, finished, user] = GetUserAction.watch({ userId });
 
@@ -90,7 +94,7 @@ const App = () => {
     <div>
       <h1>Async Test</h1>
       <InitiatedNextUser/>
-      <UninitatedUserAction/>
+      <UninitiatedUserAction/>
     </div>
   );
 };

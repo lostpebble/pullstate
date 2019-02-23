@@ -3,13 +3,14 @@
 > Ridiculously simple state stores with performant retrieval anywhere
 in your React tree using the wonderful concept of React hooks!
 
-* ~2.02KB minified and gzipped! (excluding Immer and React)
+* ~1.87KB minified and gzipped! (excluding Immer and React)
 * Built with Typescript, providing a great dev experience if you're using it too
 * Provides `<InjectStoreState>` component for those who don't like change 🐌
 * Uses [immer](https://github.com/mweststrate/immer) for state updates - easily and safely mutate your state directly!
+* **NEW** - [Create async actions](#async-actions) and use hooks to watch their state. Pullstate's version of React suspense!
 
-_Inspired by the now seemingly abandoned library - [bey](https://github.com/jamiebuilds/bey), sharing
-a similar interface but with a hooks implementation (and server-side rendering). Bey was in turn inspired by
+_Originally inspired by the now seemingly abandoned library - [bey](https://github.com/jamiebuilds/bey). Although substantially
+different now- with Server-side rendering and Async Actions built in! Bey was in turn inspired by
 [react-copy-write](https://github.com/aweary/react-copy-write)._
 
 Try out a quick example:
@@ -121,11 +122,11 @@ The above will sort you out nicely if you are simply running a client-rendered a
 ### Create a central place for all your stores using `createPullstate()`
 
 ```typescript jsx
-import { UIStore } from "./UIStore";
-import { UserStore } from "./UserStore";
+import { UIStore } from "./stores/UIStore";
+import { UserStore } from "./stores/UserStore";
 import { createPullstate } from "pullstate";
 
-export const Pullstate = createPullstate({
+export const PullstateCore = createPullstate({
   UIStore,
   UserStore,
 });
@@ -136,13 +137,13 @@ You pass in the stores you created before. This creates a centralized object fro
 ### Using your stores on the server
 
 ```typescript jsx
-import { Pullstate } from "./stores/Pullstate";
+import { PullstateCore } from "./state/PullstateCore";
 import ReactDOMServer from "react-dom/server";
 import { PullstateProvider } from "pullstate";
 
 // A server request
 async function someRequest(req) {
-  const instance = Pullstate.instantiate();
+  const instance = PullstateCore.instantiate({ ssr: true });
   
   const user = await UserApi.getUser(id);
   
@@ -151,44 +152,45 @@ async function someRequest(req) {
   });
   
   const reactHtml = ReactDOMServer.renderToString(
-    <PullstateProvider stores={instance.stores}>
+    <PullstateProvider instance={instance}>
       <App />
     </PullstateProvider>
   );
   
-  
   const body = `
-<script>window.__PULLSTATE__ = '${JSON.stringify(instance.getAllState())}'</script>
+<script>window.__PULLSTATE__ = '${JSON.stringify(instance.getPullstateSnapshot())}'</script>
 ${reactHtml}`;
   
   // do something with the generated html and send response
 }
 ```
 
-* Instantiate fresh stores before each render using `instantiate()`
+* Instantiate fresh stores before each render using `instantiate()` - passing in `ssr: true`
 * Manipulate your state directly during your server's request by using the `stores` property of the instantiated object.
 * Notice we called `update()` directly on the `UserStore` here - this is a convenience method (which is actually available on
 all stores).
-* We pass the stores into the rendering function. We use `<PullstateProvider>` to do so, providing `stores` prop from the instantiated object.
-* Lastly, we need to return this state to the client somehow. Here we set it on `window.__PULLSTATE__`, to be parsed and hydrated on the client.
+* We pass our pullstate instance into the rendering function. We use `<PullstateProvider>` to do so,
+providing the `instance`.
+* Lastly, we need to return this state to the client somehow. Here we call `getPullstateSnapshot()` on the instance and
+set it on `window.__PULLSTATE__`, to be parsed and hydrated on the client.
 
 ### Client state hydration
 
 ```typescript jsx
-const hydrateState = JSON.parse(window.__PULLSTATE__ || "null");
+const hydrateSnapshot = JSON.parse(window.__PULLSTATE__);
 
-const instance = Pullstate.instantiate({ hydrateState });
+const instance = PullstateCore.instantiate({ ssr: false, hydrateSnapshot });
 
 ReactDOM.render(
-  <PullstateProvider stores={instance.stores}>
+  <PullstateProvider instance={instance}>
     <App />
   </PullstateProvider>,
   document.getElementById("react-mount")
 );
 ```
 
-* We create a new instance on the client using the same method as above, except this time we can pass
-`hydrateState`, which will instantiate our new stores with the state where our server left off.
+* We create a new instance on the client using the same method as on the server, except this time we can pass the
+`hydrateSnapshot` and `ssr: false`, which will instantiate our new stores with the state where our server left off.
 
 ### Using our stores throughout our React app
 
@@ -238,18 +240,26 @@ with the context hook:
 const { UIStore } = useStores();
 ```
 
+As a **TypeScript** convenience, there is a method on your created `PullstateCore` object of all your stores
+also named `useStores()` which will give you all the typing goodness since it knows about the structure
+of your stores:
+
+```
+const { UIStore, UserStore } = PullstateCore.useStores();
+```
+
 ### Last note about Server Rendering
 
-On the client side, when instantiating your stores, you can choose to instantiate using the "origin" stores
-by passing the `reuseStores: true` like so:
+On the client side, when instantiating your stores, you are now instantiating with your "origin" stores
+by passing the `ssr: false` like so:
 
 ```typescript jsx
-const hydrateState = JSON.parse(window.__PULLSTATE__ || "null");
+const hydrateSnapshot = JSON.parse(window.__PULLSTATE__);
 
-const instance = Pullstate.instantiate({ reuseStores: true, hydrateState })
+const instance = PullstateCore.instantiate({ ssr: false, hydrateSnapshot });
 
 ReactDOM.render(
-  <PullstateProvider stores={instance.stores}>
+  <PullstateProvider instance={instance}>
     <App />
   </PullstateProvider>,
   document.getElementById("react-mount")
@@ -259,10 +269,9 @@ ReactDOM.render(
 Basically, what this does is re-uses the exact stores that you originally created.
 
 This allows us to directly update those original stores on the client and we will receive updates
-as usual. Usually, calling `instantiate()` creates a fresh copy of your stores (which is required on the
-server, because each client request needs to maintain its own state), but on the client code - its perfectly
-fine to directly update your created stores because the state is contained to that client alone. But to do this,
-you need to pass `reuseStores: true` as mentioned above.
+as usual. On the server, calling `instantiate({ ssr: true })` creates a fresh copy of your stores (which is required
+because each client request needs to maintain its own state), but on the client code - its perfectly
+fine to directly update your created stores because the state is contained to that client alone.
 
 For example, you could now do something like this:
 
@@ -281,3 +290,36 @@ async function refreshGraphData() {
 you must make sure that these state updates are _strictly_ client-side only updates - as they will not apply
 on the server and you will get unexpected results. Think of these updates as updates that will run after the
 page has already loaded completely for the user (UI responses, dynamic data loading, loading screen popups etc.).
+
+## Async Actions
+
+More often than not, our stores do not exist in purely synchronous states. We often need to perform
+actions asynchronously, such as pulling data from an API. It would be nice to have an easy way to
+keep our view up to date with the state of these actions, without putting too much onus on our stores
+directly, which quickly floods them with variables such as `userLoading`, `updatingUserInfo`,
+`userLoadError` etc - which we then have to make sure we're handling for each unique situation - and
+it just gets messy quickly.
+
+There are also times where we are server-rendering and we would like to resolve our app's
+asynchronous state before rendering to the user. And again, without having to run something manual
+like we saw in the server rendering section above:
+
+```
+const user = await UserApi.getUser(id);
+  
+instance.stores.UserStore.update(userStore => {
+userStore.userName = user.name;
+});
+```
+
+Pullstate provides a way to do this through **Async Actions**.
+
+### Create an Async Action
+
+```
+import { createAsyncAction } from "pullstate"
+
+const GetUserAction = createAsyncAction(async ({ userId }) => {
+  return await UserApi.getNewUser(userId);
+});
+```
