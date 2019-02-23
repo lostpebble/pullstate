@@ -1,6 +1,5 @@
-import _ from "lodash";
 import Benchmark from "benchmark";
-import { keyFromObject } from "../../src/async";
+import { createRandomArgs, IRandomArgObject } from "./BenchmarkUtils";
 
 const testArgs = {
   limit: 300,
@@ -15,27 +14,16 @@ const testArgs = {
   anything: false,
 };
 
-console.log(`\nkeyFromObject()`);
-console.log(keyFromObject(testArgs));
-console.log(`\ncustomKeyCreator()`);
-console.log(customKeyCreator(testArgs));
+console.log(`\nkeyFromObjectOld()`);
+console.log(keyFromObjectOld(testArgs));
+console.log(`\npullstateCustomKeyCreator()`);
+console.log(pullstateCustomKeyCreator(testArgs));
 console.log(`\nJSON.stringify()`);
 console.log(JSON.stringify(testArgs));
 console.log(`\nJSON stringify replace quotes:`);
 console.log(jsonStringifyReplaceQuotes(testArgs));
 
-const randomNumbers = [100, 200, 300, 400, 500];
-const randomQueryString = [
-  "thasd;kljaasdasd",
-  "123978120378sadsda",
-  "asdhixcluyisadsd",
-  "qweu07sdvohjjksd",
-  "1320918khjlabnm",
-];
-const randomBools = [true, false, true, false, false];
-const randomAny = [null, undefined, 123, false, "asdasduqoweuh"];
-
-/*function keyFromObject(jsonObject: any): string {
+function keyFromObjectOld(jsonObject: any): string {
   if (typeof jsonObject !== "object" || Array.isArray(jsonObject) || jsonObject === null || jsonObject === undefined) {
     if (typeof jsonObject === "string") {
       return `${jsonObject}`;
@@ -45,12 +33,12 @@ const randomAny = [null, undefined, 123, false, "asdasduqoweuh"];
 
   let props = Object.keys(jsonObject)
     .sort()
-    .map(key => `${key}:${keyFromObject(jsonObject[key])}`)
+    .map(key => `${key}:${keyFromObjectOld(jsonObject[key])}`)
     .join(",");
   return `${props}`;
-}*/
+}
 
-function customKeyCreator(json: any): string {
+function pullstateCustomKeyCreator(json: any): string {
   if (json == null) {
     return `${json}`;
   }
@@ -67,7 +55,7 @@ function customKeyCreator(json: any): string {
     } else if (typeof json[key] === "boolean" || typeof json[key] === "number") {
       prefix += json[key];
     } else {
-      prefix += customKeyCreator(json[key]);
+      prefix += pullstateCustomKeyCreator(json[key]);
     }
   }
 
@@ -85,29 +73,6 @@ function runKeyCreator(func: (json: any) => string, args: any[]): [number, strin
   return [Date.now() - timeStart, keys];
 }
 
-function createRandomArgs(amount: number): any[] {
-  const args: any[] = [];
-
-  for (let i = 0; i <= amount; i += 1) {
-    args.push({
-      limit: _.sample(randomNumbers),
-      queryString: _.sample(randomQueryString),
-      isItGood: _.sample(randomBools),
-      anything: _.sample(randomAny),
-    });
-  }
-
-  return args;
-}
-
-const suite = new Benchmark.Suite();
-
-// const args = createRandomArgs(2);
-
-// console.log(args[0]);
-
-// console.log(keyFromObject(args[0]));
-// console.log(JSON.stringify(args[0]));
 
 const args = createRandomArgs(200);
 
@@ -117,24 +82,26 @@ function jsonStringifyReplaceQuotes(obj: any) {
 
 console.log("\n");
 
-suite
+const suiteName = "Async Arguments to Key String";
+
+new Benchmark.Suite(suiteName)
   .add(`JSON.stringify()`, function() {
     runKeyCreator(JSON.stringify, args);
   })
   .add(`JSON.stringify()-replace-quotes`, function() {
     runKeyCreator(jsonStringifyReplaceQuotes, args);
   })
-  .add(`keyFromObject()`, function() {
-    runKeyCreator(keyFromObject, args);
+  .add(`keyFromObjectOld()`, function() {
+    runKeyCreator(keyFromObjectOld, args);
   })
-  .add(`customKeyCreator()`, function() {
-    runKeyCreator(customKeyCreator, args);
+  .add(`pullstateCustomKeyCreator()`, function() {
+    runKeyCreator(pullstateCustomKeyCreator, args);
   })
   .on("cycle", function(event) {
     // console.log(event);
     console.log(String(event.target));
   })
   .on("complete", function() {
-    console.log("Fastest is " + this.filter("fastest").map("name"));
+    console.log(`\n${suiteName} - Fastest is ` + this.filter("fastest").map("name"));
   })
   .run();

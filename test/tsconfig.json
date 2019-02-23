@@ -1,0 +1,17 @@
+{
+  "compilerOptions": {
+    "jsx": "react",
+    "module": "commonjs",
+    "esModuleInterop": true,
+    "target": "esnext",
+    "sourceMap": true,
+    "sourceRoot": "./",
+    "rootDir": "./",
+    "inlineSourceMap": false,
+    "declaration": true,
+    "removeComments": true
+  },
+  "exclude": [
+    "node_modules"
+  ]
+}

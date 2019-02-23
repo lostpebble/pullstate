@@ -1,5 +1,5 @@
 import React, { useEffect, useState, useContext } from "react";
-import { Store } from ".";
+import { Store } from "./Store";
 import {
   clientAsyncCache,
   createAsyncAction, IOCreateAsyncActionOutput,
@@ -116,10 +116,10 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> {
     const promises = Object.keys(this._asyncCache.actions).map(key =>
       this._asyncCache.actions[key]()
         .then(resp => {
-          this._asyncCache.results[key] = [true, resp, false];
+          this._asyncCache.results[key] = [true, true, resp, false];
         })
         .catch(() => {
-          this._asyncCache.results[key] = [true, null, false];
+          this._asyncCache.results[key] = [true, true, null, false];
         })
         .then(() => {
           console.log(`Should run after each promise error / success`);

@@ -4,10 +4,19 @@ import { useContext, useEffect, useState } from "react";
 
 type TPullstateAsyncUpdateListener = () => void;
 
-export type TPullstateAsyncResponse<R> = [boolean, null | R, boolean];
-// result state = [ finished, error, resp, updating ]
+// result state = [ started, finished, resp, updating ]
+export type TPullstateAsyncWatchResponse<R> = [boolean, boolean, null | R, boolean];
+export type TPullstateAsyncBeckonResponse<R> = [boolean, null | R, boolean];
+export type TPullstateAsyncRunResponse<R> = Promise<[null | R]>;
+// export interface IPullstateAsyncResponse<R> {
+//   started: boolean;
+//   finished: boolean;
+//   updating: boolean;
+//   result: R;
+// }
+
 export interface IPullstateAsyncState {
-  [key: string]: TPullstateAsyncResponse<any>;
+  [key: string]: TPullstateAsyncWatchResponse<any>;
 }
 
 export interface IPullstateAsyncCache {
@@ -22,11 +31,21 @@ export interface IPullstateAsyncCache {
 
 export type TPullstateAsyncAction<A, R, S extends IPullstateAllStores> = (args: A, stores: S) => Promise<R>;
 
-type TAsyncActionWatch<A, R> = (args?: A) => TPullstateAsyncResponse<R>;
-type TAsyncActionRun<A, R> = (args?: A, options?: IAsyncActionRunOptions) => Promise<[boolean, R]>;
+export interface IAsyncActionWatchOptions {
+  initiate?: boolean;
+}
+
+export interface IAsyncActionRunOptions {
+  treatAsUpdate?: boolean;
+}
+
+type TAsyncActionBeckon<A, R> = (args?: A) => TPullstateAsyncBeckonResponse<R>;
+type TAsyncActionWatch<A, R> = (args?: A, options?: IAsyncActionWatchOptions) => TPullstateAsyncWatchResponse<R>;
+type TAsyncActionRun<A, R> = (args?: A, options?: IAsyncActionRunOptions) => TPullstateAsyncRunResponse<R>;
 type TAsyncActionClearCache<A> = (args?: A) => void;
 
 export interface IOCreateAsyncActionOutput<A, R> {
+  beckon: TAsyncActionBeckon<A, R>;
   watch: TAsyncActionWatch<A, R>;
   run: TAsyncActionRun<A, R>;
   clearCache: TAsyncActionClearCache<A>;
@@ -75,10 +94,6 @@ function notifyListeners(key: string) {
   }
 }
 
-export interface IAsyncActionRunOptions {
-  treatAsUpdate?: boolean;
-}
-
 export function createAsyncAction<A, R, S extends IPullstateAllStores = IPullstateAllStores>(
   action: TPullstateAsyncAction<A, R, S>,
   defaultArgs: A = {} as A,
@@ -88,42 +103,47 @@ export function createAsyncAction<A, R, S extends IPullstateAllStores = IPullsta
   const onServer: boolean = typeof window === "undefined";
   // console.log(`Creating async action with ordinal: ${ordinal} - action name: ${action.name}`);
 
-  const watch: TAsyncActionWatch<A, R> = (args = defaultArgs) => {
+  const watch: TAsyncActionWatch<A, R> = (args = defaultArgs, { initiate = false }: IAsyncActionWatchOptions = {}) => {
     const key = createKey(ordinal, args);
     let shouldUpdate = true;
 
     const cache: IPullstateAsyncCache = onServer ? useContext(PullstateContext)._asyncCache : clientAsyncCache;
     const stores = onServer ? (useContext(PullstateContext).stores as S) : clientStores;
 
-    function checkKeyAndReturnResponse(key: string): TPullstateAsyncResponse<R> {
+    function checkKeyAndReturnResponse(key: string): TPullstateAsyncWatchResponse<R> {
       if (cache.results.hasOwnProperty(key)) {
         // console.log(`Pullstate Async: [${key}] Already been run - do nothing`);
-        return [true, null, false];
+        return cache.results[key];
+        // return [true, true, null, false];
       }
 
       // console.log(`Pullstate Async: [${key}] has no results yet`);
 
       // check if it is already pending as an action
       if (!cache.actions.hasOwnProperty(key)) {
-        // queue (on server) or start the action now (on client)
-        cache.actions[key] = () => action(args, stores);
+        if (initiate) {
+          // queue (on server) or start the action now (on client)
+          cache.actions[key] = () => action(args, stores);
 
-        if (!onServer) {
-          cache.actions[key]()
-            .then(resp => {
-              cache.results[key] = [true, resp, false];
-            })
-            .catch(() => {
-              cache.results[key] = [true, null, false];
-            })
-            .then(() => {
-              delete cache.actions[key];
-              notifyListeners(key);
-            });
+          if (!onServer) {
+            cache.actions[key]()
+              .then(resp => {
+                cache.results[key] = [true, true, resp, false];
+              })
+              .catch(() => {
+                cache.results[key] = [true, true, null, false];
+              })
+              .then(() => {
+                delete cache.actions[key];
+                notifyListeners(key);
+              });
+          }
+        } else {
+          return [false, false, null, false];
         }
       }
 
-      return [false, null, false];
+      return [true, false, null, false];
     }
 
     // only listen for updates when on client
@@ -150,7 +170,7 @@ export function createAsyncAction<A, R, S extends IPullstateAllStores = IPullsta
       }, [key]);
     }
 
-    const [response, setResponse] = useState<TPullstateAsyncResponse<R>>(() => {
+    const [response, setResponse] = useState<TPullstateAsyncWatchResponse<R>>(() => {
       return checkKeyAndReturnResponse(key);
     });
 
@@ -164,15 +184,21 @@ export function createAsyncAction<A, R, S extends IPullstateAllStores = IPullsta
     return response;
   };
 
+  // Same as watch - just initiated, so no need for "started" return value
+  const beckon: TAsyncActionBeckon<A, R> = (args = defaultArgs) => {
+    const result = watch(args, { initiate: true });
+    return [result[1], result[2], result[3]];
+  }
+
   const run: TAsyncActionRun<A, R> = async (args = defaultArgs, { treatAsUpdate = false }: IAsyncActionRunOptions = {}) => {
     const key = createKey(ordinal, args);
 
     const [prevFinished, prevResp] = clientAsyncCache.results[key] || [false, null];
 
     if (prevFinished && treatAsUpdate) {
-      clientAsyncCache.results[key] = [true, prevResp, true];
+      clientAsyncCache.results[key] = [true, true, prevResp, true];
     } else {
-      clientAsyncCache.results[key] = [false, null, false];
+      clientAsyncCache.results[key] = [true, false, null, false];
     }
 
     notifyListeners(key);
@@ -183,13 +209,13 @@ export function createAsyncAction<A, R, S extends IPullstateAllStores = IPullsta
 
     try {
       const resp = await action(args, clientStores);
-      clientAsyncCache.results[key] = [true, resp, false];
+      clientAsyncCache.results[key] = [true, true, resp, false];
       notifyListeners(key);
-      return [false, resp];
+      return [resp];
     } catch (e) {
-      clientAsyncCache.results[key] = [true, null, false];
+      clientAsyncCache.results[key] = [true, true, null, false];
       notifyListeners(key);
-      return [true, null];
+      return [null];
     }
   };
 
@@ -200,6 +226,7 @@ export function createAsyncAction<A, R, S extends IPullstateAllStores = IPullsta
   };
 
   return {
+    beckon,
     watch,
     run,
     clearCache,

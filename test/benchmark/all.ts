@@ -1,1 +1,2 @@
-import "./async-argument-benchmark.ts"
+import "./benchmark-async-argument.ts"
+import "./benchmark-destructuring"
