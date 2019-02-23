@@ -12,8 +12,8 @@ const Counter = () => {
       <h3>Count: {count}</h3>
       <button
         onClick={() =>
-          update(TestUIStore, s => {
-            s.count++;
+          update(TestUIStore, (s, o) => {
+            s.count = o.count + 1;
           })
         }
       >

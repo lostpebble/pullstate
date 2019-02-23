@@ -13,9 +13,12 @@
     "build-full": "npm run clean && tsc",
     "uglify": "terser ./dist/index.js -o ./dist/index.js",
     "prepublish": "in-publish && npm run build-full",
-    "benchmark-all": "ts-node --project ./test/tsconfig.json test/benchmark/all.ts",
-    "benchmark-async-argument": "ts-node --project ./test/tsconfig.json test/benchmark/async-argument-benchmark.ts",
-    "benchmark-destructuring": "ts-node --project ./test/tsconfig.json test/benchmark/destructuring.ts"
+    "benchmark-all": "cross-env TS_NODE_PROJECT=./test/tsconfig.json node -r ts-node/register --max-old-space-size=4096  test/benchmark/all.ts",
+    "benchmark-async-argument": "cross-env TS_NODE_PROJECT=./test/tsconfig.json node -r ts-node/register --max-old-space-size=4096  test/benchmark/benchmark-async-argument.ts",
+    "benchmark-destructuring": "cross-env TS_NODE_PROJECT=./test/tsconfig.json node -r ts-node/register --max-old-space-size=4096  test/benchmark/benchmark-destructuring.ts",
+    "benchmark-all-immer": "cross-env TS_NODE_PROJECT=./test/tsconfig.json node -r ts-node/register --max-old-space-size=4096  test/benchmark/benchmark-all-immer.ts",
+    "benchmark-immer-without-stores": "cross-env TS_NODE_PROJECT=./test/tsconfig.json node -r ts-node/register --max-old-space-size=4096  test/benchmark/benchmark-immer-without-stores.ts",
+    "benchmark-immer-with-stores": "cross-env TS_NODE_PROJECT=./test/tsconfig.json node -r ts-node/register --max-old-space-size=4096 test/benchmark/benchmark-immer-with-stores.ts"
   },
   "keywords": [
     "immer",
@@ -38,6 +41,7 @@
     "@types/react-dom": "^16.8.2",
     "@types/lodash": "^4.14.121",
     "benchmark": "^2.1.4",
+    "cross-env": "^5.2.0",
     "in-publish": "^2.0.0",
     "jest": "24.1.0",
     "jest-environment-jsdom": "24.0.0",

@@ -1,4 +1,6 @@
-const immer = require("immer").default;
+const Immer = require("immer");
+
+const produce = Immer.produce;
 
 export type TPullstateUpdateListener = () => void;
 
@@ -45,14 +47,14 @@ export class Store<S = any> {
     return this.currentState;
   }
 
-  update(updater: (state: S) => void) {
+  update(updater: (state: S, original?: S) => void) {
     update(this, updater);
   }
 }
 
-export function update<S = any>(store: Store<S>, updater: (state: S) => void) {
+export function update<S = any>(store: Store<S>, updater: (draft: S, original?: S) => void) {
   const currentState: S = store.getRawState();
-  const nextState: S = immer(currentState as any, updater);
+  const nextState: S = produce(currentState as any, (s) => updater(s, currentState));
   if (nextState !== currentState) {
     store._updateState(nextState);
   }
