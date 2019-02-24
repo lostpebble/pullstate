@@ -45,8 +45,8 @@ type TAsyncActionRun<A, R> = (args?: A, options?: IAsyncActionRunOptions) => TPu
 type TAsyncActionClearCache<A> = (args?: A) => void;
 
 export interface IOCreateAsyncActionOutput<A, R> {
-  beckon: TAsyncActionBeckon<A, R>;
-  watch: TAsyncActionWatch<A, R>;
+  useBeckon: TAsyncActionBeckon<A, R>;
+  useWatch: TAsyncActionWatch<A, R>;
   run: TAsyncActionRun<A, R>;
   clearCache: TAsyncActionClearCache<A>;
 }
@@ -103,7 +103,7 @@ export function createAsyncAction<A, R, S extends IPullstateAllStores = IPullsta
   const onServer: boolean = typeof window === "undefined";
   // console.log(`Creating async action with ordinal: ${ordinal} - action name: ${action.name}`);
 
-  const watch: TAsyncActionWatch<A, R> = (args = defaultArgs, { initiate = false }: IAsyncActionWatchOptions = {}) => {
+  const useWatch: TAsyncActionWatch<A, R> = (args = defaultArgs, { initiate = false }: IAsyncActionWatchOptions = {}) => {
     const key = createKey(ordinal, args);
     let shouldUpdate = true;
 
@@ -185,8 +185,8 @@ export function createAsyncAction<A, R, S extends IPullstateAllStores = IPullsta
   };
 
   // Same as watch - just initiated, so no need for "started" return value
-  const beckon: TAsyncActionBeckon<A, R> = (args = defaultArgs) => {
-    const result = watch(args, { initiate: true });
+  const useBeckon: TAsyncActionBeckon<A, R> = (args = defaultArgs) => {
+    const result = useWatch(args, { initiate: true });
     return [result[1], result[2], result[3]];
   }
 
@@ -226,8 +226,8 @@ export function createAsyncAction<A, R, S extends IPullstateAllStores = IPullsta
   };
 
   return {
-    beckon,
-    watch,
+    useBeckon,
+    useWatch,
     run,
     clearCache,
   };

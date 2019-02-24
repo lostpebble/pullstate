@@ -4,10 +4,10 @@ import ReactDOMServer from "react-dom/server";
 import { TestUIStore } from "./testStores/TestUIStore";
 const beautify = require('js-beautify').html;
 
-const Pullstate = createPullstate({ TestUIStore });
+const PullstateCore = createPullstate({ TestUIStore });
 
 const Counter = () => {
-  const { TestUIStore: ui } = Pullstate.useStores();
+  const { TestUIStore: ui } = PullstateCore.useStores();
   const count = useStoreState(ui, s => s.count);
 
   return (
@@ -27,7 +27,7 @@ const Counter = () => {
 };
 
 const App = () => {
-  const { TestUIStore: ui } = Pullstate.useStores();
+  const { TestUIStore: ui } = PullstateCore.useStores();
 
   return (
     <div>
@@ -54,7 +54,7 @@ const App = () => {
 };
 
 describe("Server Side Rendering tests", () => {
-  const instance = Pullstate.instantiate({ ssr: true });
+  const instance = PullstateCore.instantiate({ ssr: true });
 
   instance.stores.TestUIStore.update(s => {
     s.message = "hey there!";
