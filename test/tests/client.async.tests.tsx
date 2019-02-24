@@ -2,12 +2,12 @@ import { useStoreState } from "../../src/useStoreState";
 import React, { useState } from "react";
 import { createAsyncAction } from "../../src/async";
 import ReactDOMServer from "react-dom/server";
-import { getNewUser, UserApi, UserStore } from "./TestSetup";
+import { getUser, UserApi, UserStore } from "./TestSetup";
 
 const beautifyHtml = require("js-beautify").html;
 
 const HydrateNewUserAction = createAsyncAction(async () => {
-  const newUser = await getNewUser();
+  const newUser = await getUser();
   UserStore.update(s => {
     s.user = newUser;
   });
@@ -15,7 +15,7 @@ const HydrateNewUserAction = createAsyncAction(async () => {
 });
 
 const GetUserAction = createAsyncAction(async ({ userId }) => {
-  const user = await UserApi.getNewUser(userId);
+  const user = await UserApi.getUser(userId);
   UserStore.update(s => {
     s.user = user;
   });

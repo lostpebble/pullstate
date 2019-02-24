@@ -10,7 +10,7 @@ export interface IUser {
   userName: string;
 }
 
-export async function getNewUser(userId = -1): Promise<IUser> {
+export async function getUser(userId = -1): Promise<IUser> {
   currentUser = userId >= 0 ? userId : (currentUser + 1) % 3;
 
   await waitSeconds(1);
@@ -22,7 +22,7 @@ export async function getNewUser(userId = -1): Promise<IUser> {
 }
 
 export const UserApi = {
-  getNewUser,
+  getUser,
 }
 
 export interface IUserStore {

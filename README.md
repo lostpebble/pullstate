@@ -287,13 +287,13 @@ More often than not, our stores do not exist in purely synchronous states. We of
 const user = await UserApi.getUser(id);
 
 instance.stores.UserStore.update(userStore => {
-userStore.userName = user.name;
+  userStore.userName = user.name;
 });
 ```
 
 :point_up: And that's without dealing with errors and the like...
 
-Pullstate provides a way to do this through **Async Actions**.
+Pullstate provides a much easier way to do this through **Async Actions**.
 
 ### Create an Async Action
 
@@ -304,7 +304,7 @@ import { createAsyncAction } from "pullstate";
 import { UserStore } from "./stores/UserStore";
 
 const GetUserAction = createAsyncAction(async ({ userId }) => {
-  const user = await UserApi.getNewUser(userId);
+  const user = await UserApi.getUser(userId);
   UserStore.update(s => {
     s.user = user;
   });
@@ -316,7 +316,7 @@ If you are using server rendering, create them like this (using your `PullstateC
 
 ```jsx
 const GetUserAction = PullstateCore.createAsyncAction(async ({ userId }, { UserStore }) => {
-  const user = await UserApi.getNewUser(userId);
+  const user = await UserApi.getUser(userId);
   UserStore.update(s => {
     s.user = user;
   });
@@ -326,9 +326,9 @@ const GetUserAction = PullstateCore.createAsyncAction(async ({ userId }, { UserS
 
 Let's look closer at the actual async function which is passed in to `createAsyncAction()`:
 
-* **The first argument** to this function is important in that it not only represents the variables passed into your action for each asynchronous scenario, but these arguments create a **unique "fingerprint"** each time the action is called which helps Pullstate keep track of actions being called.
+* The first argument to this function is important in that it not only represents the variables passed into your action for each asynchronous scenario, but these arguments create a **unique "fingerprint"** within this action whenever it is called which helps Pullstate keep track of the state of different executions of this action.
 
-* In that sense, these actions should be "pure" per the arguments you pass in - in this case, we pass an object containing `userId` and we expect to return exactly that user from the API.
+* In that sense, these actions should be somewhat "pure" per the arguments you pass in - in this case, we pass an object containing `userId` and we expect to return exactly that user from the API.
 
 * :warning: Pulling `userId` from somewhere else, such as directly within your store, will cause different actions for different user ids to be seen as the same! (because their "fingerprints" are the same) This will cause caching issues - so **always have your actions defined with as many arguments which identify that single action as possible**!
 
