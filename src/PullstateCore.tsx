@@ -3,7 +3,8 @@ import { Store } from "./Store";
 import {
   clientAsyncCache,
   createAsyncAction,
-  IOCreateAsyncActionOutput, IPullstateAsyncActionOrdState,
+  IOCreateAsyncActionOutput,
+  IPullstateAsyncActionOrdState,
   IPullstateAsyncCache,
   IPullstateAsyncResultState,
   TPullstateAsyncAction,
@@ -119,15 +120,7 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> {
   }
 
   async resolveAsyncState() {
-    const promises = Object.keys(this._asyncCache.actions).map(key => {
-      if (!this._asyncCache.actionOrd.hasOwnProperty(key)) {
-        this._asyncCache.actionOrd[key] = 0;
-      } else {
-        this._asyncCache.actionOrd[key] += 1;
-      }
-
-      let currentActionOrd = this._asyncCache.actionOrd[key];
-
+    const promises = Object.keys(this._asyncCache.actions).map(key =>
       this._asyncCache.actions[key]()
         .then(resp => {
           this._asyncCache.results[key] = [true, true, resp, false];
@@ -138,8 +131,8 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> {
         .then(() => {
           // console.log(`Should run after each promise error / success`);
           delete this._asyncCache.actions[key];
-        });
-    });
+        })
+    );
 
     return Promise.all(promises);
   }
