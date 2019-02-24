@@ -27,12 +27,12 @@ export const UserApi = {
 
 export interface IUserStore {
   user: null | IUser;
-  currentUserId: string;
+  currentUserId: number;
 }
 
 export const UserStore = new Store<IUserStore>({
   user: null,
-  currentUserId: "0",
+  currentUserId: 0,
 });
 
 export const PullstateCore = createPullstate({

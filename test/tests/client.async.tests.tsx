@@ -14,7 +14,7 @@ const HydrateNewUserAction = createAsyncAction(async () => {
   return true;
 });
 
-const GetUserAction = createAsyncAction(async ({ userId }) => {
+const GetUserAction = createAsyncAction<{ userId: number }>(async ({ userId }) => {
   const user = await UserApi.getUser(userId);
   UserStore.update(s => {
     s.user = user;
@@ -36,7 +36,7 @@ const UninitiatedUserAction = () => {
           <h3>aka: {user.userName}</h3>
         </div>
       )}
-      {!started && <button id="uninitiated-get-user-button" onClick={() => GetUserAction.run({ userId })}>Initiate Get User for ID: {userId}</button>}
+      {!started && <button id="uninitiated-get-user-button" onClick={() => GetUserAction.run({ userId }, { treatAsUpdate: true })}>Initiate Get User for ID: {userId}</button>}
     </div>
   )
 }

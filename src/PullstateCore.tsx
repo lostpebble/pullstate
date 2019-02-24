@@ -3,9 +3,9 @@ import { Store } from "./Store";
 import {
   clientAsyncCache,
   createAsyncAction,
-  IOCreateAsyncActionOutput,
+  IOCreateAsyncActionOutput, IPullstateAsyncActionOrdState,
   IPullstateAsyncCache,
-  IPullstateAsyncState,
+  IPullstateAsyncResultState,
   TPullstateAsyncAction,
 } from "./async";
 
@@ -91,7 +91,8 @@ export class PullstateSingleton<T extends IPullstateAllStores = IPullstateAllSto
 
 interface IPullstateSnapshot {
   allState: { [storeName: string]: any };
-  asyncResults: IPullstateAsyncState;
+  asyncResults: IPullstateAsyncResultState;
+  asyncActionOrd: IPullstateAsyncActionOrdState;
 }
 
 class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> {
@@ -100,6 +101,7 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> {
     listeners: {},
     results: {},
     actions: {},
+    actionOrd: {},
   };
 
   constructor(allStores: T) {
@@ -113,11 +115,19 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> {
       allState[storeName] = this._stores[storeName].getRawState();
     }
 
-    return { allState, asyncResults: this._asyncCache.results };
+    return { allState, asyncResults: this._asyncCache.results, asyncActionOrd: this._asyncCache.actionOrd };
   }
 
   async resolveAsyncState() {
-    const promises = Object.keys(this._asyncCache.actions).map(key =>
+    const promises = Object.keys(this._asyncCache.actions).map(key => {
+      if (!this._asyncCache.actionOrd.hasOwnProperty(key)) {
+        this._asyncCache.actionOrd[key] = 0;
+      } else {
+        this._asyncCache.actionOrd[key] += 1;
+      }
+
+      let currentActionOrd = this._asyncCache.actionOrd[key];
+
       this._asyncCache.actions[key]()
         .then(resp => {
           this._asyncCache.results[key] = [true, true, resp, false];
@@ -128,8 +138,8 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> {
         .then(() => {
           // console.log(`Should run after each promise error / success`);
           delete this._asyncCache.actions[key];
-        })
-    );
+        });
+    });
 
     return Promise.all(promises);
   }
@@ -148,6 +158,7 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> {
     }
 
     clientAsyncCache.results = snapshot.asyncResults;
+    clientAsyncCache.actionOrd = snapshot.asyncActionOrd;
   }
 }
 

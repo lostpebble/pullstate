@@ -4,29 +4,30 @@ import { useContext, useEffect, useState } from "react";
 
 type TPullstateAsyncUpdateListener = () => void;
 
-// result state = [ started, finished, resp, updating ]
+// [ started, finished, result, updating ]
 export type TPullstateAsyncWatchResponse<R> = [boolean, boolean, null | R, boolean];
+// [finished, result, updating]
 export type TPullstateAsyncBeckonResponse<R> = [boolean, null | R, boolean];
-export type TPullstateAsyncRunResponse<R> = Promise<[null | R]>;
-// export interface IPullstateAsyncResponse<R> {
-//   started: boolean;
-//   finished: boolean;
-//   updating: boolean;
-//   result: R;
-// }
+// [result]
+export type TPullstateAsyncRunResponse<R> = Promise<null | R>;
 
-export interface IPullstateAsyncState {
+export interface IPullstateAsyncResultState {
   [key: string]: TPullstateAsyncWatchResponse<any>;
 }
 
+export interface IPullstateAsyncActionOrdState {
+  [key: string]: number;
+}
+
 export interface IPullstateAsyncCache {
-  results: IPullstateAsyncState;
+  results: IPullstateAsyncResultState;
   listeners: {
     [key: string]: TPullstateAsyncUpdateListener[];
   };
   actions: {
     [key: string]: () => Promise<any>;
   };
+  actionOrd: IPullstateAsyncActionOrdState;
 }
 
 export type TPullstateAsyncAction<A, R, S extends IPullstateAllStores> = (args: A, stores: S) => Promise<R>;
@@ -43,18 +44,21 @@ type TAsyncActionBeckon<A, R> = (args?: A) => TPullstateAsyncBeckonResponse<R>;
 type TAsyncActionWatch<A, R> = (args?: A, options?: IAsyncActionWatchOptions) => TPullstateAsyncWatchResponse<R>;
 type TAsyncActionRun<A, R> = (args?: A, options?: IAsyncActionRunOptions) => TPullstateAsyncRunResponse<R>;
 type TAsyncActionClearCache<A> = (args?: A) => void;
+type TAsyncActionClearAllCache = () => void;
 
 export interface IOCreateAsyncActionOutput<A, R> {
   useBeckon: TAsyncActionBeckon<A, R>;
   useWatch: TAsyncActionWatch<A, R>;
   run: TAsyncActionRun<A, R>;
   clearCache: TAsyncActionClearCache<A>;
+  clearAllCache: TAsyncActionClearAllCache;
 }
 
 export const clientAsyncCache: IPullstateAsyncCache = {
   listeners: {},
   results: {},
   actions: {},
+  actionOrd: {},
 };
 
 let asyncCreationOrdinal = 0;
@@ -94,7 +98,15 @@ function notifyListeners(key: string) {
   }
 }
 
-export function createAsyncAction<A, R, S extends IPullstateAllStores = IPullstateAllStores>(
+function clearActionCache(key: string) {
+  if (clientAsyncCache.actionOrd.hasOwnProperty(key)) {
+    clientAsyncCache.actionOrd[key] += 1;
+  }
+  delete clientAsyncCache.results[key];
+  notifyListeners(key);
+}
+
+export function createAsyncAction<A = any, R = any, S extends IPullstateAllStores = IPullstateAllStores>(
   action: TPullstateAsyncAction<A, R, S>,
   defaultArgs: A = {} as A,
   clientStores: S = {} as S
@@ -114,7 +126,6 @@ export function createAsyncAction<A, R, S extends IPullstateAllStores = IPullsta
       if (cache.results.hasOwnProperty(key)) {
         // console.log(`Pullstate Async: [${key}] Already been run - do nothing`);
         return cache.results[key];
-        // return [true, true, null, false];
       }
 
       // console.log(`Pullstate Async: [${key}] has no results yet`);
@@ -125,13 +136,25 @@ export function createAsyncAction<A, R, S extends IPullstateAllStores = IPullsta
           // queue (on server) or start the action now (on client)
           cache.actions[key] = () => action(args, stores);
 
+          if (!cache.actionOrd.hasOwnProperty(key)) {
+            cache.actionOrd[key] = 0;
+          } else {
+            cache.actionOrd[key] += 1;
+          }
+
+          let currentActionOrd = cache.actionOrd[key];
+
           if (!onServer) {
             cache.actions[key]()
               .then(resp => {
-                cache.results[key] = [true, true, resp, false];
+                if (currentActionOrd === cache.actionOrd[key]) {
+                  cache.results[key] = [true, true, resp, false];
+                }
               })
               .catch(() => {
-                cache.results[key] = [true, true, null, false];
+                if (currentActionOrd === cache.actionOrd[key]) {
+                  cache.results[key] = [true, true, null, false];
+                }
               })
               .then(() => {
                 delete cache.actions[key];
@@ -203,26 +226,29 @@ export function createAsyncAction<A, R, S extends IPullstateAllStores = IPullsta
 
     notifyListeners(key);
 
-    // for (const listener of clientAsyncCache.listeners[key]) {
-    //   listener();
-    // }
-
     try {
       const resp = await action(args, clientStores);
       clientAsyncCache.results[key] = [true, true, resp, false];
       notifyListeners(key);
-      return [resp];
+      return resp;
     } catch (e) {
       clientAsyncCache.results[key] = [true, true, null, false];
       notifyListeners(key);
-      return [null];
+      return null;
     }
   };
 
   const clearCache: TAsyncActionClearCache<A> = (args = {} as A) => {
     const key = createKey(ordinal, args);
-    delete clientAsyncCache.results[key];
-    notifyListeners(key);
+    clearActionCache(key);
+  };
+
+  const clearAllCache: TAsyncActionClearAllCache = () => {
+    for (const key of Object.keys(clientAsyncCache.actionOrd)) {
+      if (key.startsWith(`${ordinal}-`)) {
+        clearActionCache(key);
+      }
+    }
   };
 
   return {
@@ -230,5 +256,6 @@ export function createAsyncAction<A, R, S extends IPullstateAllStores = IPullsta
     useWatch,
     run,
     clearCache,
+    clearAllCache,
   };
 }

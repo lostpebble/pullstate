@@ -3,7 +3,7 @@
 > Ridiculously simple state stores with performant retrieval anywhere
 > in your React tree using the wonderful concept of React hooks!
 
-* ~1.87KB minified and gzipped! (excluding Immer and React)
+* ~2.02KB minified and gzipped! (excluding Immer and React)
 * Built with Typescript, providing a great dev experience if you're using it too
 * Provides `<InjectStoreState>` component for those who don't like change 🐌
 * Uses [immer](https://github.com/mweststrate/immer) for state updates - easily and safely mutate your state directly!
@@ -25,7 +25,7 @@ yarn add pullstate
 
 After installing, lets define a store by passing an initial state to `new Store()`:
 
-```javascript
+```tsx
 import { Store } from "pullstate";
 
 export const UIStore = new Store({
@@ -38,7 +38,7 @@ export const UIStore = new Store({
 
 Then, in React, we can start using the state of that store using a simple hook `useStoreState()`:
 
-```jsx
+```tsx
 import { UIStore } from "./stores/UIStore";
 import { useStoreState } from "pullstate";
 
@@ -65,7 +65,7 @@ Notice, that we also made use of `update()`, which allows us to update our store
 
 Also notice, the second argument to `useStoreState()`:
 
-```javascript
+```tsx
 const theme = useStoreState(UIStore, s => s.theme);
 ```
 
@@ -76,7 +76,7 @@ for changes on `theme`.
 
 If you want you can leave out the second argument altogether:
 
-```jsx
+```tsx
 const storeState = useStoreState(UIStore);
 ```
 
@@ -84,13 +84,13 @@ This will return the entire store's state - and listen to all changes on the sto
 
 To listen to more parts of the state within a store simply pick out more values:
 
-```javascript
+```tsx
 const { theme, message } = useStoreState(UIStore, s => ({ theme: s.theme, message: s.message }));
 ```
 
 Lastly, lets look at how we update our stores:
 
-```javascript
+```tsx
 UIStore.update(s => {
   s.theme.mode = theme.mode === EThemeMode.DARK ? EThemeMode.LIGHT : EThemeMode.DARK;
 });
@@ -102,7 +102,7 @@ And that's pretty much it!
 
 As an added convenience (and for those who still enjoy using components directly for accessing these things), you can also work with state using the `<InjectStoreState>` component, like so:
 
-```jsx
+```tsx
 import { InjectStoreState } from "pullstate";
 
 // ... somewhere in your JSX :
@@ -115,7 +115,7 @@ The above will sort you out nicely if you are simply running a client-rendered a
 
 ### Create a central place for all your stores using `createPullstate()`
 
-```javascript
+```tsx
 import { UIStore } from "./stores/UIStore";
 import { UserStore } from "./stores/UserStore";
 import { createPullstate } from "pullstate";
@@ -130,7 +130,7 @@ You pass in the stores you created before. This creates a centralized object fro
 
 ### Using your stores on the server
 
-```jsx
+```tsx
 import { PullstateCore } from "./state/PullstateCore";
 import ReactDOMServer from "react-dom/server";
 import { PullstateProvider } from "pullstate";
@@ -167,7 +167,7 @@ ${reactHtml}`;
 
 ### Client state hydration
 
-```jsx
+```tsx
 const hydrateSnapshot = JSON.parse(window.__PULLSTATE__);
 
 const instance = PullstateCore.instantiate({ ssr: false, hydrateSnapshot });
@@ -192,7 +192,7 @@ This hook uses React's context to obtain the current render's stores, given to u
 
 Lets refactor the previous client-side-only example to work with Server Rendering:
 
-```jsx
+```tsx
 import { useStoreState, useStores } from "pullstate";
 
 const App = () => {
@@ -218,22 +218,19 @@ const App = () => {
 
 Basically, all you need to do is replace the import
 
-```
-
+```tsx
 import { UIStore } from "./stores/UIStore";
 ```
 
 with the context hook:
 
-```
-
+```tsx
 const { UIStore } = useStores();
 ```
 
 As a **TypeScript** convenience, there is a method on your created `PullstateCore` object of all your stores also named `useStores()` which will give you all the typing goodness since it knows about the structure of your stores:
 
-```
-
+```tsx
 const { UIStore, UserStore } = PullstateCore.useStores();
 ```
 
@@ -241,7 +238,7 @@ const { UIStore, UserStore } = PullstateCore.useStores();
 
 On the client side, when instantiating your stores, you are now instantiating with your "origin" stores by passing the `ssr: false` like so:
 
-```jsx
+```tsx
 const hydrateSnapshot = JSON.parse(window.__PULLSTATE__);
 
 const instance = PullstateCore.instantiate({ ssr: false, hydrateSnapshot });
@@ -299,7 +296,7 @@ Pullstate provides a much easier way to do this through **Async Actions**.
 
 If you are creating a client-only app, you can create an async action like so:
 
-```jsx
+```tsx
 import { createAsyncAction } from "pullstate";
 import { UserStore } from "./stores/UserStore";
 
@@ -314,7 +311,7 @@ const GetUserAction = createAsyncAction(async ({ userId }) => {
 
 If you are using server rendering, create them like this (using your `PullstateCore` object with all your stores):
 
-```jsx
+```tsx
 const GetUserAction = PullstateCore.createAsyncAction(async ({ userId }, { UserStore }) => {
   const user = await UserApi.getUser(userId);
   UserStore.update(s => {
@@ -330,7 +327,7 @@ Let's look closer at the actual async function which is passed in to `createAsyn
 
 * In that sense, these actions should be somewhat "pure" per the arguments you pass in - in this case, we pass an object containing `userId` and we expect to return exactly that user from the API.
 
-* :warning: Pulling `userId` from somewhere else, such as directly within your store, will cause different actions for different user ids to be seen as the same! (because their "fingerprints" are the same) This will cause caching issues - so **always have your actions defined with as many arguments which identify that single action as possible**!
+* :warning: Pulling `userId` from somewhere else, such as directly within your store, will cause different actions for different user ids to be seen as the same! (because their "fingerprints" are the same) This will cause caching issues - so **always have your actions defined with as many arguments which identify that single action as possible**! (But no more than that - be as specific as possible while being as brief as possible)
 
 * The function should return a **non-null** value - as a response of `null` is the default when the function throws an error. If your actions have potential for error, is recommended to make use of `try {} catch {}` blocks and returning custom error states in your return value to be dealt with gracefully (e.g. `return { isError: true, tag: "USER_NOT_FOUND" }`).
 
@@ -342,12 +339,77 @@ Notice that the async function looks slightly different when using server-side r
 
 ### Using Async Actions
 
-There are four ways to use Async Actions in your code:
+There are five ways to use Async Actions in your code:
 
-#### Watch the state of an Async Action
+*For the sake of being complete in our examples, all possible return states are shown - in real application usage, you might only use a subset of these values.*
 
-```jsx
+#### Watch an Async Action (React hook)
+
+```tsx
 const [started, finished, result, updating] = GetUserAction.useWatch({ userId });
 ```
 
-* For the sake of being
+* This **React hook** "watches" the action. By watching we mean that we are not instigating this action, but only listening for when this action actually starts through some other means (tracked with `started` here), and then all its states after.
+* Possible action states (if `true`):
+  * `started` : This action has begun its execution somewhere.
+  * `finished`: This action has finished
+  * `updating`: This is a special action state which can be instigated through `run()`, which we will see further down.
+* `result` is whatever you decide to return from your action. It will be `null` while your action is executing. It will also remain `null` should your action thow any errors. See more about the return value above.
+
+#### Beckon an Async Action (React hook)
+
+```tsx
+const [finished, result, updating] = GetUserAction.useBeckon({ userId });
+```
+
+* Exactly the same as `useWatch()` above, except this time we instigate this action when this hook is first called.
+
+* Same action states, except for `started` since we are starting this action by default
+
+#### Run an Async Action directly
+
+```tsx
+const result = await GetUserAction.run({ userId });
+```
+
+* Run's the async action directly, just like a regular promise. Any actions that are currently being watched by means of `useWatch()`  will have `started = true` at this moment.
+
+There are options (currently only one) which you can pass into this function too:
+
+```jsx
+const result = await GetUserAction.run({ userId }, { treatAsUpdate: true });
+```
+
+As seen in the hooks for `useWatch()` and `useBeckon()`, there is an extra return value called `updating` which will be set to `true` under certain conditions:
+
+* The action is `run()` with `treatAsUpdate: true` passed as an option.
+
+* The action has previously completed
+
+If these conditions are met, then `finished` shall remain `true`, but `updating` will now be `true` as well. This allows the edge case of updating your UI to show that updates to the already loaded data are incoming.
+
+Generally, the return value is unimportant here, and `run()` is mostly used for initiating watched actions, or initiating updates.
+
+#### Clear an Async Action's cache
+
+```tsx
+GetUserAction.clearCache({ userId });
+```
+
+Clears all known state about this action (specific to the passed arguments).
+
+* Any action that is still busy resolving will have its results ignored.
+
+* Any watched actions ( `useWatch()` ) will return to their neutral state (i.e. `started = false`)
+
+* Any beckoned actions (`useBeckon()`) will have their actions re-instigated anew.
+
+#### Clear the Async Action cache for *all* argument combinations
+
+```tsx
+GetUserAction.clearAllCache();
+```
+
+This is the same as `clearCache()`, except it will clear the cache for every single argument combination (the "fingerprints" we spoke of above) that this action has seen.
+
+
