@@ -1,4 +1,4 @@
-import { createAsyncAction, createPullstate } from "../../src";
+import { createAsyncAction, createPullstateCore, successResult } from "../../src";
 import { getUser, PullstateCore, UserApi } from "./TestSetup";
 
 const beautifyHtml = require("js-beautify").html;
@@ -8,7 +8,7 @@ const HydrateNewUserAction = PullstateCore.createAsyncAction(async (_, { UserSto
   UserStore.update(s => {
     s.user = newUser;
   });
-  return true;
+  return successResult();
 });
 
 const GetUserAction = PullstateCore.createAsyncAction(async ({ userId }, { UserStore }) => {
@@ -16,5 +16,11 @@ const GetUserAction = PullstateCore.createAsyncAction(async ({ userId }, { UserS
   UserStore.update(s => {
     s.user = user;
   });
-  return true;
+  return successResult();
 });
+
+describe("Server-side rendering Async Tests", () => {
+  it("has no test yet", () => {
+    expect(true).toEqual(true);
+  });
+})

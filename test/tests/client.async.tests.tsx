@@ -1,6 +1,6 @@
 import { useStoreState } from "../../src/useStoreState";
 import React, { useState } from "react";
-import { createAsyncAction } from "../../src/async";
+import { createAsyncAction, successResult } from "../../src/async";
 import ReactDOMServer from "react-dom/server";
 import { getUser, UserApi, UserStore } from "./TestSetup";
 
@@ -11,7 +11,7 @@ const HydrateNewUserAction = createAsyncAction(async () => {
   UserStore.update(s => {
     s.user = newUser;
   });
-  return true;
+  return successResult();
 });
 
 const GetUserAction = createAsyncAction<{ userId: number }>(async ({ userId }) => {
@@ -19,7 +19,7 @@ const GetUserAction = createAsyncAction<{ userId: number }>(async ({ userId }) =
   UserStore.update(s => {
     s.user = user;
   });
-  return true;
+  return successResult();
 });
 
 const UninitiatedUserAction = () => {

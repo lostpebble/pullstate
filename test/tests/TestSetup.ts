@@ -1,5 +1,5 @@
 import { waitSeconds } from "./TestUtils";
-import { createPullstate, Store } from "../../src";
+import { createPullstateCore, Store } from "../../src";
 
 const names = ["Paul", "Dave", "Michel"];
 const userNames = ["lostpebble", "davej", "mweststrate"];
@@ -35,6 +35,6 @@ export const UserStore = new Store<IUserStore>({
   currentUserId: 0,
 });
 
-export const PullstateCore = createPullstate({
+export const PullstateCore = createPullstateCore({
   UserStore,
 });

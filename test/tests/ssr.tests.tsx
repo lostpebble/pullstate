@@ -1,10 +1,10 @@
 import React from "react";
-import { createPullstate, InjectStoreState, PullstateProvider, Store, update, useStoreState } from "../../src/index";
+import { createPullstateCore, InjectStoreState, PullstateProvider, Store, update, useStoreState } from "../../src/index";
 import ReactDOMServer from "react-dom/server";
 import { TestUIStore } from "./testStores/TestUIStore";
 const beautify = require('js-beautify').html;
 
-const PullstateCore = createPullstate({ TestUIStore });
+const PullstateCore = createPullstateCore({ TestUIStore });
 
 const Counter = () => {
   const { TestUIStore: ui } = PullstateCore.useStores();

@@ -113,14 +113,14 @@ import { InjectStoreState } from "pullstate";
 
 The above will sort you out nicely if you are simply running a client-rendered app. But Server Rendering is a little more involved (although not much).
 
-## Create a central place for all your stores using `createPullstate()`
+## Create a central place for all your stores using `createPullstateCore()`
 
 ```tsx
 import { UIStore } from "./stores/UIStore";
 import { UserStore } from "./stores/UserStore";
-import { createPullstate } from "pullstate";
+import { createPullstateCore } from "pullstate";
 
-export const PullstateCore = createPullstate({
+export const PullstateCore = createPullstateCore({
   UIStore,
   UserStore,
 });
@@ -305,7 +305,7 @@ const GetUserAction = createAsyncAction(async ({ userId }) => {
   UserStore.update(s => {
     s.user = user;
   });
-  return true;
+  return successResult();
 });
 ```
 
@@ -317,7 +317,7 @@ const GetUserAction = PullstateCore.createAsyncAction(async ({ userId }, { UserS
   UserStore.update(s => {
     s.user = user;
   });
-  return true;
+  return successResult();
 });
 ```
 
@@ -329,9 +329,35 @@ Let's look closer at the actual async function which is passed in to `createAsyn
 
 * :warning: Pulling `userId` from somewhere else, such as directly within your store, will cause different actions for different user ids to be seen as the same! (because their "fingerprints" are the same) This will cause caching issues - so **always have your actions defined with as many arguments which identify that single action as possible**! (But no more than that - be as specific as possible while being as brief as possible)
 
-* The function should return a **non-null** value - as a response of `null` is the default when the function throws an error. If your actions have potential for error, is recommended to make use of `try {} catch {}` blocks and returning custom error states in your return value to be dealt with gracefully (e.g. `return { isError: true, tag: "USER_NOT_FOUND" }`).
+* The function should return a certain structured result. Pullstate provides convenience methods for this, depending on whether you want to return an error or a success.
 
-* **The Pullstate Way** :tm:, is keeping your state in your stores as much as possible - hence we don't actually return the new user object, but update our `UserStore` along the way in the action (this also means that during a single asynchronous action, we can actually have our app update and react multiple times). In this case we just return `true`.
+```typescript jsx
+// The structure of the "result" object returned by your hooks
+{
+  error: boolean;
+  message: string;
+  tags: string[];
+  payload: any;
+}
+```
+
+Convenience function for **success** (will set `{ error: false }` on the result object) e.g:
+
+```typescript jsx
+//     successResult(payload = null, tags = [], message = "")
+return successResult(somePayload);
+```
+
+Convenience function for **error** (will set `{ error: true }` on the result object) e.g:
+
+```
+//     errorResult(tags = [], message = "")
+return errorResult(["NO_USER_FOUND"], "No user found in database by that name");
+```
+
+* The `tags` property here is a way to easily react to more specific error states in your UI. The default error result, when you haven't caught the error's yourself, will return with a single tag: `["UNKNOWN_ERROR"]`. If you return an error with `errorResult()`, the tag `"RETURNED_ERROR"` will automatically be added to tags.
+
+* **The Pullstate Way** :tm:, is keeping your state in your stores as much as possible - hence we don't actually return the new user object, but update our `UserStore` along the way in the action (this also means that during a single asynchronous action, we can actually have our app update and react multiple times).
 
 Notice that the async function looks slightly different when using server-side rendering:
 
@@ -424,28 +450,25 @@ Until there is a better way to crawl through your react tree, the current way to
 
 Using the `instance` which we create from our `PullstateCore` object of all our stores:
 
-```tsx
+```typescript jsx
   const instance = PullstateCore.instantiate({ ssr: true });
-
+  
   // (1)
-  let reactHtml = ReactDOMServer.renderToString(
+  const app = (
     <PullstateProvider instance={instance}>
       <App />
     </PullstateProvider>
-  );
+  )
 
-  // (2)
-  while (instance.hasAsyncStateToResolve()) {
-    await instance.resolveAsyncState();
-
-    reactHtml = ReactDOMServer.renderToString(
-      <PullstateProvider instance={instance}>
-        <App />
-      </PullstateProvider>
-    );
-  }
+  let reactHtml = ReactDOMServer.renderToString(app);
 
   // (3)
+  while (instance.hasAsyncStateToResolve()) {
+    await instance.resolveAsyncState();
+    reactHtml = ReactDOMServer.renderToString(app);
+  }
+
+  // (4)
   const snapshot = instance.getPullstateSnapshot();
 
   const body = `
@@ -455,7 +478,7 @@ Using the `instance` which we create from our `PullstateCore` object of all our 
 
 As marked with numbers in the code:
 
-1. We do our initial rendering as usual - this will register the initial async actions which need to be resolved onto our Pullstate `instance`.
+1. Place your app into a variable for easy of use. After which, we do our initial rendering as usual - this will register the initial async actions which need to be resolved onto our Pullstate `instance`.
 
 2. We enter into a `while()` loop using `instance.hasAsyncStateToResolve()`, which will return `true` unless there is no async state in our React tree left to resolve. Inside this loop we immediately resolve all async state with `instance.resolveAsyncState()` before rendering again. This renders our React tree until all state is deeply resolved.
 

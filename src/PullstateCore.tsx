@@ -3,6 +3,7 @@ import { Store } from "./Store";
 import {
   clientAsyncCache,
   createAsyncAction,
+  EAsyncEndTags,
   IOCreateAsyncActionOutput,
   IPullstateAsyncActionOrdState,
   IPullstateAsyncCache,
@@ -30,10 +31,10 @@ export type IUseAsyncWatcherResponse<ET extends string[] = string[]> = [boolean,
 
 let singleton: PullstateSingleton | null = null;
 
-export class PullstateSingleton<T extends IPullstateAllStores = IPullstateAllStores> {
-  private readonly originStores: T = {} as T;
+export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllStores> {
+  private readonly originStores: S = {} as S;
 
-  constructor(allStores: T) {
+  constructor(allStores: S) {
     if (singleton !== null) {
       console.error(
         `Pullstate: createPullstate() - Should not be creating the core Pullstate class more than once! In order to re-use pull state, you need to call instantiate() on your already created object.`
@@ -47,7 +48,7 @@ export class PullstateSingleton<T extends IPullstateAllStores = IPullstateAllSto
   instantiate({
     hydrateSnapshot = null,
     ssr = false,
-  }: { hydrateSnapshot?: IPullstateSnapshot; ssr?: boolean } = {}): PullstateInstance<T> {
+  }: { hydrateSnapshot?: IPullstateSnapshot; ssr?: boolean } = {}): PullstateInstance<S> {
     if (!ssr) {
       const instantiated = new PullstateInstance(this.originStores);
 
@@ -58,7 +59,7 @@ export class PullstateSingleton<T extends IPullstateAllStores = IPullstateAllSto
       return instantiated;
     }
 
-    const newStores = {} as T;
+    const newStores = {} as S;
 
     for (const storeName of Object.keys(this.originStores)) {
       if (hydrateSnapshot == null) {
@@ -78,15 +79,15 @@ export class PullstateSingleton<T extends IPullstateAllStores = IPullstateAllSto
     return new PullstateInstance(newStores);
   }
 
-  useStores(): T {
-    return useContext(PullstateContext).stores as T;
+  useStores(): S {
+    return useContext(PullstateContext).stores as S;
   }
 
-  createAsyncAction<A = any, R = any>(
-    action: TPullstateAsyncAction<A, R, T>,
+  createAsyncAction<A = any, R = any, T extends string = string>(
+    action: TPullstateAsyncAction<A, R, T, S>,
     defaultArgs: A = {} as A
-  ): IOCreateAsyncActionOutput<A, R> {
-    return createAsyncAction<A, R, T>(action, defaultArgs, this.originStores);
+  ): IOCreateAsyncActionOutput<A, R, T> {
+    return createAsyncAction<A, R, T, S>(action, defaultArgs, this.originStores);
   }
 }
 
@@ -116,7 +117,12 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> {
           this._asyncCache.results[key] = [true, true, resp, false];
         })
         .catch(() => {
-          this._asyncCache.results[key] = [true, true, null, false];
+          this._asyncCache.results[key] = [
+            true,
+            true,
+            { error: true, message: "", tags: [EAsyncEndTags.THREW_ERROR], payload: null },
+            false,
+          ];
         })
         .then(() => {
           // console.log(`Should run after each promise error / success`);
@@ -162,7 +168,7 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> {
   }
 }
 
-export function createPullstate<T extends IPullstateAllStores = IPullstateAllStores>(allStores: T) {
+export function createPullstateCore<T extends IPullstateAllStores = IPullstateAllStores>(allStores: T) {
   return new PullstateSingleton<T>(allStores);
 }
 
