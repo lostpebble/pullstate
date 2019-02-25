@@ -375,12 +375,12 @@ There are five ways to use Async Actions in your code:
 const [started, finished, result, updating] = GetUserAction.useWatch({ userId });
 ```
 
-* This **React hook** "watches" the action. By watching we mean that we are not instigating this action, but only listening for when this action actually starts through some other means (tracked with `started` here), and then all its states after.
+* This **React hook** "watches" the action. By watching we mean that we are not initiating this action, but only listening for when this action actually starts through some other means (tracked with `started` here), and then all its states after.
 * Possible action states (if `true`):
-  * `started` : This action has begun its execution somewhere.
+  * `started` : This action has begun its execution.
   * `finished`: This action has finished
   * `updating`: This is a special action state which can be instigated through `run()`, which we will see further down.
-* `result` is whatever you decide to return from your action. It will be `null` while your action is executing. It will also remain `null` should your action thow any errors. See more about the return value above.
+* `result` is the structured result object you return from your action (see above in action creation).
 
 ### Beckon an Async Action (React hook)
 
