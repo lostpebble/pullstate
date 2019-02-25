@@ -3,7 +3,7 @@
 > Ridiculously simple state stores with performant retrieval anywhere
 > in your React tree using the wonderful concept of React hooks!
 
-* ~2.02KB minified and gzipped! (excluding Immer and React)
+* ~2.11KB minified and gzipped! (excluding Immer and React)
 * Built with Typescript, providing a great dev experience if you're using it too
 * Provides `<InjectStoreState>` component for those who don't like change 🐌
 * Uses [immer](https://github.com/mweststrate/immer) for state updates - easily and safely mutate your state directly!
@@ -419,3 +419,54 @@ Any action that is making use of `useBeckon()` in the current render tree can ha
 #### **Important note** :grey_exclamation:
 
 **The asynchronous action code needs to be able to resolve on both the server and client** - so make sure that your data-fetching functions are "isomorphic" or "universal" in nature. Examples of such functionality are the [Apollo Client](https://www.apollographql.com/docs/react/api/apollo-client.html) or [Wildcard API](https://github.com/brillout/wildcard-api).
+
+Until there is a better way to crawl through your react tree, the current way to resolve async state on the server-side while rendering your React app is to simply render it multiple times. This allows Pullstate to register which async actions are required to resolve before we do our final render for the client.
+
+Using the `instance` which we create from our `PullstateCore` object of all our stores:
+
+```tsx
+  const instance = PullstateCore.instantiate({ ssr: true });
+
+  // (1)
+  let reactHtml = ReactDOMServer.renderToString(
+    <PullstateProvider instance={instance}>
+      <App />
+    </PullstateProvider>
+  );
+
+  // (2)
+  while (instance.hasAsyncStateToResolve()) {
+    await instance.resolveAsyncState();
+
+    reactHtml = ReactDOMServer.renderToString(
+      <PullstateProvider instance={instance}>
+        <App />
+      </PullstateProvider>
+    );
+  }
+
+  // (3)
+  const snapshot = instance.getPullstateSnapshot();
+
+  const body = `
+  <script>window.__PULLSTATE__ = '${JSON.stringify(snapshot)}'</script>
+  ${reactHtml}`;
+```
+
+As marked with numbers in the code:
+
+1. We do our initial rendering as usual - this will register the initial async actions which need to be resolved onto our Pullstate `instance`.
+
+2. We enter into a `while()` loop using `instance.hasAsyncStateToResolve()`, which will return `true` unless there is no async state in our React tree left to resolve. Inside this loop we immediately resolve all async state with `instance.resolveAsyncState()` before rendering again. This renders our React tree until all state is deeply resolved.
+
+3. Once there is no more async state to resolve, we can pull out the snapshot of our Pullstate instance - and we stuff that into our HTML to be hydrated on the client.
+
+### Selectively resolving async state on the server
+
+If you wish to have the regular behaviour of `useBeckon()` but you don't actually want the server to resolve this asynchronous state (you're happy for it to load on the client-side only). You can pass in an option to `useBeckon()`:
+
+```
+const [finished, result, updating] = GetUserAction.useBeckon({ userId }, { ssr: false });
+```
+
+Passing in `ssr: false` will cause this action to be ignored in the server asynchronous state resolve cycle.
