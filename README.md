@@ -465,7 +465,7 @@ As marked with numbers in the code:
 
 If you wish to have the regular behaviour of `useBeckon()` but you don't actually want the server to resolve this asynchronous state (you're happy for it to load on the client-side only). You can pass in an option to `useBeckon()`:
 
-```
+```tsx
 const [finished, result, updating] = GetUserAction.useBeckon({ userId }, { ssr: false });
 ```
 
