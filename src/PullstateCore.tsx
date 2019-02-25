@@ -109,18 +109,8 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> {
     this._stores = allStores;
   }
 
-  getPullstateSnapshot(): IPullstateSnapshot {
-    const allState = {};
-
-    for (const storeName of Object.keys(this._stores)) {
-      allState[storeName] = this._stores[storeName].getRawState();
-    }
-
-    return { allState, asyncResults: this._asyncCache.results, asyncActionOrd: this._asyncCache.actionOrd };
-  }
-
-  async resolveAsyncState() {
-    const promises = Object.keys(this._asyncCache.actions).map(key =>
+  private getAllUnresolvedAsyncActions(): Array<Promise<any>> {
+    return Object.keys(this._asyncCache.actions).map(key =>
       this._asyncCache.actions[key]()
         .then(resp => {
           this._asyncCache.results[key] = [true, true, resp, false];
@@ -133,8 +123,25 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> {
           delete this._asyncCache.actions[key];
         })
     );
+  }
 
+  getPullstateSnapshot(): IPullstateSnapshot {
+    const allState = {};
+
+    for (const storeName of Object.keys(this._stores)) {
+      allState[storeName] = this._stores[storeName].getRawState();
+    }
+
+    return { allState, asyncResults: this._asyncCache.results, asyncActionOrd: this._asyncCache.actionOrd };
+  }
+
+  async resolveAsyncState() {
+    const promises = this.getAllUnresolvedAsyncActions();
     return Promise.all(promises);
+  }
+
+  hasAsyncStateToResolve(): boolean {
+    return Object.keys(this._asyncCache.actions).length > 0;
   }
 
   get stores(): T {

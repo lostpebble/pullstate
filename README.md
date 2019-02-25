@@ -17,7 +17,7 @@ Try out a quick example:
 
 [![Edit Pullstate Client-only Example](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/myvj8zzypp)
 
-## **Let's dive right in**
+# **Let's dive right in**
 
 ```bash
 yarn add pullstate
@@ -109,11 +109,11 @@ import { InjectStoreState } from "pullstate";
 <InjectStoreState store={UIStore} on={s => s.message}>{message => <h2>{message}</h2>}</InjectStoreState>
 ```
 
-## Server Rendering
+# Server Rendering
 
 The above will sort you out nicely if you are simply running a client-rendered app. But Server Rendering is a little more involved (although not much).
 
-### Create a central place for all your stores using `createPullstate()`
+## Create a central place for all your stores using `createPullstate()`
 
 ```tsx
 import { UIStore } from "./stores/UIStore";
@@ -128,7 +128,7 @@ export const PullstateCore = createPullstate({
 
 You pass in the stores you created before. This creates a centralized object from which Pullstate can instantiate your state before each render.
 
-### Using your stores on the server
+## Using your stores on the server
 
 ```tsx
 import { PullstateCore } from "./state/PullstateCore";
@@ -165,7 +165,7 @@ ${reactHtml}`;
 * We pass our pullstate instance into the rendering function. We use `<PullstateProvider>` to do so, providing the `instance`.
 * Lastly, we need to return this state to the client somehow. Here we call `getPullstateSnapshot()` on the instance and set it on `window.__PULLSTATE__`, to be parsed and hydrated on the client.
 
-### Client state hydration
+## Client state hydration
 
 ```tsx
 const hydrateSnapshot = JSON.parse(window.__PULLSTATE__);
@@ -182,7 +182,7 @@ ReactDOM.render(
 
 * We create a new instance on the client using the same method as on the server, except this time we can pass the `hydrateSnapshot` and `ssr: false`, which will instantiate our new stores with the state where our server left off.
 
-### Using our stores throughout our React app
+## Using our stores throughout our React app
 
 So now that we have our stores properly injected into our react app through `<PullstateProvider>`, we need to actually make use of them correctly. Because we are server rendering, we can't use the singleton-type stores we made before - we need to target these injected store instances directly.
 
@@ -234,7 +234,7 @@ As a **TypeScript** convenience, there is a method on your created `PullstateCor
 const { UIStore, UserStore } = PullstateCore.useStores();
 ```
 
-### Last note about Server Rendering
+## Last note about Server Rendering
 
 On the client side, when instantiating your stores, you are now instantiating with your "origin" stores by passing the `ssr: false` like so:
 
@@ -270,7 +270,7 @@ async function refreshGraphData() {
 
 ⚠ __Caution Though__ - While this allows for much more ease of use for playing around with state on the client, you must make sure that these state updates are _strictly_ client-side only updates - as they will not apply on the server and you will get unexpected results. Think of these updates as updates that will run after the page has already loaded completely for the user (UI responses, dynamic data loading, loading screen popups etc.).
 
-## Async Actions
+# Async Actions
 
 More often than not, our stores do not exist in purely synchronous states. We often need to perform actions asynchronously, such as pulling data from an API.
 
@@ -292,7 +292,7 @@ instance.stores.UserStore.update(userStore => {
 
 Pullstate provides a much easier way to do this through **Async Actions**.
 
-### Create an Async Action
+## Create an Async Action
 
 If you are creating a client-only app, you can create an async action like so:
 
@@ -337,13 +337,13 @@ Notice that the async function looks slightly different when using server-side r
 
 * Your Pullstate stores are passed into the function as the second argument - you must use these stores directly because any asynchrounous state that we need to resolve on the server before rendering needs to use the stores provided by `<PullstateProvider>`, which will be these.
 
-### Using Async Actions
+## Using Async Actions
 
 There are five ways to use Async Actions in your code:
 
 *For the sake of being complete in our examples, all possible return states are shown - in real application usage, you might only use a subset of these values.*
 
-#### Watch an Async Action (React hook)
+### Watch an Async Action (React hook)
 
 ```tsx
 const [started, finished, result, updating] = GetUserAction.useWatch({ userId });
@@ -356,7 +356,7 @@ const [started, finished, result, updating] = GetUserAction.useWatch({ userId })
   * `updating`: This is a special action state which can be instigated through `run()`, which we will see further down.
 * `result` is whatever you decide to return from your action. It will be `null` while your action is executing. It will also remain `null` should your action thow any errors. See more about the return value above.
 
-#### Beckon an Async Action (React hook)
+### Beckon an Async Action (React hook)
 
 ```tsx
 const [finished, result, updating] = GetUserAction.useBeckon({ userId });
@@ -366,7 +366,7 @@ const [finished, result, updating] = GetUserAction.useBeckon({ userId });
 
 * Same action states, except for `started` since we are starting this action by default
 
-#### Run an Async Action directly
+### Run an Async Action directly
 
 ```tsx
 const result = await GetUserAction.run({ userId });
@@ -390,7 +390,7 @@ If these conditions are met, then `finished` shall remain `true`, but `updating`
 
 Generally, the return value is unimportant here, and `run()` is mostly used for initiating watched actions, or initiating updates.
 
-#### Clear an Async Action's cache
+### Clear an Async Action's cache
 
 ```tsx
 GetUserAction.clearCache({ userId });
@@ -404,7 +404,7 @@ Clears all known state about this action (specific to the passed arguments).
 
 * Any beckoned actions (`useBeckon()`) will have their actions re-instigated anew.
 
-#### Clear the Async Action cache for *all* argument combinations
+### Clear the Async Action cache for *all* argument combinations
 
 ```tsx
 GetUserAction.clearAllCache();
@@ -412,4 +412,10 @@ GetUserAction.clearAllCache();
 
 This is the same as `clearCache()`, except it will clear the cache for every single argument combination (the "fingerprints" we spoke of above) that this action has seen.
 
+## Resolving state on the server
 
+Any action that is making use of `useBeckon()` in the current render tree can have its state resolved on the server before rendering to the client. This allows us to generate dynamic pages on the fly!
+
+#### **Important note** :grey_exclamation:
+
+**The asynchronous action code needs to be able to resolve on both the server and client** - so make sure that your data-fetching functions are "isomorphic" or "universal" in nature. Examples of such functionality are the [Apollo Client](https://www.apollographql.com/docs/react/api/apollo-client.html) or [Wildcard API](https://github.com/brillout/wildcard-api).

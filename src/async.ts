@@ -1,6 +1,6 @@
 import { IPullstateAllStores, PullstateContext } from "./PullstateCore";
 const shallowEqual = require("fbjs/lib/shallowEqual");
-import { useContext, useEffect, useState } from "react";
+import { useContext, useEffect, useRef, useState } from "react";
 
 type TPullstateAsyncUpdateListener = () => void;
 
@@ -32,7 +32,11 @@ export interface IPullstateAsyncCache {
 
 export type TPullstateAsyncAction<A, R, S extends IPullstateAllStores> = (args: A, stores: S) => Promise<R>;
 
-export interface IAsyncActionWatchOptions {
+export interface IAsyncActionBeckonOptions {
+  ssr?: boolean;
+}
+
+export interface IAsyncActionWatchOptions extends IAsyncActionBeckonOptions {
   initiate?: boolean;
 }
 
@@ -40,7 +44,7 @@ export interface IAsyncActionRunOptions {
   treatAsUpdate?: boolean;
 }
 
-type TAsyncActionBeckon<A, R> = (args?: A) => TPullstateAsyncBeckonResponse<R>;
+type TAsyncActionBeckon<A, R> = (args?: A, options?: IAsyncActionBeckonOptions) => TPullstateAsyncBeckonResponse<R>;
 type TAsyncActionWatch<A, R> = (args?: A, options?: IAsyncActionWatchOptions) => TPullstateAsyncWatchResponse<R>;
 type TAsyncActionRun<A, R> = (args?: A, options?: IAsyncActionRunOptions) => TPullstateAsyncRunResponse<R>;
 type TAsyncActionClearCache<A> = (args?: A) => void;
@@ -102,8 +106,21 @@ function clearActionCache(key: string) {
   if (clientAsyncCache.actionOrd.hasOwnProperty(key)) {
     clientAsyncCache.actionOrd[key] += 1;
   }
+
+  // console.log(`Set ordinal for action [${key}] to ${clientAsyncCache.actionOrd[key] || "DIDNT EXIST"}`);
+  // console.log(`Clearing cache for [${key}]`);
   delete clientAsyncCache.results[key];
   notifyListeners(key);
+}
+
+function actionOrdUpdate(cache: IPullstateAsyncCache, key: string): number {
+  if (!cache.actionOrd.hasOwnProperty(key)) {
+    cache.actionOrd[key] = 0;
+  } else {
+    cache.actionOrd[key] += 1;
+  }
+
+  return cache.actionOrd[key];
 }
 
 export function createAsyncAction<A = any, R = any, S extends IPullstateAllStores = IPullstateAllStores>(
@@ -115,7 +132,7 @@ export function createAsyncAction<A = any, R = any, S extends IPullstateAllStore
   const onServer: boolean = typeof window === "undefined";
   // console.log(`Creating async action with ordinal: ${ordinal} - action name: ${action.name}`);
 
-  const useWatch: TAsyncActionWatch<A, R> = (args = defaultArgs, { initiate = false }: IAsyncActionWatchOptions = {}) => {
+  const useWatch: TAsyncActionWatch<A, R> = (args = defaultArgs, { initiate = false, ssr = true }: IAsyncActionWatchOptions = {}) => {
     const key = createKey(ordinal, args);
     let shouldUpdate = true;
 
@@ -134,15 +151,11 @@ export function createAsyncAction<A = any, R = any, S extends IPullstateAllStore
       if (!cache.actions.hasOwnProperty(key)) {
         if (initiate) {
           // queue (on server) or start the action now (on client)
-          cache.actions[key] = () => action(args, stores);
-
-          if (!cache.actionOrd.hasOwnProperty(key)) {
-            cache.actionOrd[key] = 0;
-          } else {
-            cache.actionOrd[key] += 1;
+          if (ssr || !onServer) {
+            cache.actions[key] = () => action(args, stores);
           }
 
-          let currentActionOrd = cache.actionOrd[key];
+          let currentActionOrd = actionOrdUpdate(cache, key);
 
           if (!onServer) {
             cache.actions[key]()
@@ -169,11 +182,28 @@ export function createAsyncAction<A = any, R = any, S extends IPullstateAllStore
       return [true, false, null, false];
     }
 
+    const [response, setResponse] = useState<TPullstateAsyncWatchResponse<R>>(() => {
+      return checkKeyAndReturnResponse(key);
+    });
+
+    const responseRef = useRef(response);
+
+    const [prevKey, setPrevKey] = useState<string>(key);
+
+    if (prevKey !== key) {
+      setPrevKey(key);
+      const newResponse = checkKeyAndReturnResponse(key);
+      setResponse(newResponse);
+      responseRef.current = newResponse;
+    }
+
     // only listen for updates when on client
     if (!onServer) {
-      function onAsyncStateChanged() {
-        if (shouldUpdate && !shallowEqual(response, cache.results[key])) {
-          setResponse(checkKeyAndReturnResponse(key));
+      const onAsyncStateChanged = () => {
+        if (shouldUpdate && !shallowEqual(responseRef.current, cache.results[key])) {
+          const newResponse = checkKeyAndReturnResponse(key);
+          setResponse(newResponse);
+          responseRef.current = newResponse;
         }
       }
 
@@ -193,23 +223,12 @@ export function createAsyncAction<A = any, R = any, S extends IPullstateAllStore
       }, [key]);
     }
 
-    const [response, setResponse] = useState<TPullstateAsyncWatchResponse<R>>(() => {
-      return checkKeyAndReturnResponse(key);
-    });
-
-    const [prevKey, setPrevKey] = useState<string>(key);
-
-    if (prevKey !== key) {
-      setPrevKey(key);
-      setResponse(checkKeyAndReturnResponse(key));
-    }
-
     return response;
   };
 
   // Same as watch - just initiated, so no need for "started" return value
-  const useBeckon: TAsyncActionBeckon<A, R> = (args = defaultArgs) => {
-    const result = useWatch(args, { initiate: true });
+  const useBeckon: TAsyncActionBeckon<A, R> = (args = defaultArgs, { ssr = true }: IAsyncActionBeckonOptions = {}) => {
+    const result = useWatch(args, { initiate: true, ssr });
     return [result[1], result[2], result[3]];
   }
 
@@ -225,15 +244,20 @@ export function createAsyncAction<A = any, R = any, S extends IPullstateAllStore
     }
 
     notifyListeners(key);
+    let currentActionOrd = actionOrdUpdate(clientAsyncCache, key);
 
     try {
       const resp = await action(args, clientStores);
-      clientAsyncCache.results[key] = [true, true, resp, false];
-      notifyListeners(key);
+      if (currentActionOrd === clientAsyncCache.actionOrd[key]) {
+        clientAsyncCache.results[key] = [true, true, resp, false];
+        notifyListeners(key);
+      }
       return resp;
     } catch (e) {
-      clientAsyncCache.results[key] = [true, true, null, false];
-      notifyListeners(key);
+      if (currentActionOrd === clientAsyncCache.actionOrd[key]) {
+        clientAsyncCache.results[key] = [true, true, null, false];
+        notifyListeners(key);
+      }
       return null;
     }
   };
