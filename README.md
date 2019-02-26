@@ -359,7 +359,7 @@ Convenience function for **error** (will set `{ error: true }` on the result obj
 return errorResult(["NO_USER_FOUND"], "No user found in database by that name");
 ```
 
-* The `tags` property here is a way to easily react to more specific error states in your UI. The default error result, when you haven't caught the error's yourself, will return with a single tag: `["UNKNOWN_ERROR"]`. If you return an error with `errorResult()`, the tag `"RETURNED_ERROR"` will automatically be added to tags.
+* The `tags` property here is a way to easily react to more specific error states in your UI. The default error result, when you haven't caught the errors yourself, will return with a single tag: `["UNKNOWN_ERROR"]`. If you return an error with `errorResult()`, the tag `"RETURNED_ERROR"` will automatically be added to tags.
 
 * **The Pullstate Way** :tm:, is keeping your state in your stores as much as possible - hence we don't actually return the new user object, but update our `UserStore` along the way in the action (this also means that during a single asynchronous action, we can actually have our app update and react multiple times).
 
@@ -466,13 +466,13 @@ Using the `instance` which we create from our `PullstateCore` object of all our 
 
   let reactHtml = ReactDOMServer.renderToString(app);
 
-  // (3)
+  // (2)
   while (instance.hasAsyncStateToResolve()) {
     await instance.resolveAsyncState();
     reactHtml = ReactDOMServer.renderToString(app);
   }
 
-  // (4)
+  // (3)
   const snapshot = instance.getPullstateSnapshot();
 
   const body = `
