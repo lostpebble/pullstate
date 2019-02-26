@@ -354,7 +354,7 @@ return successResult(somePayload);
 
 Convenience function for **error** (will set `{ error: true }` on the result object) e.g:
 
-```
+```typescript jsx
 //     errorResult(tags = [], message = "")
 return errorResult(["NO_USER_FOUND"], "No user found in database by that name");
 ```
