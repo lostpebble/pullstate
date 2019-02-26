@@ -85,7 +85,9 @@ export interface IOCreateAsyncActionOutput<A, R, T extends string> {
 export interface IPullstateAsyncCache {
   results: IPullstateAsyncResultState;
   listeners: {
-    [key: string]: TPullstateAsyncUpdateListener[];
+    [key: string]: {
+      [watchId: string]: TPullstateAsyncUpdateListener;
+    };
   };
   actions: {
     [key: string]: () => Promise<TAsyncActionResult<any, string>>;
@@ -128,7 +130,7 @@ export function keyFromObject(json: any): string {
 
   }*/
 
-  return prefix += "}";
+  return (prefix += "}");
 }
 
 function createKey(ordinal, args: any) {
@@ -137,12 +139,11 @@ function createKey(ordinal, args: any) {
 
 function notifyListeners(key: string) {
   if (clientAsyncCache.listeners.hasOwnProperty(key)) {
-    console.log(`[${key}] Notifying (${clientAsyncCache.listeners[key].length}) listeners`);
-    for (const listener of clientAsyncCache.listeners[key]) {
-      listener();
+    // console.log(`[${key}] Notifying (${Object.keys(clientAsyncCache.listeners[key]).length}) listeners`);
+    for (const watchId of Object.keys(clientAsyncCache.listeners[key])) {
+      // console.log(`[${key}] Notifying listener with watch id: [${watchId}]`);
+      clientAsyncCache.listeners[key][watchId]();
     }
-  } else {
-
   }
 }
 
@@ -204,15 +205,29 @@ export function createAsyncAction<
 ): IOCreateAsyncActionOutput<A, R, T> {
   const ordinal: number = asyncCreationOrdinal++;
   const onServer: boolean = typeof window === "undefined";
+
+  let watchIdOrd: number = 0;
+  const shouldUpdate: {
+    [actionKey: string]: {
+      [watchId: string]: boolean;
+    };
+  } = {};
   // console.log(`Creating async action with ordinal: ${ordinal} - action name: ${action.name}`);
 
-  function checkKeyAndReturnResponse(key: string, cache: IPullstateAsyncCache, initiate: boolean, ssr: boolean, args: A, stores: S): TPullstateAsyncWatchResponse<R, T> {
+  function checkKeyAndReturnResponse(
+    key: string,
+    cache: IPullstateAsyncCache,
+    initiate: boolean,
+    ssr: boolean,
+    args: A,
+    stores: S
+  ): TPullstateAsyncWatchResponse<R, T> {
     if (cache.results.hasOwnProperty(key)) {
-      console.log(`[${key}] Pullstate Async: Already been run - do nothing`);
+      // console.log(`[${key}] Pullstate Async: Already finished - returning cached result`);
       return cache.results[key] as TPullstateAsyncWatchResponse<R, T>;
     }
 
-    console.log(`[${key}] Pullstate Async: has no results yet`);
+    // console.log(`[${key}] Pullstate Async: has no results yet`);
 
     // check if it is already pending as an action
     if (!cache.actions.hasOwnProperty(key)) {
@@ -259,6 +274,8 @@ export function createAsyncAction<
           false,
         ] as TPullstateAsyncWatchResponse<R, T>;
       }
+    } else {
+      // console.log(`[${key}] Pullstate Async: action already running`);
     }
 
     return [
@@ -279,74 +296,73 @@ export function createAsyncAction<
     { initiate = false, ssr = true }: IAsyncActionWatchOptions = {}
   ) => {
     const key = createKey(ordinal, args);
-    let shouldUpdate = true;
 
-    console.log(`[${key}] Starting useWatch()`);
+    const [watchId] = useState<number>(() => watchIdOrd++);
+    const [prevKey, setPrevKey] = useState<string>(key);
+
+    if (!shouldUpdate.hasOwnProperty(key)) {
+      shouldUpdate[key] = {
+        [watchId]: true,
+      };
+    } else {
+      shouldUpdate[key][watchId] = true;
+    }
+
+    // console.log(`[${key}][${watchId}] Starting useWatch()`);
 
     const cache: IPullstateAsyncCache = onServer ? useContext(PullstateContext)._asyncCache : clientAsyncCache;
     const stores = onServer ? (useContext(PullstateContext).stores as S) : clientStores;
 
-    const [prevKey, setPrevKey] = useState<string>(key);
-
     // only listen for updates when on client
     if (!onServer) {
-      function onAsyncStateChanged() {
-        if (shouldUpdate && !shallowEqual(responseRef.current, cache.results[key])) {
+      const onAsyncStateChanged = () => {
+        // console.log(`[${key}][${watchId}] should update: ${shouldUpdate[key][watchId]}`);
+
+        if (shouldUpdate[key][watchId] && !shallowEqual(responseRef.current, cache.results[key])) {
           const newResponse = checkKeyAndReturnResponse(key, cache, initiate, ssr, args, stores);
-          setResponse(newResponse);
           responseRef.current = newResponse;
+          setResponse(newResponse);
         }
-      }
+      };
 
-      useEffect(() => {
-        const onAsyncStateChanged = () => {
-          if (shouldUpdate && !shallowEqual(responseRef.current, cache.results[key])) {
-            const newResponse = checkKeyAndReturnResponse(key, cache, initiate, ssr, args, stores);
-            setResponse(newResponse);
-            responseRef.current = newResponse;
-          }
-        };
-
+      useMemo(() => {
         if (!cache.listeners.hasOwnProperty(key)) {
-          cache.listeners[key] = [];
+          cache.listeners[key] = {};
         }
 
-        cache.listeners[key].push(onAsyncStateChanged);
-        console.log(`[${key}] Added listener (total now: ${cache.listeners[key].length})`);
-
-        /*if (!cache.listeners.hasOwnProperty(key)) {
-          cache.listeners[key] = [];
-        }
-
-        console.log(`[${key}] Adding listener`);
-        cache.listeners[key].push(onAsyncStateChanged);*/
-
-        return () => {
-          shouldUpdate = false;
-          console.log(`[${key}] Removing listener (before: ${cache.listeners[key].length})`);
-          cache.listeners[key] = cache.listeners[key].filter(f => f !== onAsyncStateChanged);
-          console.log(`[${key}] Removed listener (after: ${cache.listeners[key].length})`);
-        };
+        cache.listeners[key][watchId] = onAsyncStateChanged;
+        // console.log(`[${key}][${watchId}] Added listener (total now: ${Object.keys(cache.listeners[key]).length})`);
       }, [key]);
+
+      useEffect(
+        () => () => {
+          shouldUpdate[key][watchId] = false;
+          // console.log(`[${key}][${watchId}] Removing listener (before: ${Object.keys(cache.listeners[key]).length})`);
+          delete cache.listeners[key][watchId];
+          // console.log(`[${key}][${watchId}] Removed listener (after: ${Object.keys(cache.listeners[key]).length})`);
+        },
+        [key]
+      );
     }
 
     const [response, setResponse] = useState<TPullstateAsyncWatchResponse<R, T>>(() => {
-      console.log(`[${key}] Running initial response check`);
+      // console.log(`[${key}][${watchId}] Running initial response check`);
       return checkKeyAndReturnResponse(key, cache, initiate, ssr, args, stores);
     });
 
     const responseRef = useRef(response);
 
     if (prevKey !== key) {
-      console.log(`KEYS MISMATCH old !== new [${prevKey} !== ${key}]`);
+      // console.log(`[${key}][${watchId}] KEYS MISMATCH old !== new [${prevKey} !== ${key}]`);
+      shouldUpdate[prevKey][watchId] = false;
       setPrevKey(key);
       const newResponse = checkKeyAndReturnResponse(key, cache, initiate, ssr, args, stores);
       setResponse(newResponse);
       responseRef.current = newResponse;
     }
 
-    console.log(`[${key}] Returning from watch() with response: ${JSON.stringify(response)}`);
-    return response;
+    // console.log(`[${key}][${watchId}] Returning from watch() with response: ${JSON.stringify(responseRef.current)}`);
+    return responseRef.current;
   };
 
   // Same as watch - just initiated, so no need for "started" return value
@@ -364,7 +380,7 @@ export function createAsyncAction<
   ): Promise<TAsyncActionResult<R, T>> => {
     const key = createKey(ordinal, args);
 
-    const [prevStarted, prevFinished, prevResp] = clientAsyncCache.results[key] || [
+    const [, prevFinished, prevResp] = clientAsyncCache.results[key] || [
       false,
       false,
       { error: true, message: "", payload: null, tags: [EAsyncEndTags.UNFINISHED] } as IAsyncActionResultNegative<T>,
