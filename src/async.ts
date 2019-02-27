@@ -297,16 +297,18 @@ export function createAsyncAction<
   ) => {
     const key = createKey(ordinal, args);
 
-    const [watchId] = useState<number>(() => watchIdOrd++);
-    // const [prevKey, setPrevKey] = useState<string>(key);
+    let watchId = useRef<number>(null);
+    if (watchId.current === null) {
+      watchId.current = watchIdOrd++;
+    }
     const prevKeyRef = useRef(key);
 
     if (!shouldUpdate.hasOwnProperty(key)) {
       shouldUpdate[key] = {
-        [watchId]: true,
+        [watchId.current]: true,
       };
     } else {
-      shouldUpdate[key][watchId] = true;
+      shouldUpdate[key][watchId.current] = true;
     }
 
     // console.log(`[${key}][${watchId}] Starting useWatch()`);
@@ -317,11 +319,16 @@ export function createAsyncAction<
     // only listen for updates when on client
     if (!onServer) {
       const onAsyncStateChanged = () => {
-        // console.log(`[${key}][${watchId}] should update: ${shouldUpdate[key][watchId]}`);
+        // console.log(`[${key}][${watchId}] should update: ${shouldUpdate[key][watchId.current]}`);
+        // console.log(`[${key}][${watchId}] will update?: ${!shallowEqual(responseRef.current, cache.results[key])} - ${responseRef.current} !== ${cache.results[key]}`);
 
-        if (shouldUpdate[key][watchId] && !shallowEqual(responseRef.current, cache.results[key])) {
+        if (shouldUpdate[key][watchId.current] && !shallowEqual(responseRef.current, cache.results[key])) {
           responseRef.current = checkKeyAndReturnResponse(key, cache, initiate, ssr, args, stores);
-          setResponse(responseRef.current);
+
+          setWatchUpdate((prev) => {
+            // console.log(`Setting watch update to: ${prev + 1}`);
+            return prev + 1;
+          });
         }
       };
 
@@ -330,36 +337,36 @@ export function createAsyncAction<
           cache.listeners[key] = {};
         }
 
-        cache.listeners[key][watchId] = onAsyncStateChanged;
+        cache.listeners[key][watchId.current] = onAsyncStateChanged;
         // console.log(`[${key}][${watchId}] Added listener (total now: ${Object.keys(cache.listeners[key]).length})`);
       }, [key]);
 
       useEffect(
         () => () => {
-          shouldUpdate[key][watchId] = false;
+          shouldUpdate[key][watchId.current] = false;
           // console.log(`[${key}][${watchId}] Removing listener (before: ${Object.keys(cache.listeners[key]).length})`);
-          delete cache.listeners[key][watchId];
+          delete cache.listeners[key][watchId.current];
           // console.log(`[${key}][${watchId}] Removed listener (after: ${Object.keys(cache.listeners[key]).length})`);
         },
         [key]
       );
     }
 
-    const [response, setResponse] = useState<TPullstateAsyncWatchResponse<R, T>>(() => {
-      // console.log(`[${key}][${watchId}] Running initial response check`);
-      return checkKeyAndReturnResponse(key, cache, initiate, ssr, args, stores);
-    });
+    const responseRef = useRef<TPullstateAsyncWatchResponse<R, T>>(null);
+    if (responseRef.current === null) {
+      responseRef.current = checkKeyAndReturnResponse(key, cache, initiate, ssr, args, stores);
+    }
 
-    const responseRef = useRef(response);
+    const [watchUpdate, setWatchUpdate] = useState<number>(0);
 
     if (prevKeyRef.current !== key) {
       // console.log(`[${key}][${watchId}] KEYS MISMATCH old !== new [${prevKeyRef.current} !== ${key}]`);
-      shouldUpdate[prevKeyRef.current][watchId] = false;
+      shouldUpdate[prevKeyRef.current][watchId.current] = false;
       prevKeyRef.current = key;
       responseRef.current = checkKeyAndReturnResponse(key, cache, initiate, ssr, args, stores);
     }
 
-    // console.log(`[${key}][${watchId}] Returning from watch() with response: ${JSON.stringify(responseRef.current)}`);
+    // console.log(`[${key}][${watchId}] Returning from watch() [update no. ${watchUpdate}] with response: ${JSON.stringify(responseRef.current)}`);
     return responseRef.current;
   };
 

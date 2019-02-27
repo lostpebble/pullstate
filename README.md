@@ -270,6 +270,8 @@ async function refreshGraphData() {
 
 ⚠ __Caution Though__ - While this allows for much more ease of use for playing around with state on the client, you must make sure that these state updates are _strictly_ client-side only updates - as they will not apply on the server and you will get unexpected results. Think of these updates as updates that will run after the page has already loaded completely for the user (UI responses, dynamic data loading, loading screen popups etc.).
 
+🍩 _For a tighter-controlled, server-compatible and overall easier experience dealing with these types of async updates, see the next section!_
+
 # Async Actions
 
 Jump straight into an example here:
