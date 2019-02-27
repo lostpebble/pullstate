@@ -298,7 +298,8 @@ export function createAsyncAction<
     const key = createKey(ordinal, args);
 
     const [watchId] = useState<number>(() => watchIdOrd++);
-    const [prevKey, setPrevKey] = useState<string>(key);
+    // const [prevKey, setPrevKey] = useState<string>(key);
+    const prevKeyRef = useRef(key);
 
     if (!shouldUpdate.hasOwnProperty(key)) {
       shouldUpdate[key] = {
@@ -319,9 +320,8 @@ export function createAsyncAction<
         // console.log(`[${key}][${watchId}] should update: ${shouldUpdate[key][watchId]}`);
 
         if (shouldUpdate[key][watchId] && !shallowEqual(responseRef.current, cache.results[key])) {
-          const newResponse = checkKeyAndReturnResponse(key, cache, initiate, ssr, args, stores);
-          responseRef.current = newResponse;
-          setResponse(newResponse);
+          responseRef.current = checkKeyAndReturnResponse(key, cache, initiate, ssr, args, stores);
+          setResponse(responseRef.current);
         }
       };
 
@@ -352,13 +352,11 @@ export function createAsyncAction<
 
     const responseRef = useRef(response);
 
-    if (prevKey !== key) {
-      // console.log(`[${key}][${watchId}] KEYS MISMATCH old !== new [${prevKey} !== ${key}]`);
-      shouldUpdate[prevKey][watchId] = false;
-      setPrevKey(key);
-      const newResponse = checkKeyAndReturnResponse(key, cache, initiate, ssr, args, stores);
-      setResponse(newResponse);
-      responseRef.current = newResponse;
+    if (prevKeyRef.current !== key) {
+      // console.log(`[${key}][${watchId}] KEYS MISMATCH old !== new [${prevKeyRef.current} !== ${key}]`);
+      shouldUpdate[prevKeyRef.current][watchId] = false;
+      prevKeyRef.current = key;
+      responseRef.current = checkKeyAndReturnResponse(key, cache, initiate, ssr, args, stores);
     }
 
     // console.log(`[${key}][${watchId}] Returning from watch() with response: ${JSON.stringify(responseRef.current)}`);
