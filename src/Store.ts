@@ -1,6 +1,10 @@
+// @ts-ignore
+import { Patch } from "immer";
+
 const Immer = require("immer");
 
 const produce = Immer.produce;
+const applyPatches = Immer.applyPatches;
 
 export type TPullstateUpdateListener = () => void;
 
@@ -47,14 +51,26 @@ export class Store<S = any> {
     return this.currentState;
   }
 
-  update(updater: (state: S, original?: S) => void) {
-    update(this, updater);
+  update(updater: (state: S, original?: S) => void, patchesCallback?: (patches: Patch[], inversePatches: Patch[]) => void) {
+    update(this, updater, patchesCallback);
+  }
+
+  applyPatches(patches: Patch[]) {
+    applyPatchesToStore(this, patches);
   }
 }
 
-export function update<S = any>(store: Store<S>, updater: (draft: S, original?: S) => void) {
+export function applyPatchesToStore<S = any>(store: Store<S>, patches: Patch[]) {
   const currentState: S = store.getRawState();
-  const nextState: S = produce(currentState as any, (s) => updater(s, currentState));
+  const nextState = applyPatches(currentState, patches);
+  if (nextState !== currentState) {
+    store._updateState(nextState);
+  }
+}
+
+export function update<S = any>(store: Store<S>, updater: (draft: S, original?: S) => void, patchesCallback?: (patches: Patch[], inversePatches: Patch[]) => void) {
+  const currentState: S = store.getRawState();
+  const nextState: S = produce(currentState as any, (s) => updater(s, currentState), patchesCallback);
   if (nextState !== currentState) {
     store._updateState(nextState);
   }
