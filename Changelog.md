@@ -1,6 +1,6 @@
 ### 0.6.0
 
-* Added the "reactions" to store state. Usable like so:
+* Added "reactions" to store state. Usable like so:
 
 ```typescript jsx
 UIStore.createReaction((s) => s.valueToListenForChanges, (draft, original, watched) => {
