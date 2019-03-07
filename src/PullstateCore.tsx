@@ -56,6 +56,7 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
         instantiated.hydrateFromSnapshot(hydrateSnapshot);
       }
 
+      instantiated.instantiateReactions();
       return instantiated;
     }
 
@@ -73,7 +74,7 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
         );
       }
 
-      newStores[storeName]._setInternalOptions({ ssr });
+      newStores[storeName]._setInternalOptions({ ssr, reactionCreators: this.originStores[storeName]._getReactionCreators() });
     }
 
     return new PullstateInstance(newStores);
@@ -125,10 +126,15 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> {
           ];
         })
         .then(() => {
-          // console.log(`Should run after each promise error / success`);
           delete this._asyncCache.actions[key];
         })
     );
+  }
+
+  instantiateReactions() {
+    for (const storeName of Object.keys(this._stores)) {
+      this._stores[storeName]._instantiateReactions();
+    }
   }
 
   getPullstateSnapshot(): IPullstateSnapshot {
