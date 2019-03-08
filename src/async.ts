@@ -5,7 +5,12 @@ import { useContext, useEffect, useRef, useState, useMemo } from "react";
 type TPullstateAsyncUpdateListener = () => void;
 
 // [ started, finished, result, updating ]
-export type TPullstateAsyncWatchResponse<R, T extends string> = [boolean, boolean, TAsyncActionResult<R, T>, boolean];
+export type TPullstateAsyncWatchResponse<R, T extends string> = [
+  boolean,
+  boolean,
+  TAsyncActionResult<R, T>,
+  boolean
+];
 // [finished, result, updating]
 export type TPullstateAsyncBeckonResponse<R, T extends string> = [boolean, TAsyncActionResult<R, T>, boolean];
 // [result]
@@ -40,12 +45,19 @@ export interface IAsyncActionResultNegative<T extends string> extends IAsyncActi
   payload: null;
 }
 
-export type TAsyncActionResult<R, T extends string> = IAsyncActionResultPositive<R, T> | IAsyncActionResultNegative<T>;
+export type TAsyncActionResult<R, T extends string> =
+  | IAsyncActionResultPositive<R, T>
+  | IAsyncActionResultNegative<T>;
 
 export type TPullstateAsyncAction<A, R, T extends string, S extends IPullstateAllStores> = (
   args: A,
   stores: S
 ) => Promise<TAsyncActionResult<R, T>>;
+
+export type TPullstateAsyncIsResolvedFunction<A, R, T extends string, S extends IPullstateAllStores> = (
+  args: A,
+  stores: S
+) => TAsyncActionResult<R, T> | false;
 
 export interface IAsyncActionBeckonOptions {
   ssr?: boolean;
@@ -126,10 +138,6 @@ export function keyFromObject(json: any): string {
     }
   }
 
-  /*if (keys.length > 0) {
-
-  }*/
-
   return (prefix += "}");
 }
 
@@ -200,7 +208,7 @@ export function createAsyncAction<
   S extends IPullstateAllStores = IPullstateAllStores
 >(
   action: TPullstateAsyncAction<A, R, T, S>,
-  defaultArgs: A = {} as A,
+  isResolved?: TPullstateAsyncIsResolvedFunction<A, R, T, S>,
   clientStores: S = {} as S
 ): IOCreateAsyncActionOutput<A, R, T> {
   const ordinal: number = asyncCreationOrdinal++;
@@ -222,15 +230,32 @@ export function createAsyncAction<
     args: A,
     stores: S
   ): TPullstateAsyncWatchResponse<R, T> {
+    let checkedResolved = false;
+
     if (cache.results.hasOwnProperty(key)) {
       // console.log(`[${key}] Pullstate Async: Already finished - returning cached result`);
-      return cache.results[key] as TPullstateAsyncWatchResponse<R, T>;
+      if (isResolved === undefined || isResolved(args, stores) !== false) {
+        return cache.results[key] as TPullstateAsyncWatchResponse<R, T>;
+      } else {
+        delete cache.results[key];
+        checkedResolved = true;
+      }
     }
 
     // console.log(`[${key}] Pullstate Async: has no results yet`);
 
     // check if it is already pending as an action
     if (!cache.actions.hasOwnProperty(key)) {
+
+      // if it is not pending, check if this state is actually resolved before initiating
+      if (!checkedResolved && isResolved !== undefined) {
+        const resolvedResponse = isResolved(args, stores);
+        if (resolvedResponse !== false) {
+          cache.results[key] = [true, true, resolvedResponse, false];
+          return cache.results[key] as TPullstateAsyncWatchResponse<R, T>;
+        }
+      }
+
       if (initiate) {
         // queue (on server) or start the action now (on client)
         if (ssr || !onServer) {
@@ -274,8 +299,6 @@ export function createAsyncAction<
           false,
         ] as TPullstateAsyncWatchResponse<R, T>;
       }
-    } else {
-      // console.log(`[${key}] Pullstate Async: action already running`);
     }
 
     return [
@@ -292,7 +315,7 @@ export function createAsyncAction<
   }
 
   const useWatch: TAsyncActionWatch<A, R, T> = (
-    args = defaultArgs,
+    args = {} as A,
     { initiate = false, ssr = true }: IAsyncActionWatchOptions = {}
   ) => {
     const key = createKey(ordinal, args);
@@ -313,7 +336,9 @@ export function createAsyncAction<
 
     // console.log(`[${key}][${watchId}] Starting useWatch()`);
 
-    const cache: IPullstateAsyncCache = onServer ? useContext(PullstateContext)._asyncCache : clientAsyncCache;
+    const cache: IPullstateAsyncCache = onServer
+      ? useContext(PullstateContext)._asyncCache
+      : clientAsyncCache;
     const stores = onServer ? (useContext(PullstateContext).stores as S) : clientStores;
 
     // only listen for updates when on client
@@ -325,21 +350,24 @@ export function createAsyncAction<
         if (shouldUpdate[key][watchId.current] && !shallowEqual(responseRef.current, cache.results[key])) {
           responseRef.current = checkKeyAndReturnResponse(key, cache, initiate, ssr, args, stores);
 
-          setWatchUpdate((prev) => {
+          setWatchUpdate(prev => {
             // console.log(`Setting watch update to: ${prev + 1}`);
             return prev + 1;
           });
         }
       };
 
-      useMemo(() => {
-        if (!cache.listeners.hasOwnProperty(key)) {
-          cache.listeners[key] = {};
-        }
+      useMemo(
+        () => {
+          if (!cache.listeners.hasOwnProperty(key)) {
+            cache.listeners[key] = {};
+          }
 
-        cache.listeners[key][watchId.current] = onAsyncStateChanged;
-        // console.log(`[${key}][${watchId}] Added listener (total now: ${Object.keys(cache.listeners[key]).length})`);
-      }, [key]);
+          cache.listeners[key][watchId.current] = onAsyncStateChanged;
+          // console.log(`[${key}][${watchId}] Added listener (total now: ${Object.keys(cache.listeners[key]).length})`);
+        },
+        [key]
+      );
 
       useEffect(
         () => () => {
@@ -372,7 +400,7 @@ export function createAsyncAction<
 
   // Same as watch - just initiated, so no need for "started" return value
   const useBeckon: TAsyncActionBeckon<A, R, T> = (
-    args = defaultArgs,
+    args = {} as A,
     { ssr = true }: IAsyncActionBeckonOptions = {}
   ) => {
     const result = useWatch(args, { initiate: true, ssr });
@@ -380,7 +408,7 @@ export function createAsyncAction<
   };
 
   const run: TAsyncActionRun<A, R, T> = async (
-    args = defaultArgs,
+    args = {} as A,
     { treatAsUpdate = false }: IAsyncActionRunOptions = {}
   ): Promise<TAsyncActionResult<R, T>> => {
     const key = createKey(ordinal, args);
@@ -388,7 +416,12 @@ export function createAsyncAction<
     const [, prevFinished, prevResp] = clientAsyncCache.results[key] || [
       false,
       false,
-      { error: true, message: "", payload: null, tags: [EAsyncEndTags.UNFINISHED] } as IAsyncActionResultNegative<T>,
+      {
+        error: true,
+        message: "",
+        payload: null,
+        tags: [EAsyncEndTags.UNFINISHED],
+      } as IAsyncActionResultNegative<T>,
     ];
 
     if (prevFinished && treatAsUpdate) {

@@ -8,7 +8,7 @@ import {
   IPullstateAsyncActionOrdState,
   IPullstateAsyncCache,
   IPullstateAsyncResultState,
-  TPullstateAsyncAction,
+  TPullstateAsyncAction, TPullstateAsyncIsResolvedFunction,
 } from "./async";
 
 export interface IPullstateAllStores {
@@ -86,9 +86,9 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
 
   createAsyncAction<A = any, R = any, T extends string = string>(
     action: TPullstateAsyncAction<A, R, T, S>,
-    defaultArgs: A = {} as A
+    isResolved?: TPullstateAsyncIsResolvedFunction<A, R, T, S>,
   ): IOCreateAsyncActionOutput<A, R, T> {
-    return createAsyncAction<A, R, T, S>(action, defaultArgs, this.originStores);
+    return createAsyncAction<A, R, T, S>(action, isResolved, this.originStores);
   }
 }
 
