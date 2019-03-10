@@ -1,4 +1,8 @@
-### 0.7.0
+### 0.7.1
+
+* Made the `isResolved()` function safe from looping - instead posting an error message to the console informing about the loop which needs to be fixed.
+
+## 0.7.0
 
 Added the options of setting an `isResolve()` synchronous checking function on Async Actions. This allows for early escape hatching (we don't need to run this async action based on the current state) and cache busting (even though we ran this Async Action before and we have a cached result, the current state indicates we need to run it again).
 
@@ -35,7 +39,7 @@ const loadEntity = PullstateCore.createAsyncAction<{ id: string }>(
 
 It has the same form as the regular Async Action function, injecting the arguments and the stores - but needs to return a synchronous result of either `false` or the expected end result (as if this function would have run asynchronously).
 
-### 0.6.0
+## 0.6.0
 
 * Added "reactions" to store state. Usable like so:
 

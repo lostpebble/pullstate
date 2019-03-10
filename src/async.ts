@@ -214,6 +214,7 @@ export function createAsyncAction<
   const ordinal: number = asyncCreationOrdinal++;
   const onServer: boolean = typeof window === "undefined";
 
+  let isResolvedWatcher: { [actionKey: string]: number } = {};
   let watchIdOrd: number = 0;
   const shouldUpdate: {
     [actionKey: string]: {
@@ -231,10 +232,15 @@ export function createAsyncAction<
     stores: S
   ): TPullstateAsyncWatchResponse<R, T> {
     let checkedResolved = false;
+    const isResolvedUndefined = isResolved === undefined;
 
     if (cache.results.hasOwnProperty(key)) {
       // console.log(`[${key}] Pullstate Async: Already finished - returning cached result`);
-      if (isResolved === undefined || isResolved(args, stores) !== false) {
+      if (isResolvedUndefined || isResolved(args, stores) !== false) {
+        if (!isResolvedUndefined) {
+          isResolvedWatcher[key] = 0;
+        }
+
         return cache.results[key] as TPullstateAsyncWatchResponse<R, T>;
       } else {
         delete cache.results[key];
@@ -246,14 +252,35 @@ export function createAsyncAction<
 
     // check if it is already pending as an action
     if (!cache.actions.hasOwnProperty(key)) {
-
       // if it is not pending, check if this state is actually resolved before initiating
-      if (!checkedResolved && isResolved !== undefined) {
+      if (!checkedResolved && !isResolvedUndefined) {
         const resolvedResponse = isResolved(args, stores);
         if (resolvedResponse !== false) {
           cache.results[key] = [true, true, resolvedResponse, false];
           return cache.results[key] as TPullstateAsyncWatchResponse<R, T>;
         }
+      }
+
+      if (!isResolvedUndefined) {
+        isResolvedWatcher[key] = isResolvedWatcher[key] !== undefined ? isResolvedWatcher[key] + 1 : 1;
+      }
+
+      if (!isResolvedUndefined && isResolvedWatcher[key] !== undefined && isResolvedWatcher[key] > 2) {
+        console.error(
+          `Pullstate [${key}]: an Async Action with isResolved() set may be causing an infinite loop. Not initiating the next run of this action. Check your method to make sure, or file an issue if this is not the case.`
+        );
+
+        return [
+          false,
+          false,
+          {
+            message: "",
+            tags: [EAsyncEndTags.UNFINISHED],
+            error: false,
+            payload: null,
+          },
+          false,
+        ] as TPullstateAsyncWatchResponse<R, T>;
       }
 
       if (initiate) {
@@ -293,7 +320,7 @@ export function createAsyncAction<
           {
             message: "",
             tags: [EAsyncEndTags.UNFINISHED],
-            error: true,
+            error: false,
             payload: null,
           },
           false,
@@ -307,7 +334,7 @@ export function createAsyncAction<
       {
         message: "",
         tags: [EAsyncEndTags.UNFINISHED],
-        error: true,
+        error: false,
         payload: null,
       },
       false,
@@ -417,11 +444,11 @@ export function createAsyncAction<
       false,
       false,
       {
-        error: true,
+        error: false,
         message: "",
         payload: null,
         tags: [EAsyncEndTags.UNFINISHED],
-      } as IAsyncActionResultNegative<T>,
+      } as IAsyncActionResultPositive<R, T>,
     ];
 
     if (prevFinished && treatAsUpdate) {
