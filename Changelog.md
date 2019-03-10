@@ -1,6 +1,6 @@
 ### 0.7.1
 
-* Made the `isResolved()` function safe from looping - instead posting an error message to the console informing about the loop which needs to be fixed.
+* Made the `isResolved()` function safe from causing infinite loops (Async Action resolves, but the state of the store still makes `isResolved()` return false which causes a re-trigger when re-rendering - most likely happens when not checking for error states in `isResolved()`) - instead posting an error message to the console informing about the loop which needs to be fixed.
 
 ## 0.7.0
 
