@@ -1,4 +1,7 @@
 ### pullstate
+<p align="center">
+  <img width="736" height="373" src="https://github.com/lostpebble/pullstate/raw/master/graphics/pullstate-logo.png" alt="Pullstate" />
+</p>
 
 > Ridiculously simple state stores with performant retrieval anywhere
 > in your React tree using the wonderful concept of React hooks!
