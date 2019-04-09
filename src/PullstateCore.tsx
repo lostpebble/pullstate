@@ -3,13 +3,15 @@ import { Store } from "./Store";
 import {
   clientAsyncCache,
   createAsyncAction,
-  EAsyncEndTags,
+  EAsyncEndTags, ICreateAsyncActionOptions,
   IOCreateAsyncActionOutput,
   IPullstateAsyncActionOrdState,
   IPullstateAsyncCache,
   IPullstateAsyncResultState,
-  TPullstateAsyncAction, TPullstateAsyncIsResolvedFunction,
+  TPullstateAsyncAction, TPullstateAsyncShortCircuitHook,
 } from "./async";
+
+type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
 
 export interface IPullstateAllStores {
   [storeName: string]: Store<any>;
@@ -86,9 +88,9 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
 
   createAsyncAction<A = any, R = any, T extends string = string>(
     action: TPullstateAsyncAction<A, R, T, S>,
-    isResolved?: TPullstateAsyncIsResolvedFunction<A, R, T, S>,
+    options: Omit<ICreateAsyncActionOptions<A, R, T, S>, "clientStores"> = {},
   ): IOCreateAsyncActionOutput<A, R, T> {
-    return createAsyncAction<A, R, T, S>(action, isResolved, this.originStores);
+    return createAsyncAction<A, R, T, S>(action, { clientStores: this.originStores, ...options });
   }
 }
 
