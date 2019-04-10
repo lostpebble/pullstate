@@ -11,6 +11,15 @@ export type TPullstateAsyncWatchResponse<R, T extends string> = [
   TAsyncActionResult<R, T>,
   boolean
 ];
+
+// [ started, finished, result, updating, postActionResult ]
+export type TPullstateAsyncResponseCacheFull<R, T extends string> = [
+  boolean,
+  boolean,
+  TAsyncActionResult<R, T>,
+  boolean,
+  TAsyncActionResult<R, T> | true | null
+];
 // [finished, result, updating]
 export type TPullstateAsyncBeckonResponse<R, T extends string> = [boolean, TAsyncActionResult<R, T>, boolean];
 // [result]
@@ -68,7 +77,7 @@ export type TPullstateAsyncCacheBreakHook<A, R, T extends string, S extends IPul
 export enum EPostActionContext {
   CACHE = "CACHE",
   SHORT_CIRCUIT = "SHORT_CIRCUIT",
-  // FULL_ACTION = "FULL_ACTION",
+  DIRECT_RUN = "DIRECT_RUN",
 }
 
 export type TPullstateAsyncPostActionHook<A, R, T extends string, S extends IPullstateAllStores> = (
@@ -88,13 +97,14 @@ export interface IAsyncActionWatchOptions extends IAsyncActionBeckonOptions {
 
 export interface IAsyncActionRunOptions {
   treatAsUpdate?: boolean;
+  ignoreShortCircuit?: boolean;
 }
 
 // Order of new hook functions:
 
 // shortCircuitHook = ({ args, stores }) => cachable response | false     - happens only on uncached action
 // cacheBreakHook = ({ args, stores, result }) => true | false            - happens only on cached action
-// postActionHook = ({ args, stores, result }) => void | new result       - happens on all actions, after the async / short circuit has resolved
+// postActionHook = ({ args, result, stores }) => void | new result       - happens on all actions, after the async / short circuit has resolved
 // ----> postActionHook potentially needs a mechanism which allows it to run only once per new key change (another layer caching of some sorts expiring on key change)
 
 type TAsyncActionBeckon<A, R, T extends string> = (
@@ -247,17 +257,14 @@ export function createAsyncAction<
     cacheBreakHook,
     postActionHook,
   }: ICreateAsyncActionOptions<A, R, T, S> = {}
-): // {} : {
-//   clientStores: S = {} as S,
-//   shortCircuitHook:
-// },
-// shortCircuitHook?: TPullstateAsyncShortCircuitHook<A, R, T, S>,
-// clientStores: S = {} as S
-IOCreateAsyncActionOutput<A, R, T> {
+): IOCreateAsyncActionOutput<A, R, T> {
   const ordinal: number = asyncCreationOrdinal++;
   const onServer: boolean = typeof window === "undefined";
 
-  // let isResolvedWatcher: { [actionKey: string]: number } = {};
+  console.log(`Pullstate Core creating action with options`);
+  console.log({ shortCircuitHook, cacheBreakHook, postActionHook, clientStores });
+
+  let cacheBreakWatcher: { [actionKey: string]: number } = {};
   let watchIdOrd: number = 0;
   const shouldUpdate: {
     [actionKey: string]: {
@@ -278,10 +285,6 @@ IOCreateAsyncActionOutput<A, R, T> {
     }
 
     return result;
-    /*const potentialResponse = postActionHook(args, stores, cache.results[key][2] as TAsyncActionResult<R, T>);
-    return (potentialResponse != null
-      ? [cache.results[key][0], cache.results[key][1], potentialResponse, cache.results[key][3]]
-      : cache.results[key]) as TPullstateAsyncWatchResponse<R, T>;*/
   }
 
   function checkKeyAndReturnResponse(
@@ -292,17 +295,31 @@ IOCreateAsyncActionOutput<A, R, T> {
     args: A,
     stores: S
   ): TPullstateAsyncWatchResponse<R, T> {
-    // let checkedResolved = false;
-    // const isResolvedUndefined = shortCircuitHook === undefined;
-
     if (cache.results.hasOwnProperty(key)) {
+      const cacheBreakLoop = (cacheBreakWatcher.hasOwnProperty(key) && cacheBreakWatcher[key] > 2);
       // console.log(`[${key}] Pullstate Async: Already finished - returning cached result`);
       if (
         cacheBreakHook !== undefined &&
-        cacheBreakHook(args, cache.results[key][2] as TAsyncActionResult<R, T>, stores)
+        cacheBreakHook(args, cache.results[key][2] as TAsyncActionResult<R, T>, stores) &&
+        !cacheBreakLoop
       ) {
+        if (cacheBreakWatcher.hasOwnProperty(key)) {
+          cacheBreakWatcher[key]++;
+        } else {
+          cacheBreakWatcher[key] = 1;
+        }
+
         delete cache.results[key];
       } else {
+        if (cacheBreakLoop) {
+          console.error(`[${key}] Pullstate detected an infinite loop caused by cacheBreakHook()
+returning true too often (breaking cache as soon as your action is resolving - hence
+causing beckoned actions to run the action again) in one of your AsyncActions - prevented
+further looping. Fix in your cacheBreakHook() is needed.`);
+        } else {
+          cacheBreakWatcher[key] = 0;
+        }
+
         return [
           true,
           true,
@@ -314,32 +331,14 @@ IOCreateAsyncActionOutput<A, R, T> {
           ),
           false,
         ];
-        /*if (postActionHook !== undefined) {
-          const potentialResponse = postActionHook(args, stores, cache.results[key][2] as TAsyncActionResult<R, T>);
-          return (potentialResponse != null
-            ? [cache.results[key][0], cache.results[key][1], potentialResponse, cache.results[key][3]]
-            : cache.results[key]) as TPullstateAsyncWatchResponse<R, T>;
-        } else {
-          return cache.results[key] as TPullstateAsyncWatchResponse<R, T>;
-        }*/
       }
-      /*if (isResolvedUndefined || shortCircuitHook(args, stores) !== false) {
-        if (!isResolvedUndefined) {
-          isResolvedWatcher[key] = 0;
-        }
-
-        return cache.results[key] as TPullstateAsyncWatchResponse<R, T>;
-      } else {
-        delete cache.results[key];
-        checkedResolved = true;
-      }*/
     }
 
     // console.log(`[${key}] Pullstate Async: has no results yet`);
 
     // check if it is already pending as an action
     if (!cache.actions.hasOwnProperty(key)) {
-      // if it is not pending, check if this state is actually resolved before initiating
+      // if it is not pending, check if for any short circuiting before initiating
       if (shortCircuitHook !== undefined) {
         const shortCircuitResponse = shortCircuitHook(args, stores);
         if (shortCircuitResponse !== false) {
@@ -350,41 +349,8 @@ IOCreateAsyncActionOutput<A, R, T> {
             runPostActionHook(shortCircuitResponse, args, stores, EPostActionContext.SHORT_CIRCUIT),
             false,
           ];
-          // runPostActionHook(shortCircuitResponse, args, stores)
-          // return cache.results[key] as TPullstateAsyncWatchResponse<R, T>;
-          /*if (postActionHook !== undefined) {
-            const potentialResponse = postActionHook(args, stores, cache.results[key][2] as TAsyncActionResult<R, T>);
-            return (potentialResponse != null
-              ? [true, true, potentialResponse, false]
-              : cache.results[key]) as TPullstateAsyncWatchResponse<R, T>;
-          } else {
-            return cache.results[key] as TPullstateAsyncWatchResponse<R, T>;
-          }*/
-          // return cache.results[key] as TPullstateAsyncWatchResponse<R, T>;
         }
       }
-
-      /*if (!isResolvedUndefined) {
-        isResolvedWatcher[key] = isResolvedWatcher[key] !== undefined ? isResolvedWatcher[key] + 1 : 1;
-      }*/
-
-      /*if (!isResolvedUndefined && isResolvedWatcher[key] !== undefined && isResolvedWatcher[key] > 2) {
-        console.error(
-          `Pullstate [${key}]: an Async Action with isResolved() set may be causing an infinite loop. Not initiating the next run of this action. Check your method to make sure, or file an issue if this is not the case.`
-        );
-
-        return [
-          false,
-          false,
-          {
-            message: "",
-            tags: [EAsyncEndTags.UNFINISHED],
-            error: false,
-            payload: null,
-          },
-          false,
-        ] as TPullstateAsyncWatchResponse<R, T>;
-      }*/
 
       if (initiate) {
         // queue (on server) or start the action now (on client)
@@ -398,19 +364,7 @@ IOCreateAsyncActionOutput<A, R, T> {
           cache.actions[key]()
             .then(resp => {
               if (currentActionOrd === cache.actionOrd[key]) {
-                cache.results[key] = [
-                  true,
-                  true,
-                  resp,
-                  false,
-                ] as TPullstateAsyncWatchResponse<R, T>;
-
-                /*runPostActionHook(
-                    resp as TAsyncActionResult<R, T>,
-                    args,
-                    stores,
-                    EPostActionContext.FULL_ACTION
-                  )*/
+                cache.results[key] = [true, true, resp, false] as TPullstateAsyncWatchResponse<R, T>;
               }
             })
             .catch(e => {
@@ -419,12 +373,6 @@ IOCreateAsyncActionOutput<A, R, T> {
                   true,
                   true,
                   { payload: null, error: true, tags: [EAsyncEndTags.THREW_ERROR], message: e.message },
-                  // runPostActionHook(
-                  //   { payload: null, error: true, tags: [EAsyncEndTags.THREW_ERROR], message: e.message },
-                  //   args,
-                  //   stores,
-                  //   EPostActionContext.FULL_ACTION
-                  // ),
                   false,
                 ] as TPullstateAsyncWatchResponse<R, T>;
               }
@@ -441,7 +389,7 @@ IOCreateAsyncActionOutput<A, R, T> {
           {
             message: "",
             tags: [EAsyncEndTags.UNFINISHED],
-            error: false,
+            error: true,
             payload: null,
           },
           false,
@@ -455,7 +403,7 @@ IOCreateAsyncActionOutput<A, R, T> {
       {
         message: "",
         tags: [EAsyncEndTags.UNFINISHED],
-        error: false,
+        error: true,
         payload: null,
       },
       false,
@@ -557,7 +505,7 @@ IOCreateAsyncActionOutput<A, R, T> {
 
   const run: TAsyncActionRun<A, R, T> = async (
     args = {} as A,
-    { treatAsUpdate = false }: IAsyncActionRunOptions = {}
+    { treatAsUpdate = false, ignoreShortCircuit = false }: IAsyncActionRunOptions = {}
   ): Promise<TAsyncActionResult<R, T>> => {
     const key = createKey(ordinal, args);
 
@@ -565,17 +513,29 @@ IOCreateAsyncActionOutput<A, R, T> {
       false,
       false,
       {
-        error: false,
+        error: true,
         message: "",
         payload: null,
         tags: [EAsyncEndTags.UNFINISHED],
-      } as IAsyncActionResultPositive<R, T>,
+      } as IAsyncActionResultNegative<T>,
     ];
 
     if (prevFinished && treatAsUpdate) {
       clientAsyncCache.results[key] = [true, true, prevResp, true];
     } else {
       clientAsyncCache.results[key] = [true, false, prevResp, false];
+    }
+
+    console.log(`Running async function`);
+    console.log({ shortCircuitHook });
+
+    if (shortCircuitHook !== undefined) {
+      const shortCircuitResponse = shortCircuitHook(args, clientStores);
+      if (shortCircuitResponse !== false) {
+        clientAsyncCache.results[key] = [true, true, shortCircuitResponse, false];
+        notifyListeners(key);
+        return runPostActionHook(shortCircuitResponse, args, clientStores, EPostActionContext.DIRECT_RUN);
+      }
     }
 
     notifyListeners(key);
@@ -589,7 +549,7 @@ IOCreateAsyncActionOutput<A, R, T> {
         notifyListeners(key);
       }
 
-      return result;
+      return runPostActionHook(result, args, clientStores, EPostActionContext.DIRECT_RUN);
     } catch (e) {
       const result: IAsyncActionResultNegative<T> = {
         error: true,
@@ -603,7 +563,7 @@ IOCreateAsyncActionOutput<A, R, T> {
         notifyListeners(key);
       }
 
-      return result;
+      return runPostActionHook(result, args, clientStores, EPostActionContext.DIRECT_RUN);
     }
   };
 

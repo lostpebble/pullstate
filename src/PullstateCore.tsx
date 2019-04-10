@@ -3,12 +3,14 @@ import { Store } from "./Store";
 import {
   clientAsyncCache,
   createAsyncAction,
-  EAsyncEndTags, ICreateAsyncActionOptions,
+  EAsyncEndTags,
+  ICreateAsyncActionOptions,
   IOCreateAsyncActionOutput,
   IPullstateAsyncActionOrdState,
   IPullstateAsyncCache,
   IPullstateAsyncResultState,
-  TPullstateAsyncAction, TPullstateAsyncShortCircuitHook,
+  TPullstateAsyncAction,
+  TPullstateAsyncShortCircuitHook,
 } from "./async";
 
 type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
@@ -76,7 +78,10 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
         );
       }
 
-      newStores[storeName]._setInternalOptions({ ssr, reactionCreators: this.originStores[storeName]._getReactionCreators() });
+      newStores[storeName]._setInternalOptions({
+        ssr,
+        reactionCreators: this.originStores[storeName]._getReactionCreators(),
+      });
     }
 
     return new PullstateInstance(newStores);
@@ -88,9 +93,14 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
 
   createAsyncAction<A = any, R = any, T extends string = string>(
     action: TPullstateAsyncAction<A, R, T, S>,
-    options: Omit<ICreateAsyncActionOptions<A, R, T, S>, "clientStores"> = {},
+    options: Omit<ICreateAsyncActionOptions<A, R, T, S>, "clientStores"> = {}
   ): IOCreateAsyncActionOutput<A, R, T> {
-    return createAsyncAction<A, R, T, S>(action, { clientStores: this.originStores, ...options });
+    return createAsyncAction<A, R, T, S>(action, {
+      clientStores: this.originStores,
+      shortCircuitHook: options.shortCircuitHook,
+      cacheBreakHook: options.cacheBreakHook,
+      postActionHook: options.postActionHook,
+    });
   }
 }
 

@@ -1,8 +1,24 @@
-### 0.7.1
+## 0.8.0
+
+Some refactoring of the Async Actions and adding of hooks for much finer grained control:
+
+`shortCicuitHook()`: Run checks to resolve the action with a response before it even sets out.
+
+`breakCacheHook()`: When an action's state is being returned from the cache, this hook allows you to run checks on the current cache and your stores to decide whether this action should be run again (essentially flushing / breaking the cache).
+
+`postActionHook()`: This hook allows you to run some things after the action has resolved, and most importantly allows code to run after each time we hit the cached result of this action as well. This is very useful for interface changes which need to change / update outside of the action code.
+
+`postActionHook()` is run with a context variable which tells you in which context it was run, one of: CACHE, SHORT_CIRCUIT, DIRECT_RUN 
+
+These hooks should hopefully allow even more boilerplate code to be eliminated while working in asynchronous state scenarios.
+
+## 0.7.1
 
 * Made the `isResolved()` function safe from causing infinite loops (Async Action resolves, but the state of the store still makes `isResolved()` return false which causes a re-trigger when re-rendering - most likely happens when not checking for error states in `isResolved()`) - instead posting an error message to the console informing about the loop which needs to be fixed.
 
 ## 0.7.0
+
+**:warning: Replaced with async action hooks above in 0.8.0**
 
 Added the options of setting an `isResolve()` synchronous checking function on Async Actions. This allows for early escape hatching (we don't need to run this async action based on the current state) and cache busting (even though we ran this Async Action before and we have a cached result, the current state indicates we need to run it again).
 
