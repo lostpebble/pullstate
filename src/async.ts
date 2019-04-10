@@ -261,9 +261,6 @@ export function createAsyncAction<
   const ordinal: number = asyncCreationOrdinal++;
   const onServer: boolean = typeof window === "undefined";
 
-  console.log(`Pullstate Core creating action with options`);
-  console.log({ shortCircuitHook, cacheBreakHook, postActionHook, clientStores });
-
   let cacheBreakWatcher: { [actionKey: string]: number } = {};
   let watchIdOrd: number = 0;
   const shouldUpdate: {
@@ -320,17 +317,22 @@ further looping. Fix in your cacheBreakHook() is needed.`);
           cacheBreakWatcher[key] = 0;
         }
 
-        return [
-          true,
-          true,
-          runPostActionHook(
-            cache.results[key][2] as TAsyncActionResult<R, T>,
-            args,
-            stores,
-            EPostActionContext.CACHE
-          ),
-          false,
-        ];
+        // if this is a "finished" cached result we need to run the post action hook with CACHE context
+        if (cache.results[key][1]) {
+          return [
+            cache.results[key][0],
+            cache.results[key][1],
+            runPostActionHook(
+              cache.results[key][2] as TAsyncActionResult<R, T>,
+              args,
+              stores,
+              EPostActionContext.CACHE
+            ),
+            cache.results[key][3],
+          ];
+        } else {
+          return cache.results[key] as TPullstateAsyncWatchResponse<R, T>;
+        }
       }
     }
 
@@ -525,9 +527,6 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     } else {
       clientAsyncCache.results[key] = [true, false, prevResp, false];
     }
-
-    console.log(`Running async function`);
-    console.log({ shortCircuitHook });
 
     if (shortCircuitHook !== undefined) {
       const shortCircuitResponse = shortCircuitHook(args, clientStores);
