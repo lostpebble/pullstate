@@ -75,7 +75,8 @@ export type TPullstateAsyncCacheBreakHook<A, R, T extends string, S extends IPul
 ) => boolean;
 
 export enum EPostActionContext {
-  CACHE = "CACHE",
+  WATCH_CACHE = "WATCH_CACHE",
+  RUN_CACHE = "RUN_CACHE",
   SHORT_CIRCUIT = "SHORT_CIRCUIT",
   DIRECT_RUN = "DIRECT_RUN",
 }
@@ -98,6 +99,7 @@ export interface IAsyncActionWatchOptions extends IAsyncActionBeckonOptions {
 export interface IAsyncActionRunOptions {
   treatAsUpdate?: boolean;
   ignoreShortCircuit?: boolean;
+  respectCache?: boolean;
 }
 
 // Order of new hook functions:
@@ -293,7 +295,7 @@ export function createAsyncAction<
     stores: S
   ): TPullstateAsyncWatchResponse<R, T> {
     if (cache.results.hasOwnProperty(key)) {
-      const cacheBreakLoop = (cacheBreakWatcher.hasOwnProperty(key) && cacheBreakWatcher[key] > 2);
+      const cacheBreakLoop = cacheBreakWatcher.hasOwnProperty(key) && cacheBreakWatcher[key] > 2;
       // console.log(`[${key}] Pullstate Async: Already finished - returning cached result`);
       if (
         cacheBreakHook !== undefined &&
@@ -326,7 +328,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
               cache.results[key][2] as TAsyncActionResult<R, T>,
               args,
               stores,
-              EPostActionContext.CACHE
+              EPostActionContext.WATCH_CACHE
             ),
             cache.results[key][3],
           ];
@@ -507,9 +509,30 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
   const run: TAsyncActionRun<A, R, T> = async (
     args = {} as A,
-    { treatAsUpdate = false, ignoreShortCircuit = false }: IAsyncActionRunOptions = {}
+    { treatAsUpdate = false, ignoreShortCircuit = false, respectCache = false }: IAsyncActionRunOptions = {}
   ): Promise<TAsyncActionResult<R, T>> => {
     const key = createKey(ordinal, args);
+
+    if (clientAsyncCache.results.hasOwnProperty(key) && respectCache) {
+      if (
+        cacheBreakHook !== undefined &&
+        cacheBreakHook(args, clientAsyncCache.results[key][2] as TAsyncActionResult<R, T>, clientStores)
+      ) {
+        delete clientAsyncCache.results[key];
+      } else {
+        // if this is a "finished" cached result we need to run the post action hook with CACHE context
+        if (clientAsyncCache.results[key][1]) {
+          return runPostActionHook(
+            clientAsyncCache.results[key][2] as TAsyncActionResult<R, T>,
+              args,
+              clientStores,
+              EPostActionContext.RUN_CACHE
+            );
+        } else {
+          return clientAsyncCache.results[key][2] as TAsyncActionResult<R, T>;
+        }
+      }
+    }
 
     const [, prevFinished, prevResp] = clientAsyncCache.results[key] || [
       false,
