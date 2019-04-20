@@ -10,7 +10,6 @@ import {
   IPullstateAsyncCache,
   IPullstateAsyncResultState,
   TPullstateAsyncAction,
-  TPullstateAsyncShortCircuitHook,
 } from "./async";
 
 type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
