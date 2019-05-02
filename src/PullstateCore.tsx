@@ -109,7 +109,15 @@ interface IPullstateSnapshot {
   asyncActionOrd: IPullstateAsyncActionOrdState;
 }
 
-class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> {
+export interface IPullstateInstanceConsumable<T extends IPullstateAllStores =  IPullstateAllStores> {
+  stores: T;
+  hasAsyncStateToResolve(): boolean;
+  resolveAsyncState(): Promise<void>;
+  getPullstateSnapshot(): IPullstateSnapshot;
+  hydrateFromSnapshot(snapshot: IPullstateSnapshot): void;
+}
+
+class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> implements IPullstateInstanceConsumable<T> {
   private readonly _stores: T = {} as T;
   _asyncCache: IPullstateAsyncCache = {
     listeners: {},
@@ -160,7 +168,7 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> {
 
   async resolveAsyncState() {
     const promises = this.getAllUnresolvedAsyncActions();
-    return Promise.all(promises);
+    await Promise.all(promises);
   }
 
   hasAsyncStateToResolve(): boolean {

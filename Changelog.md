@@ -1,4 +1,8 @@
-## 0.8.0
+## 0.8.0.alpha-2
+
+Added `IPullstateInstanceConsumable` as an export to help people who want to create code using the Pullstate stores' instance.
+
+## 0.8.0.alpha-1
 
 Some refactoring of the Async Actions and adding of hooks for much finer grained control:
 

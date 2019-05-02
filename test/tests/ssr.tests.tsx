@@ -1,7 +1,14 @@
 import React from "react";
-import { createPullstateCore, InjectStoreState, PullstateProvider, Store, update, useStoreState } from "../../src/index";
+import {
+  createPullstateCore,
+  InjectStoreState, IPullstateInstanceConsumable,
+  PullstateProvider,
+  Store,
+  update,
+  useStoreState,
+} from "../../src/index";
 import ReactDOMServer from "react-dom/server";
-import { TestUIStore } from "./testStores/TestUIStore";
+import { ITestUIStore, TestUIStore } from "./testStores/TestUIStore";
 const beautify = require('js-beautify').html;
 
 const PullstateCore = createPullstateCore({ TestUIStore });

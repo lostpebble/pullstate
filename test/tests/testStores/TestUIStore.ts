@@ -1,6 +1,6 @@
 import { Store } from "../../../src/Store";
 
-interface ITestUIStore {
+export interface ITestUIStore {
   count: number;
   message: string;
 }

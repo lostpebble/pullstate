@@ -1,7 +1,7 @@
 import { useStoreState } from "./useStoreState";
 import { update, Store } from "./Store";
 import { InjectStoreState } from "./InjectStoreState";
-import { PullstateProvider, useStores, createPullstateCore } from "./PullstateCore";
+import { PullstateProvider, useStores, createPullstateCore, IPullstateInstanceConsumable } from "./PullstateCore";
 import { createAsyncAction, successResult, errorResult, EAsyncEndTags } from "./async";
 
 export {
@@ -16,4 +16,5 @@ export {
   successResult,
   errorResult,
   EAsyncEndTags,
+  IPullstateInstanceConsumable,
 };
