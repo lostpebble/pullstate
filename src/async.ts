@@ -5,7 +5,7 @@ import { useContext, useEffect, useRef, useState, useMemo } from "react";
 type TPullstateAsyncUpdateListener = () => void;
 
 // [ started, finished, result, updating ]
-export type TPullstateAsyncWatchResponse<R, T extends string> = [
+export type TPullstateAsyncWatchResponse<R = any, T extends string = string> = [
   boolean,
   boolean,
   TAsyncActionResult<R, T>,
@@ -21,9 +21,9 @@ export type TPullstateAsyncResponseCacheFull<R, T extends string> = [
   TAsyncActionResult<R, T> | true | null
 ];
 // [finished, result, updating]
-export type TPullstateAsyncBeckonResponse<R, T extends string> = [boolean, TAsyncActionResult<R, T>, boolean];
+export type TPullstateAsyncBeckonResponse<R = any, T extends string = string> = [boolean, TAsyncActionResult<R, T>, boolean];
 // [result]
-export type TPullstateAsyncRunResponse<R, T extends string> = Promise<TAsyncActionResult<R, T>>;
+export type TPullstateAsyncRunResponse<R = any, T extends string = string> = Promise<TAsyncActionResult<R, T>>;
 
 export interface IPullstateAsyncResultState {
   [key: string]: TPullstateAsyncWatchResponse<any, string>;
@@ -124,7 +124,7 @@ type TAsyncActionRun<A, R, T extends string> = (
 type TAsyncActionClearCache<A> = (args?: A) => void;
 type TAsyncActionClearAllCache = () => void;
 
-export interface IOCreateAsyncActionOutput<A, R, T extends string> {
+export interface IOCreateAsyncActionOutput<A = any, R = any, T extends string = string> {
   useBeckon: TAsyncActionBeckon<A, R, T>;
   useWatch: TAsyncActionWatch<A, R, T>;
   run: TAsyncActionRun<A, R, T>;

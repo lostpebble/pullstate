@@ -1,8 +1,9 @@
 import { useStoreState } from "./useStoreState";
-import { update, Store } from "./Store";
+import { Store, update } from "./Store";
 import { InjectStoreState } from "./InjectStoreState";
-import { PullstateProvider, useStores, createPullstateCore, IPullstateInstanceConsumable } from "./PullstateCore";
-import { createAsyncAction, successResult, errorResult, EAsyncEndTags } from "./async";
+import { createPullstateCore, IPullstateInstanceConsumable, PullstateProvider, useStores } from "./PullstateCore";
+import { createAsyncAction, EAsyncEndTags, errorResult, successResult } from "./async";
+import { EAsyncActionInjectType, InjectAsyncAction } from "./InjectAsyncAction";
 
 export {
   useStoreState,
@@ -17,4 +18,6 @@ export {
   errorResult,
   EAsyncEndTags,
   IPullstateInstanceConsumable,
+  InjectAsyncAction,
+  EAsyncActionInjectType,
 };
