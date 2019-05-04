@@ -1,0 +1,71 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Quick example · Pullstate</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;Note&lt;/strong&gt;: Typescript is used in all examples to show off how one can integrate their interfaces for a nicer experience. Simply remove all references to &lt;code&gt;interface&lt;/code&gt; and generics (e.g. &lt;code&gt;&amp;lt;IUIStore&amp;gt;&lt;/code&gt;) to get pure JavaScript.&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Quick example · Pullstate"/><meta property="og:type" content="website"/><meta property="og:url" content="https://lostpebble.github.io/pullstate/"/><meta property="og:description" content="&lt;blockquote&gt;
+&lt;p&gt;&lt;em&gt;&lt;strong&gt;Note&lt;/strong&gt;: Typescript is used in all examples to show off how one can integrate their interfaces for a nicer experience. Simply remove all references to &lt;code&gt;interface&lt;/code&gt; and generics (e.g. &lt;code&gt;&amp;lt;IUIStore&amp;gt;&lt;/code&gt;) to get pure JavaScript.&lt;/em&gt;&lt;/p&gt;
+&lt;/blockquote&gt;
+"/><meta property="og:image" content="https://lostpebble.github.io/pullstate/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://lostpebble.github.io/pullstate/img/docusaurus.png"/><link rel="shortcut icon" href="/pullstate/img/icon-transparent-onlight.png"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><link rel="stylesheet" href="/pullstate/css/main.css"/><script src="/pullstate/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/pullstate/"><img class="logo" src="/pullstate/img/icon-transparent-ondark-new.png" alt="Pullstate"/><h2 class="headerTitleWithLogo">Pullstate</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive siteNavItemActive"><a href="/pullstate/docs/quick-example" target="_self">Docs</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><i></i></div><h2><i>›</i><span>Getting Started</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle">Getting Started</h3><ul class=""><li class="navListItem"><a class="navItem" href="/pullstate/docs/installation">Installation</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/pullstate/docs/quick-example">Quick example</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Creating State</h3><ul class=""><li class="navListItem"><a class="navItem" href="/pullstate/docs/create-state-client-side">Client-side only app</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/create-state-server-rendering">Server-rendered app</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Using State</h3><ul class=""><li class="navListItem"><a class="navItem" href="/pullstate/docs/using-state-client-side">Client-side only app</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/using-state-server-rendering">Server-rendered app</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Async Actions</h3><ul class=""><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Creating Async Actions</h4><ul><li class="navListItem"><a class="navItem" href="/pullstate/docs/anatomy-of-an-async-action">Anatomy of an Async Action</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/action-hooks">Action Hooks</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Using Async Actions</h4><ul><li class="navListItem"><a class="navItem" href="/pullstate/docs/watching-async-action">Watching</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/beckoning-async-action">Beckoning</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/running-async-action">Direct running</a></li></ul></div></ul></div></div></section></div><script>
+            var coll = document.getElementsByClassName('collapsible');
+            var checkActiveCategory = true;
+            for (var i = 0; i < coll.length; i++) {
+              var links = coll[i].nextElementSibling.getElementsByTagName('*');
+              if (checkActiveCategory){
+                for (var j = 0; j < links.length; j++) {
+                  if (links[j].classList.contains('navListItemActive')){
+                    coll[i].nextElementSibling.classList.toggle('hide');
+                    coll[i].childNodes[1].classList.toggle('rotate');
+                    checkActiveCategory = false;
+                    break;
+                  }
+                }
+              }
+
+              coll[i].addEventListener('click', function() {
+                var arrow = this.childNodes[1];
+                arrow.classList.toggle('rotate');
+                var content = this.nextElementSibling;
+                content.classList.toggle('hide');
+              });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              const headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                if (event.target.tagName === 'A') {
+                  document.body.classList.remove('tocActive');
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 class="postHeaderTitle">Quick example</h1></header><article><div><span><blockquote>
+<p><em><strong>Note</strong>: Typescript is used in all examples to show off how one can integrate their interfaces for a nicer experience. Simply remove all references to <code>interface</code> and generics (e.g. <code>&lt;IUIStore&gt;</code>) to get pure JavaScript.</em></p>
+</blockquote>
+<p>Let's dive right in and define and export our first state store:</p>
+<pre><code class="hljs css language-tsx">import { Store } <span class="hljs-keyword">from</span> <span class="hljs-string">"pullstate"</span>;
+<span class="hljs-built_in">
+interface </span>IUIStore {
+  isDarkMode: boolean;
+}
+
+<span class="hljs-builtin-name">export</span> const UIStore = new Store&lt;IUIStore&gt;({
+  isDarkMode: <span class="hljs-literal">true</span>,
+});
+</code></pre>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/pullstate/docs/installation"><span class="arrow-prev">← </span><span>Installation</span></a><a class="docs-next button" href="/pullstate/docs/create-state-client-side"><span>Client-side only app</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/pullstate/" class="nav-home"><img src="/pullstate/img/icon-transparent-ondark-new.png" alt="Pullstate" width="66" height="58"/></a><div><h5>Docs</h5><a href="/pullstate/docs/installation.html">Installation</a><a href="/pullstate/docs/quick-example.html">A Quick Example</a><a href="/pullstate/docs/create-state-client-side.html">More</a></div><div><h5>Community</h5><a href="https://github.com/lostpebble/pullstate" target="_blank">GitHub</a></div></section><a href="https://github.com/lostpebble/pullstate" target="_blank" rel="noreferrer noopener" class="pullstate-logo"><img src="/pullstate/img/logo-ondark-small.png" alt="Pullstate" width="210" height="141"/></a><section class="copyright">Copyright © 2019 Paul Myburgh</section></footer></div></body></html>
