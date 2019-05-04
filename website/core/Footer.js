@@ -49,35 +49,19 @@ class Footer extends React.Component {
           </div>
           <div>
             <h5>Community</h5>
-            <a href="https://github.com/lostpebble/pullstate">GitHub</a>
-          </div>
-          <div>
-            <h5>More</h5>
-            <a href={`${this.props.config.baseUrl}blog`}>Blog</a>
-            <a href="https://github.com/">GitHub</a>
-            <a
-              className="github-button"
-              href={this.props.config.repoUrl}
-              data-icon="octicon-star"
-              data-count-href="/facebook/docusaurus/stargazers"
-              data-show-count="true"
-              data-count-aria-label="# stargazers on GitHub"
-              aria-label="Star this project on GitHub">
-              Star
-            </a>
+            <a href="https://github.com/lostpebble/pullstate" target={"_blank"}>GitHub</a>
           </div>
         </section>
-
         <a
-          href="https://opensource.facebook.com/"
+          href="https://github.com/lostpebble/pullstate"
           target="_blank"
           rel="noreferrer noopener"
-          className="fbOpenSource">
+          className="pullstate-logo">
           <img
-            src={`${this.props.config.baseUrl}img/oss_logo.png`}
-            alt="Facebook Open Source"
-            width="170"
-            height="45"
+            src={`${this.props.config.baseUrl}img/logo-ondark-small.png`}
+            alt="Pullstate"
+            width="210"
+            height="141"
           />
         </a>
         <section className="copyright">{this.props.config.copyright}</section>

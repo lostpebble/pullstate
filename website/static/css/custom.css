@@ -14,3 +14,23 @@
 
 @media only screen and (min-width: 1500px) {
 }
+
+.nav-footer .pullstate-logo {
+    display: block;
+    margin: 1em auto;
+    opacity: 0.4;
+    transition: opacity 0.15s ease-in-out;
+    width: 210px;
+    height: 141px;
+}
+
+.nav-footer .pullstate-logo:hover {
+    opacity: 1;
+}
+
+.navPusher {
+    display: flex;
+    flex-direction: column;
+    flex-grow: 1;
+    min-height: calc(100vh - 50px);
+}

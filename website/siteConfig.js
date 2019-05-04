@@ -45,8 +45,8 @@ const siteConfig = {
   // users,
 
   /* path to images for header/footer */
-  headerIcon: 'img/icon-transparent-ondark.png',
-  footerIcon: 'img/icon-transparent-ondark.png',
+  headerIcon: 'img/icon-transparent-ondark-new.png',
+  footerIcon: 'img/icon-transparent-ondark-new.png',
   favicon: 'img/icon-transparent-onlight.png',
 
   /* Colors for website */
@@ -70,7 +70,7 @@ const siteConfig = {
   */
 
   // This copyright info is used in /core/Footer.js and blog RSS/Atom feeds.
-  copyright: `Copyright © ${new Date().getFullYear()} Your Name or Your Company Name`,
+  copyright: `Copyright © ${new Date().getFullYear()} Paul Myburgh`,
 
   highlight: {
     // Highlight.js theme to use for syntax highlighting in code blocks.
