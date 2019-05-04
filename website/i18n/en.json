@@ -5,33 +5,59 @@
     "previous": "Previous",
     "tagline": "Simple state stores using immer and React hooks",
     "docs": {
-      "doc1": {
-        "title": "Latin-ish",
-        "sidebar_label": "Example Page"
+      "action-hooks": {
+        "title": "Action Hooks",
+        "sidebar_label": "Action Hooks"
       },
-      "doc2": {
-        "title": "document number 2"
+      "anatomy-of-an-async-action": {
+        "title": "Anatomy of an Async Action",
+        "sidebar_label": "Anatomy of an Async Action"
       },
-      "doc3": {
-        "title": "This is document number 3"
+      "beckoning-async-action": {
+        "title": "Beckoning an Async Action",
+        "sidebar_label": "Beckoning"
       },
-      "doc4": {
-        "title": "Other Document"
+      "create-state-client-side": {
+        "title": "State stores on client-side only apps",
+        "sidebar_label": "Client-side only app"
       },
-      "doc5": {
-        "title": "Fifth Document"
+      "create-state-server-rendering": {
+        "title": "State stores with server rendered apps",
+        "sidebar_label": "Server-rendered app"
+      },
+      "installation": {
+        "title": "Installation",
+        "sidebar_label": "Installation"
+      },
+      "quick-example": {
+        "title": "Quick example",
+        "sidebar_label": "Quick example"
+      },
+      "running-async-action": {
+        "title": "Direct running an Async Action",
+        "sidebar_label": "Direct running"
+      },
+      "using-state-client-side": {
+        "title": "Using state on a client-side only app",
+        "sidebar_label": "Client-side only app"
+      },
+      "using-state-server-rendering": {
+        "title": "Using state with server-rendered apps",
+        "sidebar_label": "Server-rendered app"
+      },
+      "watching-async-action": {
+        "title": "Watching an Async Action",
+        "sidebar_label": "Watching"
       }
     },
     "links": {
-      "Docs": "Docs",
-      "API": "API",
-      "Help": "Help",
-      "Blog": "Blog"
+      "Docs": "Docs"
     },
     "categories": {
-      "Docusaurus": "Docusaurus",
-      "First Category": "First Category",
-      "Second Category": "Second Category"
+      "Getting Started": "Getting Started",
+      "Creating State": "Creating State",
+      "Using State": "Using State",
+      "Async Actions": "Async Actions"
     }
   },
   "pages-strings": {

@@ -1693,9 +1693,10 @@ dir-glob@2.0.0:
     arrify "^1.0.1"
     path-type "^3.0.0"
 
-docusaurus@^2.0.0-alpha.5:
-  version "2.0.0-alpha.5"
-  resolved "https://registry.yarnpkg.com/docusaurus/-/docusaurus-2.0.0-alpha.5.tgz#7d83953716b229952ec07188d728d2539644bead"
+docusaurus@^2.0.0-alpha.11:
+  version "2.0.0-alpha.11"
+  resolved "https://registry.yarnpkg.com/docusaurus/-/docusaurus-2.0.0-alpha.11.tgz#08d880c2f7c5899c34a92b4b13fe955a7dc6d8c2"
+  integrity sha512-5HKFIXu40rMzkUOViVm8QTQEFJMs33KPJvr7GpR1Gkbi/ZCkRJeLu2RjuEaL5uIodK2M+cbQkN2BAy+fRfC25g==
   dependencies:
     "@babel/core" "^7.0.0"
     "@babel/plugin-proposal-class-properties" "^7.0.0"

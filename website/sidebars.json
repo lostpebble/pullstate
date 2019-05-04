@@ -1,10 +1,23 @@
 {
   "docs": {
-    "Docusaurus": ["doc1"],
-    "First Category": ["doc2"],
-    "Second Category": ["doc3"]
-  },
-  "docs-other": {
-    "First Category": ["doc4", "doc5"]
+    "Getting Started": ["installation", "quick-example"],
+    "Creating State": ["create-state-client-side", "create-state-server-rendering"],
+    "Using State": ["using-state-client-side", "using-state-server-rendering"],
+    "Async Actions": [{
+      "type": "subcategory",
+      "label": "Creating Async Actions",
+      "ids": [
+        "anatomy-of-an-async-action",
+        "action-hooks"
+      ]
+    }, {
+      "type": "subcategory",
+      "label": "Using Async Actions",
+      "ids": [
+        "watching-async-action",
+        "beckoning-async-action",
+        "running-async-action"
+      ]
+    }]
   }
 }

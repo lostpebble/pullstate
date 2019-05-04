@@ -9,7 +9,7 @@
 // site configuration options.
 
 // List of projects/orgs using your project for the users page.
-const users = [
+/*const users = [
   {
     caption: 'User1',
     // You will need to prepend the image path with your baseUrl
@@ -18,34 +18,31 @@ const users = [
     infoLink: 'https://www.facebook.com',
     pinned: true,
   },
-];
+];*/
 
 const siteConfig = {
   title: 'Pullstate', // Title for your website.
   tagline: 'Simple state stores using immer and React hooks',
-  url: 'https://your-docusaurus-test-site.com', // Your website URL
+  url: 'https://lostpebble.github.io/pullstate', // Your website URL
   baseUrl: '/', // Base URL for your project */
   // For github.io type URLs, you would set the url and baseUrl like:
   //   url: 'https://facebook.github.io',
   //   baseUrl: '/test-site/',
 
   // Used for publishing and more
-  projectName: 'test-site',
-  organizationName: 'facebook',
+  projectName: 'pullstate',
+  organizationName: 'Pullstate',
   // For top-level user or org sites, the organization is still the same.
   // e.g., for the https://JoelMarcey.github.io site, it would be set like...
   //   organizationName: 'JoelMarcey'
 
   // For no header links in the top nav bar -> headerLinks: [],
   headerLinks: [
-    {doc: 'doc1', label: 'Docs'},
-    {doc: 'doc4', label: 'API'},
-    {page: 'help', label: 'Help'},
-    {blog: true, label: 'Blog'},
+    {doc: 'quick-example', label: 'Docs'}
   ],
 
   // If you have users set above, you add it here:
-  users,
+  // users,
 
   /* path to images for header/footer */
   headerIcon: 'img/icon-transparent-ondark.png',
