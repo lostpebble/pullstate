@@ -1,6 +1,6 @@
 {
   "docs": {
-    "Getting Started": ["installation", "quick-example"],
+    "Getting Started": ["installation", "quick-example", "quick-example-server-rendered"],
     "Creating State": ["create-state-client-side", "create-state-server-rendering"],
     "Using State": ["using-state-client-side", "using-state-server-rendering"],
     "Async Actions": [{

@@ -60,13 +60,15 @@ class HomeSplash extends React.Component {
 
     return (
       <SplashContainer>
-        <Logo img_src={`${baseUrl}img/logo-new.png`} />
-        <div className="inner" style={{ display: "flex", alignItems: "center", flexDirection: "column" }}>
+        <img width={350} src={`${baseUrl}img/logo-new.png`} alt="Project Logo" />
+        <div className="inner" style={{ display: "flex", marginTop: "1em", flexGrow: 1, alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
           {/*<ProjectTitle siteConfig={siteConfig} />*/}
-          <div style={{ maxWidth: "35em", padding: "1em 2em", opacity: 0.8 }}>Ridiculously simple state stores with performant retrieval anywhere in your React tree using React hooks</div>
-          <div style={{ maxWidth: "35em", padding: "2em 2em", opacity: 0.8 }}><em><strong>Now featuring native async state handling too!</strong></em></div>
-          <Button href={docUrl("quick-example.html")}>Jump into a quick example</Button>
-          <div style={{ maxWidth: "35em", padding: "2em 2em", opacity: 0.8 }}/>
+          <div>
+            <div style={{ maxWidth: "35em", padding: "1em 2em", opacity: 0.8 }}>Ridiculously simple state stores with performant retrieval anywhere in your React tree using React hooks</div>
+            <div style={{ maxWidth: "35em", padding: "3em 2em", opacity: 0.8 }}><em><strong>Now featuring async state handling too!</strong></em></div>
+            <Button href={docUrl("quick-example.html")}>Jump into a quick example</Button>
+            <div style={{ maxWidth: "35em", padding: "2em 2em", opacity: 0.8 }}/>
+          </div>
         </div>
       </SplashContainer>
     );
@@ -78,9 +80,7 @@ class Index extends React.Component {
     const {config: siteConfig, language = ''} = this.props;
 
     return (
-      <div>
-        <HomeSplash siteConfig={siteConfig} language={language} />
-      </div>
+      <HomeSplash siteConfig={siteConfig} language={language} />
     );
   }
 }

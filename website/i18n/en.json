@@ -29,6 +29,10 @@
         "title": "Installation",
         "sidebar_label": "Installation"
       },
+      "quick-example-server-rendered": {
+        "title": "Quick example (server rendering)",
+        "sidebar_label": "Quick example (server rendering)"
+      },
       "quick-example": {
         "title": "Quick example",
         "sidebar_label": "Quick example"
