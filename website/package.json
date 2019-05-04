@@ -3,12 +3,13 @@
     "examples": "docusaurus-examples",
     "start": "docusaurus-start",
     "build": "docusaurus-build",
-    "publish-gh-pages": "docusaurus-publish",
+    "publish-gh-pages": "cross-env GIT_USER=lostpebble docusaurus-publish",
     "write-translations": "docusaurus-write-translations",
     "version": "docusaurus-version",
     "rename-version": "docusaurus-rename-version"
   },
   "devDependencies": {
-    "docusaurus": "^2.0.0-alpha.11"
+    "docusaurus": "^2.0.0-alpha.11",
+    "cross-env": "^5.2.0"
   }
 }

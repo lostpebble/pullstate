@@ -4,7 +4,7 @@ title: Installation
 sidebar_label: Installation
 ---
 
-Getting started with Pullstate is as easy as:
+Let's get the installation out of the way:
 
 ```powershell
 yarn add pullstate
