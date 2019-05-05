@@ -14,7 +14,8 @@
         "type": "subcategory",
         "label": "Using Async Actions",
         "ids": ["watching-async-action", "beckoning-async-action", "running-async-action", "cache-clearing"]
-      }
+      },
+      "async-server-rendering"
     ]
   }
 }

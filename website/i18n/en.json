@@ -20,6 +20,10 @@
         "title": "Introduction to Async Actions",
         "sidebar_label": "Introduction"
       },
+      "async-server-rendering": {
+        "title": "Resolving async state while server-rendering",
+        "sidebar_label": "Resolve async state on the server"
+      },
       "beckoning-async-action": {
         "title": "Beckoning an Async Action",
         "sidebar_label": "Beckoning"
