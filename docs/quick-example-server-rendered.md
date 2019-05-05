@@ -51,13 +51,13 @@ export const PullstateCore = createPullstateCore({
 
 In this example we only have a single store, but a regular app should have at least a few.
 
-## Use our store's state
+## Read our store's state
 
 Then, in React, we can start using the state of that store using a simple hook `useStoreState()`.
 
 For server-rendering we also need to make use of `useStores()` on`PullstateCore`, which we defined above.
 
-> If we were creating a client-only app, we would simply import `UIStore` directly and use it, but for server-rendering we need to get `UIStore` by calling `useStores()`, which uses React's context to get our unique stores for this render
+> If we were creating a client-only app, we would simply import `UIStore` directly and use it, but for server-rendering we need to get `UIStore` by calling `useStores()`, which uses React's context to get our unique stores for this render / server request
 
 ```tsx
 import * as React from "react";
@@ -82,7 +82,19 @@ export const App = () => {
 
 The second argument to `useStoreState()` over here (`s => s.isDarkMode`), is a selection function that ensures we select only the state that we actually need for this component. This is a big performance booster, as we only listen for changes (and if changed, re-render the component) on the exact returned values - in this case, simply the value of `isDarkMode`.
 
+If you are not using TypeScript, or want to forgo nice types, you could also pull in your store's using `useStores()` imported directly from `pullstate`:
+
+```tsx
+import { useStoreState, useStores } from "pullstate";
+
+  // in app
+  const { UIStore } = useStores();
+  const isDarkMode = useStoreState(UIStore, s => s.isDarkMode);
+```
+
 ---
+
+## Add interaction (update state)
 
 Great, so we are able to pull our state from `UIStore` into our App. Now lets add some basic interaction with a `<button>`:
 
@@ -164,7 +176,7 @@ async function someRequest(req) {
   );
 
   const body = `
-<script>window.__PULLSTATE__ = '${JSON.stringify(instance.getPullstateSnapshot())}'</script>
+<script>window.__PULLSTATE__ = '${JSON.stringify(instance.getPullstateSnapshot()).replace(/\\/g, `\\\\`).replace(/"/g, `\\"`)}'</script>
 ${reactHtml}`;
 
   // do something with the generated html and send response
@@ -175,7 +187,7 @@ ${reactHtml}`;
 
 * Notice that we pass our Pullstate core instance into `<PullstateProvider>` as `instance`
 
-* Lastly, we need to return this state to the client somehow. We call `getPullstateSnapshot()` on the instance and set it on `window.__PULLSTATE__`, to be parsed and hydrated on the client.
+* Lastly, we need to return this state to the client somehow. We call `getPullstateSnapshot()` on the instance, stringify it, escape a couple characters, and set it on `window.__PULLSTATE__`, to be parsed and hydrated on the client.
 
 ## Client-side state hydration
 
@@ -206,4 +218,4 @@ import { UIStore } from "./UIStore";
 ```
 And our components would be updated accordingly. We have freed our app's state from the confines of the component! This is one of the main advantages of Pullstate - allowing us to separate our state concerns from being locked in at the component level and manage things easily at a more global level from which our components listen and react (through our `useStoreState()` hooks).
 
-We still need to make use of the `PullstateCore.useStores()` hook and `<PullstateProvider>` in order to pick up and render server-side updates, but once we have hydrated our state into our stores from the server side, we can interact with Pullstate stores just as we would if it were a client-only app - but we must be sure that these actions are 100% client-side only.
+We still need to make use of the `PullstateCore.useStores()` hook and `<PullstateProvider>` in order to pick up and render server-side updates, but once we have hydrated our state into our stores from the server side, we can interact with Pullstate stores just as we would if it were a client-only app - **but we must be sure that these actions are 100% client-side only**.

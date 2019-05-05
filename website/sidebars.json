@@ -1,23 +1,20 @@
 {
   "docs": {
     "Getting Started": ["installation", "quick-example", "quick-example-server-rendered"],
-    "Creating State": ["create-state-client-side", "create-state-server-rendering"],
-    "Using State": ["using-state-client-side", "using-state-server-rendering"],
-    "Async Actions": [{
-      "type": "subcategory",
-      "label": "Creating Async Actions",
-      "ids": [
-        "anatomy-of-an-async-action",
-        "action-hooks"
-      ]
-    }, {
-      "type": "subcategory",
-      "label": "Using Async Actions",
-      "ids": [
-        "watching-async-action",
-        "beckoning-async-action",
-        "running-async-action"
-      ]
-    }]
+    "Reading Store State": ["use-store-state-hook", "inject-store-state"],
+    "Updating Store State": ["update-store", "reactions"],
+    "Async Actions": [
+      "async-actions-introduction",
+      {
+        "type": "subcategory",
+        "label": "Creating Async Actions",
+        "ids": ["anatomy-of-an-async-action", "action-hooks"]
+      },
+      {
+        "type": "subcategory",
+        "label": "Using Async Actions",
+        "ids": ["watching-async-action", "beckoning-async-action", "running-async-action", "cache-clearing"]
+      }
+    ]
   }
 }
