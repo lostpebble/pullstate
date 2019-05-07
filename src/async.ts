@@ -75,10 +75,11 @@ export type TPullstateAsyncCacheBreakHook<A, R, T extends string, S extends IPul
 ) => boolean;
 
 export enum EPostActionContext {
-  WATCH_CACHE = "WATCH_CACHE",
-  RUN_CACHE = "RUN_CACHE",
+  WATCH_HIT_CACHE = "WATCH_HIT_CACHE",
+  RUN_HIT_CACHE = "RUN_HIT_CACHE",
   SHORT_CIRCUIT = "SHORT_CIRCUIT",
   DIRECT_RUN = "DIRECT_RUN",
+  BECKON_RUN = "BECKON_RUN",
 }
 
 export type TPullstateAsyncPostActionHook<A, R, T extends string, S extends IPullstateAllStores> = (
@@ -86,7 +87,7 @@ export type TPullstateAsyncPostActionHook<A, R, T extends string, S extends IPul
   result: TAsyncActionResult<R, T>,
   stores: S,
   context: EPostActionContext
-) => TAsyncActionResult<R, T> | void;
+) => void;
 
 export interface IAsyncActionBeckonOptions {
   ssr?: boolean;
@@ -277,13 +278,14 @@ export function createAsyncAction<
     args: A,
     stores: S,
     context: EPostActionContext
-  ): TAsyncActionResult<R, T> {
+  ): void {
     if (postActionHook !== undefined) {
-      const potentialResponse: any = postActionHook(args, result, stores, context);
-      return potentialResponse != null ? potentialResponse : result;
+      postActionHook(args, result, stores, context);
+      // const potentialResponse: any = postActionHook(args, result, stores, context);
+      // return potentialResponse != null ? potentialResponse : result;
     }
 
-    return result;
+    // return result;
   }
 
   function checkKeyAndReturnResponse(
@@ -292,12 +294,16 @@ export function createAsyncAction<
     initiate: boolean,
     ssr: boolean,
     args: A,
-    stores: S
+    stores: S,
+    fromListener = false,
   ): TPullstateAsyncWatchResponse<R, T> {
     if (cache.results.hasOwnProperty(key)) {
       const cacheBreakLoop = cacheBreakWatcher.hasOwnProperty(key) && cacheBreakWatcher[key] > 2;
       // console.log(`[${key}] Pullstate Async: Already finished - returning cached result`);
+
+      // Only beckon() can cache break - because watch() will not initiate the re-caching mechanism
       if (
+        initiate &&
         cacheBreakHook !== undefined &&
         cacheBreakHook(args, cache.results[key][2] as TAsyncActionResult<R, T>, stores) &&
         !cacheBreakLoop
@@ -319,22 +325,34 @@ further looping. Fix in your cacheBreakHook() is needed.`);
           cacheBreakWatcher[key] = 0;
         }
 
-        // if this is a "finished" cached result we need to run the post action hook with CACHE context
-        if (cache.results[key][1]) {
-          return [
+        // if the cached result is "finished" (and we are not running
+        // this during a listener update) we need to run the post
+        // action hook with WATCH_HIT_CACHE context
+        if (cache.results[key][1] && !fromListener) {
+          console.log(`[${key}] Running post action hook from cache hit`);
+
+          runPostActionHook(
+            cache.results[key][2] as TAsyncActionResult<R, T>,
+            args,
+            stores,
+            EPostActionContext.WATCH_HIT_CACHE
+          )
+
+          // return cache.results[key] as TPullstateAsyncWatchResponse<R, T>;
+          /*return [
             cache.results[key][0],
             cache.results[key][1],
             runPostActionHook(
               cache.results[key][2] as TAsyncActionResult<R, T>,
               args,
               stores,
-              EPostActionContext.WATCH_CACHE
+              EPostActionContext.WATCH_HIT_CACHE
             ),
             cache.results[key][3],
-          ];
-        } else {
-          return cache.results[key] as TPullstateAsyncWatchResponse<R, T>;
+          ];*/
         }
+
+        return cache.results[key] as TPullstateAsyncWatchResponse<R, T>;
       }
     }
 
@@ -347,12 +365,14 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         const shortCircuitResponse = shortCircuitHook(args, stores);
         if (shortCircuitResponse !== false) {
           cache.results[key] = [true, true, shortCircuitResponse, false];
-          return [
+          runPostActionHook(shortCircuitResponse, args, stores, EPostActionContext.SHORT_CIRCUIT)
+          return cache.results[key] as TPullstateAsyncWatchResponse<R, T>;
+          /*return [
             true,
             true,
             runPostActionHook(shortCircuitResponse, args, stores, EPostActionContext.SHORT_CIRCUIT),
             false,
-          ];
+          ];*/
         }
       }
 
@@ -369,16 +389,20 @@ further looping. Fix in your cacheBreakHook() is needed.`);
             .then(resp => {
               if (currentActionOrd === cache.actionOrd[key]) {
                 cache.results[key] = [true, true, resp, false] as TPullstateAsyncWatchResponse<R, T>;
+                runPostActionHook(resp as TAsyncActionResult<R, T>, args, stores, EPostActionContext.BECKON_RUN);
               }
             })
             .catch(e => {
+              console.error(e);
               if (currentActionOrd === cache.actionOrd[key]) {
+                const result: TAsyncActionResult<R, T> = { payload: null, error: true, tags: [EAsyncEndTags.THREW_ERROR], message: e.message };
                 cache.results[key] = [
                   true,
                   true,
-                  { payload: null, error: true, tags: [EAsyncEndTags.THREW_ERROR], message: e.message },
+                  result,
                   false,
                 ] as TPullstateAsyncWatchResponse<R, T>;
+                runPostActionHook(result, args, stores, EPostActionContext.BECKON_RUN);
               }
             })
             .then(() => {
@@ -448,7 +472,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         // console.log(`[${key}][${watchId}] will update?: ${!shallowEqual(responseRef.current, cache.results[key])} - ${responseRef.current} !== ${cache.results[key]}`);
 
         if (shouldUpdate[key][watchId.current] && !shallowEqual(responseRef.current, cache.results[key])) {
-          responseRef.current = checkKeyAndReturnResponse(key, cache, initiate, ssr, args, stores);
+          responseRef.current = checkKeyAndReturnResponse(key, cache, initiate, ssr, args, stores, true);
 
           setWatchUpdate(prev => {
             // console.log(`Setting watch update to: ${prev + 1}`);
@@ -520,17 +544,34 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       ) {
         delete clientAsyncCache.results[key];
       } else {
-        // if this is a "finished" cached result we need to run the post action hook with CACHE context
+        // if this is a "finished" cached result we need to run the post action hook with RUN_HIT_CACHE context
         if (clientAsyncCache.results[key][1]) {
-          return runPostActionHook(
+          runPostActionHook(
+            clientAsyncCache.results[key][2] as TAsyncActionResult<R, T>,
+            args,
+            clientStores,
+            EPostActionContext.RUN_HIT_CACHE
+          );
+          return clientAsyncCache.results[key][2] as TAsyncActionResult<R, T>;
+          /*return runPostActionHook(
             clientAsyncCache.results[key][2] as TAsyncActionResult<R, T>,
               args,
               clientStores,
-              EPostActionContext.RUN_CACHE
-            );
+              EPostActionContext.RUN_HIT_CACHE
+            );*/
         } else {
           return clientAsyncCache.results[key][2] as TAsyncActionResult<R, T>;
         }
+      }
+    }
+
+    if (shortCircuitHook !== undefined) {
+      const shortCircuitResponse = shortCircuitHook(args, clientStores);
+      if (shortCircuitResponse !== false) {
+        clientAsyncCache.results[key] = [true, true, shortCircuitResponse, false];
+        runPostActionHook(shortCircuitResponse, args, clientStores, EPostActionContext.SHORT_CIRCUIT);
+        notifyListeners(key);
+        return shortCircuitResponse;
       }
     }
 
@@ -551,15 +592,6 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       clientAsyncCache.results[key] = [true, false, prevResp, false];
     }
 
-    if (shortCircuitHook !== undefined) {
-      const shortCircuitResponse = shortCircuitHook(args, clientStores);
-      if (shortCircuitResponse !== false) {
-        clientAsyncCache.results[key] = [true, true, shortCircuitResponse, false];
-        notifyListeners(key);
-        return runPostActionHook(shortCircuitResponse, args, clientStores, EPostActionContext.DIRECT_RUN);
-      }
-    }
-
     notifyListeners(key);
     let currentActionOrd = actionOrdUpdate(clientAsyncCache, key);
 
@@ -568,11 +600,15 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
       if (currentActionOrd === clientAsyncCache.actionOrd[key]) {
         clientAsyncCache.results[key] = [true, true, result, false];
+        runPostActionHook(result, args, clientStores, EPostActionContext.DIRECT_RUN)
         notifyListeners(key);
       }
 
-      return runPostActionHook(result, args, clientStores, EPostActionContext.DIRECT_RUN);
+      return result;
+      // return runPostActionHook(result, args, clientStores, EPostActionContext.DIRECT_RUN);
     } catch (e) {
+      console.error(e);
+
       const result: IAsyncActionResultNegative<T> = {
         error: true,
         message: e.message,
@@ -582,10 +618,12 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
       if (currentActionOrd === clientAsyncCache.actionOrd[key]) {
         clientAsyncCache.results[key] = [true, true, result, false];
+        runPostActionHook(result, args, clientStores, EPostActionContext.DIRECT_RUN);
         notifyListeners(key);
       }
 
-      return runPostActionHook(result, args, clientStores, EPostActionContext.DIRECT_RUN);
+      return result;
+      // return runPostActionHook(result, args, clientStores, EPostActionContext.DIRECT_RUN);
     }
   };
 

@@ -4,12 +4,13 @@ import {
   clientAsyncCache,
   createAsyncAction,
   EAsyncEndTags,
+  IAsyncActionRunOptions,
   ICreateAsyncActionOptions,
   IOCreateAsyncActionOutput,
   IPullstateAsyncActionOrdState,
   IPullstateAsyncCache,
   IPullstateAsyncResultState,
-  TPullstateAsyncAction,
+  TPullstateAsyncAction, TPullstateAsyncRunResponse,
 } from "./async";
 
 type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
@@ -109,15 +110,21 @@ interface IPullstateSnapshot {
   asyncActionOrd: IPullstateAsyncActionOrdState;
 }
 
-export interface IPullstateInstanceConsumable<T extends IPullstateAllStores =  IPullstateAllStores> {
+export interface IPullstateInstanceConsumable<T extends IPullstateAllStores = IPullstateAllStores> {
   stores: T;
   hasAsyncStateToResolve(): boolean;
   resolveAsyncState(): Promise<void>;
   getPullstateSnapshot(): IPullstateSnapshot;
   hydrateFromSnapshot(snapshot: IPullstateSnapshot): void;
+  runAsyncAction<A, R, X extends string>(
+    asyncAction: IOCreateAsyncActionOutput<A, R, X>,
+    args?: A,
+    runOptions?: Pick<IAsyncActionRunOptions, "ignoreShortCircuit" | "respectCache">
+  ): TPullstateAsyncRunResponse<R, X>;
 }
 
-class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> implements IPullstateInstanceConsumable<T> {
+class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores>
+  implements IPullstateInstanceConsumable<T> {
   private readonly _stores: T = {} as T;
   _asyncCache: IPullstateAsyncCache = {
     listeners: {},
@@ -136,11 +143,13 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> imp
         .then(resp => {
           this._asyncCache.results[key] = [true, true, resp, false];
         })
-        .catch(() => {
+        .catch((e) => {
+          console.error(e);
+
           this._asyncCache.results[key] = [
             true,
             true,
-            { error: true, message: "", tags: [EAsyncEndTags.THREW_ERROR], payload: null },
+            { error: true, message: "Threw error on server", tags: [EAsyncEndTags.THREW_ERROR], payload: null },
             false,
           ];
         })
@@ -177,6 +186,14 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores> imp
 
   get stores(): T {
     return this._stores;
+  }
+
+  async runAsyncAction<A, R, X extends string>(
+    asyncAction: IOCreateAsyncActionOutput<A, R, X>,
+    args: A = {} as A,
+    runOptions: Pick<IAsyncActionRunOptions, "ignoreShortCircuit" | "respectCache"> = {}
+  ): TPullstateAsyncRunResponse<R, X> {
+    return await asyncAction.run(args, runOptions);
   }
 
   hydrateFromSnapshot(snapshot: IPullstateSnapshot) {
