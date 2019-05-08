@@ -329,27 +329,12 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         // this during a listener update) we need to run the post
         // action hook with WATCH_HIT_CACHE context
         if (cache.results[key][1] && !fromListener) {
-          console.log(`[${key}] Running post action hook from cache hit`);
-
           runPostActionHook(
             cache.results[key][2] as TAsyncActionResult<R, T>,
             args,
             stores,
             EPostActionContext.WATCH_HIT_CACHE
-          )
-
-          // return cache.results[key] as TPullstateAsyncWatchResponse<R, T>;
-          /*return [
-            cache.results[key][0],
-            cache.results[key][1],
-            runPostActionHook(
-              cache.results[key][2] as TAsyncActionResult<R, T>,
-              args,
-              stores,
-              EPostActionContext.WATCH_HIT_CACHE
-            ),
-            cache.results[key][3],
-          ];*/
+          );
         }
 
         return cache.results[key] as TPullstateAsyncWatchResponse<R, T>;
@@ -367,12 +352,6 @@ further looping. Fix in your cacheBreakHook() is needed.`);
           cache.results[key] = [true, true, shortCircuitResponse, false];
           runPostActionHook(shortCircuitResponse, args, stores, EPostActionContext.SHORT_CIRCUIT)
           return cache.results[key] as TPullstateAsyncWatchResponse<R, T>;
-          /*return [
-            true,
-            true,
-            runPostActionHook(shortCircuitResponse, args, stores, EPostActionContext.SHORT_CIRCUIT),
-            false,
-          ];*/
         }
       }
 
@@ -448,7 +427,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     if (watchId.current === null) {
       watchId.current = watchIdOrd++;
     }
-    const prevKeyRef = useRef(key);
+    const prevKeyRef = useRef(null);
 
     if (!shouldUpdate.hasOwnProperty(key)) {
       shouldUpdate[key] = {
@@ -470,12 +449,10 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       const onAsyncStateChanged = () => {
         // console.log(`[${key}][${watchId}] should update: ${shouldUpdate[key][watchId.current]}`);
         // console.log(`[${key}][${watchId}] will update?: ${!shallowEqual(responseRef.current, cache.results[key])} - ${responseRef.current} !== ${cache.results[key]}`);
-
         if (shouldUpdate[key][watchId.current] && !shallowEqual(responseRef.current, cache.results[key])) {
           responseRef.current = checkKeyAndReturnResponse(key, cache, initiate, ssr, args, stores, true);
 
           setWatchUpdate(prev => {
-            // console.log(`Setting watch update to: ${prev + 1}`);
             return prev + 1;
           });
         }
@@ -504,16 +481,18 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       );
     }
 
+    // Where we store the current response that will be returned from our hook
     const responseRef = useRef<TPullstateAsyncWatchResponse<R, T>>(null);
-    if (responseRef.current === null) {
-      responseRef.current = checkKeyAndReturnResponse(key, cache, initiate, ssr, args, stores);
-    }
 
-    const [watchUpdate, setWatchUpdate] = useState<number>(0);
+    // Purely for forcing this hook to update
+    const [_, setWatchUpdate] = useState<number>(0);
 
     if (prevKeyRef.current !== key) {
       // console.log(`[${key}][${watchId}] KEYS MISMATCH old !== new [${prevKeyRef.current} !== ${key}]`);
-      shouldUpdate[prevKeyRef.current][watchId.current] = false;
+      if (prevKeyRef.current !== null) {
+        shouldUpdate[prevKeyRef.current][watchId.current] = false;
+      }
+
       prevKeyRef.current = key;
       responseRef.current = checkKeyAndReturnResponse(key, cache, initiate, ssr, args, stores);
     }
@@ -553,12 +532,6 @@ further looping. Fix in your cacheBreakHook() is needed.`);
             EPostActionContext.RUN_HIT_CACHE
           );
           return clientAsyncCache.results[key][2] as TAsyncActionResult<R, T>;
-          /*return runPostActionHook(
-            clientAsyncCache.results[key][2] as TAsyncActionResult<R, T>,
-              args,
-              clientStores,
-              EPostActionContext.RUN_HIT_CACHE
-            );*/
         } else {
           return clientAsyncCache.results[key][2] as TAsyncActionResult<R, T>;
         }
@@ -605,7 +578,6 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       }
 
       return result;
-      // return runPostActionHook(result, args, clientStores, EPostActionContext.DIRECT_RUN);
     } catch (e) {
       console.error(e);
 
