@@ -1,8 +1,7 @@
 import React, { useContext } from "react";
 import { Store } from "./Store";
+import { clientAsyncCache, createAsyncAction } from "./async";
 import {
-  clientAsyncCache,
-  createAsyncAction,
   EAsyncEndTags,
   IAsyncActionRunOptions,
   ICreateAsyncActionOptions,
@@ -10,8 +9,9 @@ import {
   IPullstateAsyncActionOrdState,
   IPullstateAsyncCache,
   IPullstateAsyncResultState,
-  TPullstateAsyncAction, TPullstateAsyncRunResponse,
-} from "./async";
+  TPullstateAsyncAction,
+  TPullstateAsyncRunResponse,
+} from "./async-types";
 
 type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
 
@@ -31,7 +31,7 @@ export const PullstateProvider = <T extends IPullstateAllStores = IPullstateAllS
   return <PullstateContext.Provider value={instance}>{children}</PullstateContext.Provider>;
 };
 
-export type IUseAsyncWatcherResponse<ET extends string[] = string[]> = [boolean, boolean, ET];
+// export type IUseAsyncWatcherResponse<ET extends string[] = string[]> = [boolean, boolean, ET];
 
 let singleton: PullstateSingleton | null = null;
 
@@ -143,13 +143,18 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores>
         .then(resp => {
           this._asyncCache.results[key] = [true, true, resp, false];
         })
-        .catch((e) => {
+        .catch(e => {
           console.error(e);
 
           this._asyncCache.results[key] = [
             true,
             true,
-            { error: true, message: "Threw error on server", tags: [EAsyncEndTags.THREW_ERROR], payload: null },
+            {
+              error: true,
+              message: "Threw error on server",
+              tags: [EAsyncEndTags.THREW_ERROR],
+              payload: null,
+            },
             false,
           ];
         })
@@ -193,6 +198,8 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores>
     args: A = {} as A,
     runOptions: Pick<IAsyncActionRunOptions, "ignoreShortCircuit" | "respectCache"> = {}
   ): TPullstateAsyncRunResponse<R, X> {
+    (runOptions as IAsyncActionRunOptions)._asyncCache = this._asyncCache;
+    (runOptions as IAsyncActionRunOptions)._stores = this._stores;
     return await asyncAction.run(args, runOptions);
   }
 

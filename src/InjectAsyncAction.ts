@@ -5,7 +5,7 @@ import {
   IOCreateAsyncActionOutput,
   TPullstateAsyncBeckonResponse,
   TPullstateAsyncWatchResponse,
-} from "./async";
+} from "./async-types";
 
 export enum EAsyncActionInjectType {
   WATCH = "WATCH",
@@ -31,7 +31,9 @@ export interface IPropsInjectAsyncActionWatch<A = any, R = any, T extends string
   options?: IAsyncActionWatchOptions;
 }
 
-export function InjectAsyncAction (props: IPropsInjectAsyncActionBeckon | IPropsInjectAsyncActionWatch): React.ReactElement {
+export function InjectAsyncAction(
+  props: IPropsInjectAsyncActionBeckon | IPropsInjectAsyncActionWatch
+): React.ReactElement {
   if (props.type === EAsyncActionInjectType.BECKON) {
     const response = props.action.useBeckon(props.args, props.options);
     return props.children(response);

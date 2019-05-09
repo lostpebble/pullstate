@@ -1,150 +1,26 @@
 import { IPullstateAllStores, PullstateContext } from "./PullstateCore";
 const shallowEqual = require("fbjs/lib/shallowEqual");
 import { useContext, useEffect, useRef, useState, useMemo } from "react";
-
-type TPullstateAsyncUpdateListener = () => void;
-
-// [ started, finished, result, updating ]
-export type TPullstateAsyncWatchResponse<R = any, T extends string = string> = [
-  boolean,
-  boolean,
-  TAsyncActionResult<R, T>,
-  boolean
-];
-
-// [ started, finished, result, updating, postActionResult ]
-export type TPullstateAsyncResponseCacheFull<R, T extends string> = [
-  boolean,
-  boolean,
-  TAsyncActionResult<R, T>,
-  boolean,
-  TAsyncActionResult<R, T> | true | null
-];
-// [finished, result, updating]
-export type TPullstateAsyncBeckonResponse<R = any, T extends string = string> = [boolean, TAsyncActionResult<R, T>, boolean];
-// [result]
-export type TPullstateAsyncRunResponse<R = any, T extends string = string> = Promise<TAsyncActionResult<R, T>>;
-
-export interface IPullstateAsyncResultState {
-  [key: string]: TPullstateAsyncWatchResponse<any, string>;
-}
-
-export interface IPullstateAsyncActionOrdState {
-  [key: string]: number;
-}
-
-export enum EAsyncEndTags {
-  THREW_ERROR = "THREW_ERROR",
-  RETURNED_ERROR = "RETURNED_ERROR",
-  UNFINISHED = "UNFINISHED",
-}
-
-interface IAsyncActionResultBase<T extends string> {
-  message: string;
-  tags: (EAsyncEndTags | T)[];
-}
-
-export interface IAsyncActionResultPositive<R, T extends string> extends IAsyncActionResultBase<T> {
-  error: false;
-  payload: R;
-}
-
-export interface IAsyncActionResultNegative<T extends string> extends IAsyncActionResultBase<T> {
-  error: true;
-  payload: null;
-}
-
-export type TAsyncActionResult<R, T extends string> =
-  | IAsyncActionResultPositive<R, T>
-  | IAsyncActionResultNegative<T>;
-
-export type TPullstateAsyncAction<A, R, T extends string, S extends IPullstateAllStores> = (
-  args: A,
-  stores: S
-) => Promise<TAsyncActionResult<R, T>>;
-
-export type TPullstateAsyncShortCircuitHook<A, R, T extends string, S extends IPullstateAllStores> = (
-  args: A,
-  stores: S
-) => TAsyncActionResult<R, T> | false;
-
-export type TPullstateAsyncCacheBreakHook<A, R, T extends string, S extends IPullstateAllStores> = (
-  args: A,
-  result: TAsyncActionResult<R, T>,
-  stores: S
-) => boolean;
-
-export enum EPostActionContext {
-  WATCH_HIT_CACHE = "WATCH_HIT_CACHE",
-  RUN_HIT_CACHE = "RUN_HIT_CACHE",
-  SHORT_CIRCUIT = "SHORT_CIRCUIT",
-  DIRECT_RUN = "DIRECT_RUN",
-  BECKON_RUN = "BECKON_RUN",
-}
-
-export type TPullstateAsyncPostActionHook<A, R, T extends string, S extends IPullstateAllStores> = (
-  args: A,
-  result: TAsyncActionResult<R, T>,
-  stores: S,
-  context: EPostActionContext
-) => void;
-
-export interface IAsyncActionBeckonOptions {
-  ssr?: boolean;
-}
-
-export interface IAsyncActionWatchOptions extends IAsyncActionBeckonOptions {
-  initiate?: boolean;
-}
-
-export interface IAsyncActionRunOptions {
-  treatAsUpdate?: boolean;
-  ignoreShortCircuit?: boolean;
-  respectCache?: boolean;
-}
-
-// Order of new hook functions:
-
-// shortCircuitHook = ({ args, stores }) => cachable response | false     - happens only on uncached action
-// cacheBreakHook = ({ args, stores, result }) => true | false            - happens only on cached action
-// postActionHook = ({ args, result, stores }) => void | new result       - happens on all actions, after the async / short circuit has resolved
-// ----> postActionHook potentially needs a mechanism which allows it to run only once per new key change (another layer caching of some sorts expiring on key change)
-
-type TAsyncActionBeckon<A, R, T extends string> = (
-  args?: A,
-  options?: IAsyncActionBeckonOptions
-) => TPullstateAsyncBeckonResponse<R, T>;
-type TAsyncActionWatch<A, R, T extends string> = (
-  args?: A,
-  options?: IAsyncActionWatchOptions
-) => TPullstateAsyncWatchResponse<R, T>;
-type TAsyncActionRun<A, R, T extends string> = (
-  args?: A,
-  options?: IAsyncActionRunOptions
-) => TPullstateAsyncRunResponse<R, T>;
-type TAsyncActionClearCache<A> = (args?: A) => void;
-type TAsyncActionClearAllCache = () => void;
-
-export interface IOCreateAsyncActionOutput<A = any, R = any, T extends string = string> {
-  useBeckon: TAsyncActionBeckon<A, R, T>;
-  useWatch: TAsyncActionWatch<A, R, T>;
-  run: TAsyncActionRun<A, R, T>;
-  clearCache: TAsyncActionClearCache<A>;
-  clearAllCache: TAsyncActionClearAllCache;
-}
-
-export interface IPullstateAsyncCache {
-  results: IPullstateAsyncResultState;
-  listeners: {
-    [key: string]: {
-      [watchId: string]: TPullstateAsyncUpdateListener;
-    };
-  };
-  actions: {
-    [key: string]: () => Promise<TAsyncActionResult<any, string>>;
-  };
-  actionOrd: IPullstateAsyncActionOrdState;
-}
+import {
+  EAsyncEndTags,
+  EPostActionContext,
+  IAsyncActionBeckonOptions,
+  IAsyncActionResultNegative,
+  IAsyncActionResultPositive,
+  IAsyncActionRunOptions,
+  IAsyncActionWatchOptions,
+  ICreateAsyncActionOptions,
+  IOCreateAsyncActionOutput,
+  IPullstateAsyncCache,
+  TAsyncActionBeckon,
+  TAsyncActionClearAllCache,
+  TAsyncActionClearCache,
+  TAsyncActionResult,
+  TAsyncActionRun,
+  TAsyncActionWatch,
+  TPullstateAsyncAction,
+  TPullstateAsyncWatchResponse,
+} from "./async-types";
 
 export const clientAsyncCache: IPullstateAsyncCache = {
   listeners: {},
@@ -240,13 +116,6 @@ export function errorResult<R = any, T extends string = string>(
   };
 }
 
-export interface ICreateAsyncActionOptions<A, R, T extends string, S extends IPullstateAllStores> {
-  clientStores?: S;
-  shortCircuitHook?: TPullstateAsyncShortCircuitHook<A, R, T, S>;
-  cacheBreakHook?: TPullstateAsyncCacheBreakHook<A, R, T, S>;
-  postActionHook?: TPullstateAsyncPostActionHook<A, R, T, S>;
-}
-
 export function createAsyncAction<
   A = any,
   R = any,
@@ -280,12 +149,8 @@ export function createAsyncAction<
     context: EPostActionContext
   ): void {
     if (postActionHook !== undefined) {
-      postActionHook(args, result, stores, context);
-      // const potentialResponse: any = postActionHook(args, result, stores, context);
-      // return potentialResponse != null ? potentialResponse : result;
+      postActionHook({ args, result, stores, context });
     }
-
-    // return result;
   }
 
   function checkKeyAndReturnResponse(
@@ -295,7 +160,7 @@ export function createAsyncAction<
     ssr: boolean,
     args: A,
     stores: S,
-    fromListener = false,
+    fromListener = false
   ): TPullstateAsyncWatchResponse<R, T> {
     if (cache.results.hasOwnProperty(key)) {
       const cacheBreakLoop = cacheBreakWatcher.hasOwnProperty(key) && cacheBreakWatcher[key] > 2;
@@ -305,7 +170,7 @@ export function createAsyncAction<
       if (
         initiate &&
         cacheBreakHook !== undefined &&
-        cacheBreakHook(args, cache.results[key][2] as TAsyncActionResult<R, T>, stores) &&
+        cacheBreakHook({ args, result: cache.results[key][2] as TAsyncActionResult<R, T>, stores }) &&
         !cacheBreakLoop
       ) {
         if (cacheBreakWatcher.hasOwnProperty(key)) {
@@ -347,10 +212,10 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     if (!cache.actions.hasOwnProperty(key)) {
       // if it is not pending, check if for any short circuiting before initiating
       if (shortCircuitHook !== undefined) {
-        const shortCircuitResponse = shortCircuitHook(args, stores);
+        const shortCircuitResponse = shortCircuitHook({ args, stores });
         if (shortCircuitResponse !== false) {
           cache.results[key] = [true, true, shortCircuitResponse, false];
-          runPostActionHook(shortCircuitResponse, args, stores, EPostActionContext.SHORT_CIRCUIT)
+          runPostActionHook(shortCircuitResponse, args, stores, EPostActionContext.SHORT_CIRCUIT);
           return cache.results[key] as TPullstateAsyncWatchResponse<R, T>;
         }
       }
@@ -368,19 +233,24 @@ further looping. Fix in your cacheBreakHook() is needed.`);
             .then(resp => {
               if (currentActionOrd === cache.actionOrd[key]) {
                 cache.results[key] = [true, true, resp, false] as TPullstateAsyncWatchResponse<R, T>;
-                runPostActionHook(resp as TAsyncActionResult<R, T>, args, stores, EPostActionContext.BECKON_RUN);
+                runPostActionHook(
+                  resp as TAsyncActionResult<R, T>,
+                  args,
+                  stores,
+                  EPostActionContext.BECKON_RUN
+                );
               }
             })
             .catch(e => {
               console.error(e);
               if (currentActionOrd === cache.actionOrd[key]) {
-                const result: TAsyncActionResult<R, T> = { payload: null, error: true, tags: [EAsyncEndTags.THREW_ERROR], message: e.message };
-                cache.results[key] = [
-                  true,
-                  true,
-                  result,
-                  false,
-                ] as TPullstateAsyncWatchResponse<R, T>;
+                const result: TAsyncActionResult<R, T> = {
+                  payload: null,
+                  error: true,
+                  tags: [EAsyncEndTags.THREW_ERROR],
+                  message: e.message,
+                };
+                cache.results[key] = [true, true, result, false] as TPullstateAsyncWatchResponse<R, T>;
                 runPostActionHook(result, args, stores, EPostActionContext.BECKON_RUN);
               }
             })
@@ -512,43 +382,53 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
   const run: TAsyncActionRun<A, R, T> = async (
     args = {} as A,
-    { treatAsUpdate = false, ignoreShortCircuit = false, respectCache = false }: IAsyncActionRunOptions = {}
+    {
+      treatAsUpdate = false,
+      ignoreShortCircuit = false,
+      respectCache = false,
+      _asyncCache = clientAsyncCache,
+      _stores = clientStores,
+    }: IAsyncActionRunOptions = {}
   ): Promise<TAsyncActionResult<R, T>> => {
     const key = createKey(ordinal, args);
 
-    if (clientAsyncCache.results.hasOwnProperty(key) && respectCache) {
+    if (_asyncCache.results.hasOwnProperty(key) && respectCache) {
       if (
         cacheBreakHook !== undefined &&
-        cacheBreakHook(args, clientAsyncCache.results[key][2] as TAsyncActionResult<R, T>, clientStores)
+        cacheBreakHook({
+          args,
+          result: _asyncCache.results[key][2] as TAsyncActionResult<R, T>,
+          stores: _stores,
+        })
       ) {
-        delete clientAsyncCache.results[key];
+        delete _asyncCache.results[key];
       } else {
         // if this is a "finished" cached result we need to run the post action hook with RUN_HIT_CACHE context
-        if (clientAsyncCache.results[key][1]) {
+        if (_asyncCache.results[key][1]) {
           runPostActionHook(
-            clientAsyncCache.results[key][2] as TAsyncActionResult<R, T>,
+            _asyncCache.results[key][2] as TAsyncActionResult<R, T>,
             args,
-            clientStores,
+            _stores,
             EPostActionContext.RUN_HIT_CACHE
           );
-          return clientAsyncCache.results[key][2] as TAsyncActionResult<R, T>;
+          return _asyncCache.results[key][2] as TAsyncActionResult<R, T>;
         } else {
-          return clientAsyncCache.results[key][2] as TAsyncActionResult<R, T>;
+          return _asyncCache.results[key][2] as TAsyncActionResult<R, T>;
         }
       }
     }
 
     if (shortCircuitHook !== undefined) {
-      const shortCircuitResponse = shortCircuitHook(args, clientStores);
+      const shortCircuitResponse = shortCircuitHook({ args, stores: _stores });
       if (shortCircuitResponse !== false) {
-        clientAsyncCache.results[key] = [true, true, shortCircuitResponse, false];
-        runPostActionHook(shortCircuitResponse, args, clientStores, EPostActionContext.SHORT_CIRCUIT);
+        _asyncCache.results[key] = [true, true, shortCircuitResponse, false];
+        runPostActionHook(shortCircuitResponse, args, _stores, EPostActionContext.SHORT_CIRCUIT);
         notifyListeners(key);
         return shortCircuitResponse;
       }
     }
 
-    const [, prevFinished, prevResp] = clientAsyncCache.results[key] || [
+    const [, prevFinished, prevResp] = _asyncCache.results[key] || [
       false,
       false,
       {
@@ -560,20 +440,20 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     ];
 
     if (prevFinished && treatAsUpdate) {
-      clientAsyncCache.results[key] = [true, true, prevResp, true];
+      _asyncCache.results[key] = [true, true, prevResp, true];
     } else {
-      clientAsyncCache.results[key] = [true, false, prevResp, false];
+      _asyncCache.results[key] = [true, false, prevResp, false];
     }
 
     notifyListeners(key);
-    let currentActionOrd = actionOrdUpdate(clientAsyncCache, key);
+    let currentActionOrd = actionOrdUpdate(_asyncCache, key);
 
     try {
-      const result: TAsyncActionResult<R, T> = await action(args, clientStores);
+      const result: TAsyncActionResult<R, T> = await action(args, _stores);
 
-      if (currentActionOrd === clientAsyncCache.actionOrd[key]) {
-        clientAsyncCache.results[key] = [true, true, result, false];
-        runPostActionHook(result, args, clientStores, EPostActionContext.DIRECT_RUN)
+      if (currentActionOrd === _asyncCache.actionOrd[key]) {
+        _asyncCache.results[key] = [true, true, result, false];
+        runPostActionHook(result, args, _stores, EPostActionContext.DIRECT_RUN);
         notifyListeners(key);
       }
 
@@ -588,14 +468,13 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         payload: null,
       };
 
-      if (currentActionOrd === clientAsyncCache.actionOrd[key]) {
-        clientAsyncCache.results[key] = [true, true, result, false];
-        runPostActionHook(result, args, clientStores, EPostActionContext.DIRECT_RUN);
+      if (currentActionOrd === _asyncCache.actionOrd[key]) {
+        _asyncCache.results[key] = [true, true, result, false];
+        runPostActionHook(result, args, _stores, EPostActionContext.DIRECT_RUN);
         notifyListeners(key);
       }
 
       return result;
-      // return runPostActionHook(result, args, clientStores, EPostActionContext.DIRECT_RUN);
     }
   };
 
