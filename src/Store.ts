@@ -14,7 +14,7 @@ export interface IStoreInternalOptions<S> {
 }
 
 type TUpdateFunction<S> = (draft: S, original: S) => void;
-type TReactionFunction<S, T> = (draft: S, original: S, watched: T) => void;
+type TReactionFunction<S, T> = (watched:  T, draft: S, original: S) => void;
 type TRunReactionFunction = () => void;
 type TReactionCreator<S> = (store: Store<S>) => TRunReactionFunction;
 
@@ -28,7 +28,7 @@ function makeReactionFunctionCreator<S, T>(watch: (state: S) => T, reaction: TRe
 
       if (nextWatchState !== lastWatchState) {
         lastWatchState = nextWatchState;
-        const nextState: S = produce(currentState as any, (s) => reaction(s, currentState, nextWatchState));
+        const nextState: S = produce(currentState as any, (s) => reaction(nextWatchState, s, currentState));
         if (nextState !== currentState) {
           store._updateStateWithoutReaction(nextState);
         }
@@ -49,6 +49,7 @@ export class Store<S = any> {
   private readonly usingProvider: boolean = false;
   private ssr: boolean = false;
   private reactions: TRunReactionFunction[] = [];
+  private clientSubscriptions: TRunReactionFunction[] = [];
   private reactionCreators: TReactionCreator<S>[] = [];
 
   constructor(initialState: S, { usingProvider = false }: IStoreOptions = {}) {
@@ -87,6 +88,10 @@ export class Store<S = any> {
     }
 
     if (!this.ssr) {
+      for (const clientSubscription of this.clientSubscriptions) {
+        clientSubscription();
+      }
+
       this.updateListeners.forEach(listener => listener());
     }
   }
@@ -99,7 +104,15 @@ export class Store<S = any> {
     this.updateListeners = this.updateListeners.filter(f => f !== listener);
   }
 
-  createReaction<T>(watch: (state: S) => T, reaction: TReactionFunction<S, T>) {
+  subscribe<T>(watch: (state: S) => T, listener: TReactionFunction<S, T>): () => void {
+    const func = makeReactionFunctionCreator(watch, listener)(this);
+    this.clientSubscriptions.push(func);
+    return () => {
+      this.clientSubscriptions = this.clientSubscriptions.filter(f => f !== func);
+    }
+  }
+
+  createReaction<T>(watch: (state: S) => T, reaction: TReactionFunction<S, T>): void {
     const creator = makeReactionFunctionCreator(watch, reaction);
     this.reactionCreators.push(creator);
     if (!this.usingProvider) {

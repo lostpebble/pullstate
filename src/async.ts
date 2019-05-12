@@ -359,7 +359,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
     if (prevKeyRef.current !== key) {
       // console.log(`[${key}][${watchId}] KEYS MISMATCH old !== new [${prevKeyRef.current} !== ${key}]`);
-      if (prevKeyRef.current !== null) {
+      if (prevKeyRef.current !== null && shouldUpdate.hasOwnProperty(prevKeyRef.current)) {
         shouldUpdate[prevKeyRef.current][watchId.current] = false;
       }
 
