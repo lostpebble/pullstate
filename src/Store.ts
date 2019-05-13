@@ -37,25 +37,21 @@ function makeReactionFunctionCreator<S, T>(watch: (state: S) => T, reaction: TRe
   }
 }
 
-export interface IStoreOptions {
-  usingProvider?: boolean;
-}
-
 // S = State
 export class Store<S = any> {
   private updateListeners: TPullstateUpdateListener[] = [];
   private currentState: S;
   private readonly initialState: S;
-  private readonly usingProvider: boolean = false;
+  // private readonly usingProvider: boolean = false;
   private ssr: boolean = false;
   private reactions: TRunReactionFunction[] = [];
-  private clientSubscriptions: TRunReactionFunction[] = [];
+  // private clientSubscriptions: TRunReactionFunction[] = [];
   private reactionCreators: TReactionCreator<S>[] = [];
 
-  constructor(initialState: S, { usingProvider = false }: IStoreOptions = {}) {
+  constructor(initialState: S) {
     this.currentState = initialState;
     this.initialState = initialState;
-    this.usingProvider = usingProvider;
+    // this.usingProvider = usingProvider;
   }
 
   _setInternalOptions({ ssr, reactionCreators = [] }: IStoreInternalOptions<S>) {
@@ -88,10 +84,6 @@ export class Store<S = any> {
     }
 
     if (!this.ssr) {
-      for (const clientSubscription of this.clientSubscriptions) {
-        clientSubscription();
-      }
-
       this.updateListeners.forEach(listener => listener());
     }
   }
@@ -104,19 +96,13 @@ export class Store<S = any> {
     this.updateListeners = this.updateListeners.filter(f => f !== listener);
   }
 
-  subscribe<T>(watch: (state: S) => T, listener: TReactionFunction<S, T>): () => void {
-    const func = makeReactionFunctionCreator(watch, listener)(this);
-    this.clientSubscriptions.push(func);
-    return () => {
-      this.clientSubscriptions = this.clientSubscriptions.filter(f => f !== func);
-    }
-  }
-
-  createReaction<T>(watch: (state: S) => T, reaction: TReactionFunction<S, T>): void {
+  createReaction<T>(watch: (state: S) => T, reaction: TReactionFunction<S, T>): () => void {
     const creator = makeReactionFunctionCreator(watch, reaction);
     this.reactionCreators.push(creator);
-    if (!this.usingProvider) {
-      this.reactions.push(creator(this));
+    const func = creator(this);
+    this.reactions.push(func);
+    return () => {
+      this.reactions = this.reactions.filter(f => f !== func);
     }
   }
 

@@ -31,8 +31,6 @@ export const PullstateProvider = <T extends IPullstateAllStores = IPullstateAllS
   return <PullstateContext.Provider value={instance}>{children}</PullstateContext.Provider>;
 };
 
-// export type IUseAsyncWatcherResponse<ET extends string[] = string[]> = [boolean, boolean, ET];
-
 let singleton: PullstateSingleton | null = null;
 
 export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllStores> {
