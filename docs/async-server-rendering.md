@@ -56,7 +56,7 @@ As marked with numbers in the code:
 
 3. Once there is no more async state to resolve, we can pull out the snapshot of our Pullstate instance - and we stuff that into our HTML to be hydrated on the client.
 
-## Selectively resolving async state on the server
+## Excluding async state from resolving on the server
 
 If you wish to have the regular behaviour of `useBeckon()` but you don't actually want the server to resolve this asynchronous state (you're happy for it to load on the client-side only). You can pass in an option to `useBeckon()`:
 

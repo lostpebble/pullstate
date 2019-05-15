@@ -32,14 +32,6 @@
         "title": "Cache Clearing",
         "sidebar_label": "Cache Clearing"
       },
-      "create-state-client-side": {
-        "title": "State stores on client-side only apps",
-        "sidebar_label": "Client-side only app"
-      },
-      "create-state-server-rendering": {
-        "title": "State stores with server rendered apps",
-        "sidebar_label": "Server-rendered app"
-      },
       "inject-store-state": {
         "title": "<InjectStoreState>",
         "sidebar_label": "<InjectStoreState>"
@@ -57,8 +49,7 @@
         "sidebar_label": "Quick example"
       },
       "reactions": {
-        "title": "Reactions",
-        "sidebar_label": "Reactions"
+        "title": "reactions"
       },
       "running-async-action": {
         "title": "Direct running an Async Action",
@@ -72,21 +63,14 @@
         "title": "useStoreState (hook)",
         "sidebar_label": "useStoreState (hook)"
       },
-      "using-state-client-side": {
-        "title": "Using state on a client-side only app",
-        "sidebar_label": "Client-side only app"
-      },
-      "using-state-server-rendering": {
-        "title": "Using state with server-rendered apps",
-        "sidebar_label": "Server-rendered app"
-      },
       "watching-async-action": {
         "title": "Watching an Async Action",
         "sidebar_label": "Watching"
       }
     },
     "links": {
-      "Docs": "Docs"
+      "Docs": "Docs",
+      "GitHub": "GitHub"
     },
     "categories": {
       "Getting Started": "Getting Started",

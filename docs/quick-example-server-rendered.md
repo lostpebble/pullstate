@@ -222,7 +222,7 @@ We create a new instance on the client using the same method as on the server, e
 
 ## Client-side only updates
 
-Something interesting to notice at this point, which can also apply with server-rendered apps, is that (for updates) we could just import `UIStore` directly and run `update()` on it:
+Something interesting to notice at this point, which can also apply with server-rendered apps, is that (for client-side only updates) we could just import `UIStore` directly and run `update()` on it:
 
 ```tsx
 import { UIStore } from "./UIStore";
@@ -232,4 +232,4 @@ import { UIStore } from "./UIStore";
 ```
 And our components would be updated accordingly. We have freed our app's state from the confines of the component! This is one of the main advantages of Pullstate - allowing us to separate our state concerns from being locked in at the component level and manage things easily at a more global level from which our components listen and react (through our `useStoreState()` hooks).
 
-We still need to make use of the `PullstateCore.useStores()` hook and `<PullstateProvider>` in order to pick up and render server-side updates, but once we have hydrated our state into our stores from the server side, we can interact with Pullstate stores just as we would if it were a client-only app - **but we must be sure that these actions are 100% client-side only**.
+We still need to make use of the `PullstateCore.useStores()` hook and `<PullstateProvider>` in order to pick up and render server-side updates and state, but once we have hydrated that state into our stores on the client side, we can interact with Pullstate stores just as we would if it were a client-only app - **but we must be sure that these actions are 100% client-side only**.
