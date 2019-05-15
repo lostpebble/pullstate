@@ -49,11 +49,16 @@
         "sidebar_label": "Quick example"
       },
       "reactions": {
-        "title": "reactions"
+        "title": "Reactions",
+        "sidebar_label": "Reactions"
       },
       "running-async-action": {
         "title": "Direct running an Async Action",
         "sidebar_label": "Direct running"
+      },
+      "subscriptions": {
+        "title": "Subscriptions",
+        "sidebar_label": "Subscriptions"
       },
       "update-store": {
         "title": "update()",

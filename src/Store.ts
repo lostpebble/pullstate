@@ -18,6 +18,20 @@ type TReactionFunction<S, T> = (watched:  T, draft: S, original: S) => void;
 type TRunReactionFunction = () => void;
 type TReactionCreator<S> = (store: Store<S>) => TRunReactionFunction;
 
+function makeSubscriptionFunction<S, T>(store: Store<S>, watch: (state: S) => T, listener: (watched: T) => void) {
+  let lastWatchState: T = watch(store.getRawState());
+
+  return () => {
+    const currentState = store.getRawState();
+    const nextWatchState = watch(currentState);
+
+    if (nextWatchState !== lastWatchState) {
+      lastWatchState = nextWatchState;
+      listener(nextWatchState);
+    }
+  }
+}
+
 function makeReactionFunctionCreator<S, T>(watch: (state: S) => T, reaction: TReactionFunction<S, T>): TReactionCreator<S> {
   return (store) => {
     let lastWatchState: T = watch(store.getRawState());
@@ -28,10 +42,11 @@ function makeReactionFunctionCreator<S, T>(watch: (state: S) => T, reaction: TRe
 
       if (nextWatchState !== lastWatchState) {
         lastWatchState = nextWatchState;
-        const nextState: S = produce(currentState as any, (s) => reaction(nextWatchState, s, currentState));
-        if (nextState !== currentState) {
-          store._updateStateWithoutReaction(nextState);
-        }
+        store._updateStateWithoutReaction(produce(currentState as any, (s) => reaction(nextWatchState, s, currentState)))
+        // const nextState: S = ;
+        // if (nextState !== currentState) {
+        //   store._updateStateWithoutReaction(nextState);
+        // }
       }
     }
   }
@@ -94,6 +109,10 @@ export class Store<S = any> {
 
   _removeUpdateListener(listener: TPullstateUpdateListener) {
     this.updateListeners = this.updateListeners.filter(f => f !== listener);
+  }
+
+  subscribe<T>(watch: (state: S) => T, listener: (watched: T) => void) {
+
   }
 
   createReaction<T>(watch: (state: S) => T, reaction: TReactionFunction<S, T>): () => void {
