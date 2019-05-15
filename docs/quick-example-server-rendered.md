@@ -189,6 +189,20 @@ ${reactHtml}`;
 
 * Lastly, we need to return this state to the client somehow. We call `getPullstateSnapshot()` on the instance, stringify it, escape a couple characters, and set it on `window.__PULLSTATE__`, to be parsed and hydrated on the client.
 
+### Quick note
+
+This code:
+
+```tsx
+const preferences = await UserApi.getUserPreferences(id);
+
+instance.stores.UIStore.update(s => {
+  s.isDarkMode = preferences.isDarkMode;
+});
+```
+
+Can be conceptually made much easier using Pullstate's [Async Actions](async-actions-introduction.md)!
+
 ## Client-side state hydration
 
 ```tsx
