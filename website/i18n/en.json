@@ -56,9 +56,9 @@
         "title": "Direct running an Async Action",
         "sidebar_label": "Direct running"
       },
-      "subscriptions": {
-        "title": "Subscriptions",
-        "sidebar_label": "Subscriptions"
+      "subscribe": {
+        "title": "Subscribe",
+        "sidebar_label": "Subscribe"
       },
       "update-store": {
         "title": "update()",

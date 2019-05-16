@@ -24,3 +24,31 @@ export const PullstateCore = createPullstateCore({
 });
 
 ```
+
+---
+
+For example:
+
+```tsx
+// a useEffect() hook in our functional component
+
+useEffect(() => {
+  const tileLayer = L.tileLayer(tileTemplate.url, {
+    minZoom: 3,
+    maxZoom: 18,
+  }).addTo(mapRef.current);
+
+  const unsubscribeFromTileTemplate = GISStore.createReaction(
+    s => s.tileLayerTemplate,
+    newTemplate => {
+      tileLayer.setUrl(newTemplate.url);
+    }
+  );
+
+  return () => {
+    unsubscribeFromTileTemplate();
+  };
+}, []);
+```
+
+As you can see we receive a function back from `createReaction()` which we have used here in the "cleanup" return function of `useEffect()` to unsubscribe from this reaction.

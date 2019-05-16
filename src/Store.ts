@@ -14,11 +14,15 @@ export interface IStoreInternalOptions<S> {
 }
 
 type TUpdateFunction<S> = (draft: S, original: S) => void;
-type TReactionFunction<S, T> = (watched:  T, draft: S, original: S) => void;
+type TReactionFunction<S, T> = (watched: T, draft: S, original: S) => void;
 type TRunReactionFunction = () => void;
 type TReactionCreator<S> = (store: Store<S>) => TRunReactionFunction;
 
-function makeSubscriptionFunction<S, T>(store: Store<S>, watch: (state: S) => T, listener: (watched: T) => void) {
+function makeSubscriptionFunction<S, T>(
+  store: Store<S>,
+  watch: (state: S) => T,
+  listener: (watched: T, allState: S) => void
+): TRunReactionFunction {
   let lastWatchState: T = watch(store.getRawState());
 
   return () => {
@@ -27,13 +31,16 @@ function makeSubscriptionFunction<S, T>(store: Store<S>, watch: (state: S) => T,
 
     if (nextWatchState !== lastWatchState) {
       lastWatchState = nextWatchState;
-      listener(nextWatchState);
+      listener(nextWatchState, currentState);
     }
-  }
+  };
 }
 
-function makeReactionFunctionCreator<S, T>(watch: (state: S) => T, reaction: TReactionFunction<S, T>): TReactionCreator<S> {
-  return (store) => {
+function makeReactionFunctionCreator<S, T>(
+  watch: (state: S) => T,
+  reaction: TReactionFunction<S, T>
+): TReactionCreator<S> {
+  return store => {
     let lastWatchState: T = watch(store.getRawState());
 
     return () => {
@@ -42,14 +49,12 @@ function makeReactionFunctionCreator<S, T>(watch: (state: S) => T, reaction: TRe
 
       if (nextWatchState !== lastWatchState) {
         lastWatchState = nextWatchState;
-        store._updateStateWithoutReaction(produce(currentState as any, (s) => reaction(nextWatchState, s, currentState)))
-        // const nextState: S = ;
-        // if (nextState !== currentState) {
-        //   store._updateStateWithoutReaction(nextState);
-        // }
+        store._updateStateWithoutReaction(
+          produce(currentState as any, s => reaction(nextWatchState, s, currentState))
+        );
       }
-    }
-  }
+    };
+  };
 }
 
 // S = State
@@ -60,7 +65,7 @@ export class Store<S = any> {
   // private readonly usingProvider: boolean = false;
   private ssr: boolean = false;
   private reactions: TRunReactionFunction[] = [];
-  // private clientSubscriptions: TRunReactionFunction[] = [];
+  private clientSubscriptions: TRunReactionFunction[] = [];
   private reactionCreators: TReactionCreator<S>[] = [];
 
   constructor(initialState: S) {
@@ -99,6 +104,9 @@ export class Store<S = any> {
     }
 
     if (!this.ssr) {
+      for (const runSubscription of this.clientSubscriptions) {
+        runSubscription();
+      }
       this.updateListeners.forEach(listener => listener());
     }
   }
@@ -111,8 +119,20 @@ export class Store<S = any> {
     this.updateListeners = this.updateListeners.filter(f => f !== listener);
   }
 
-  subscribe<T>(watch: (state: S) => T, listener: (watched: T) => void) {
+  subscribe<T>(watch: (state: S) => T, listener: (watched: T, allState: S) => void): () => void {
+    if (!this.ssr) {
+      const func = makeSubscriptionFunction(this, watch, listener);
+      this.clientSubscriptions.push(func);
+      return () => {
+        this.clientSubscriptions = this.clientSubscriptions.filter(f => f !== func);
+      }
+    }
 
+    return () => {
+      console.warn(
+        `Subscriptions made on the server side are not registered - so therefor this call to unsubscribe does nothing.`
+      );
+    };
   }
 
   createReaction<T>(watch: (state: S) => T, reaction: TReactionFunction<S, T>): () => void {
@@ -122,7 +142,7 @@ export class Store<S = any> {
     this.reactions.push(func);
     return () => {
       this.reactions = this.reactions.filter(f => f !== func);
-    }
+    };
   }
 
   getRawState(): S {
@@ -146,9 +166,13 @@ export function applyPatchesToStore<S = any>(store: Store<S>, patches: Patch[]) 
   }
 }
 
-export function update<S = any>(store: Store<S>, updater: TUpdateFunction<S>, patchesCallback?: (patches: Patch[], inversePatches: Patch[]) => void) {
+export function update<S = any>(
+  store: Store<S>,
+  updater: TUpdateFunction<S>,
+  patchesCallback?: (patches: Patch[], inversePatches: Patch[]) => void
+) {
   const currentState: S = store.getRawState();
-  const nextState: S = produce(currentState as any, (s) => updater(s, currentState), patchesCallback);
+  const nextState: S = produce(currentState as any, s => updater(s, currentState), patchesCallback);
   if (nextState !== currentState) {
     store._updateState(nextState);
   }
