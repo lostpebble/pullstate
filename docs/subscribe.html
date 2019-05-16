@@ -1,0 +1,125 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Subscribe · Pullstate</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="&lt;p&gt;Subscriptions are client-side only listeners to changes in your store&#x27;s state.&lt;/p&gt;
+"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Subscribe · Pullstate"/><meta property="og:type" content="website"/><meta property="og:url" content="https://lostpebble.github.io/pullstate/"/><meta property="og:description" content="&lt;p&gt;Subscriptions are client-side only listeners to changes in your store&#x27;s state.&lt;/p&gt;
+"/><meta property="og:image" content="https://lostpebble.github.io/pullstate/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://lostpebble.github.io/pullstate/img/docusaurus.png"/><link rel="shortcut icon" href="/pullstate/img/icon-transparent-onlight.png"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><link rel="stylesheet" href="/pullstate/css/prism.css"/><link rel="stylesheet" href="/pullstate/css/main.css"/><script src="/pullstate/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/pullstate/"><img class="logo" src="/pullstate/img/icon-transparent-ondark-new.png" alt="Pullstate"/><h2 class="headerTitleWithLogo">Pullstate</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive"><a href="/pullstate/docs/quick-example" target="_self">Docs</a></li><li class=""><a href="https://github.com/lostpebble/pullstate" target="_self">GitHub</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><i></i></div><h2><i>›</i><span>Reading Store State</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle">Getting Started</h3><ul class=""><li class="navListItem"><a class="navItem" href="/pullstate/docs/installation">Installation</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/quick-example">Quick example</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/quick-example-server-rendered">Quick example (server rendering)</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Reading Store State</h3><ul class=""><li class="navListItem"><a class="navItem" href="/pullstate/docs/use-store-state-hook">useStoreState (hook)</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/inject-store-state">&lt;InjectStoreState&gt;</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/pullstate/docs/subscribe">Subscribe</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Updating Store State</h3><ul class=""><li class="navListItem"><a class="navItem" href="/pullstate/docs/update-store">update()</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/reactions">Reactions</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Async Actions</h3><ul class=""><li class="navListItem"><a class="navItem" href="/pullstate/docs/async-actions-introduction">Introduction</a></li><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Creating Async Actions</h4><ul><li class="navListItem"><a class="navItem" href="/pullstate/docs/anatomy-of-an-async-action">Anatomy of an Async Action</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/action-hooks">Action Hooks</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Using Async Actions</h4><ul><li class="navListItem"><a class="navItem" href="/pullstate/docs/watching-async-action">Watching</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/beckoning-async-action">Beckoning</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/running-async-action">Direct running</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/cache-clearing">Cache Clearing</a></li></ul></div><li class="navListItem"><a class="navItem" href="/pullstate/docs/async-server-rendering">Resolve async state on the server</a></li></ul></div></div></section></div><script>
+            var coll = document.getElementsByClassName('collapsible');
+            var checkActiveCategory = true;
+            for (var i = 0; i < coll.length; i++) {
+              var links = coll[i].nextElementSibling.getElementsByTagName('*');
+              if (checkActiveCategory){
+                for (var j = 0; j < links.length; j++) {
+                  if (links[j].classList.contains('navListItemActive')){
+                    coll[i].nextElementSibling.classList.toggle('hide');
+                    coll[i].childNodes[1].classList.toggle('rotate');
+                    checkActiveCategory = false;
+                    break;
+                  }
+                }
+              }
+
+              coll[i].addEventListener('click', function() {
+                var arrow = this.childNodes[1];
+                arrow.classList.toggle('rotate');
+                var content = this.nextElementSibling;
+                content.classList.toggle('hide');
+              });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              const headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                if (event.target.tagName === 'A') {
+                  document.body.classList.remove('tocActive');
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 class="postHeaderTitle">Subscribe</h1></header><article><div><span><p>Subscriptions are client-side only listeners to changes in your store's state.</p>
+<p>They are very similar to <a href="/pullstate/docs/reactions">Reactions</a>, the difference being they only listen for state changes and send you the new state. Reactions allow you to react and change your store's state at the same time in a &quot;batched&quot; way. Subscriptions only send you the new values. The reason these two are separated is for performance reasons - if you do not need to react and change your store's state on an update, rather use subscriptions.</p>
+<p>Some uses include integrating with third-party tools, for times when you want to align your app's state changes with a change in the tool as well.</p>
+<h2><a class="anchor" aria-hidden="true" id="subscribe-api"></a><a href="#subscribe-api" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Subscribe API</h2>
+<pre><code class="hljs css language-tsx">myStore<span class="token punctuation">.</span><span class="token function">subscribe</span><span class="token punctuation">(</span><span class="token parameter">watch<span class="token punctuation">,</span> listener</span><span class="token punctuation">)</span> <span class="token operator">=></span> unsubscribe
+</code></pre>
+<p><strong>First</strong> argument <code>watch</code> - a function which selects the state you'd like to watch for changes:</p>
+<pre><code class="hljs"><span class="hljs-attribute">storeState</span> =&gt; storeState.valueToWatch<span class="hljs-comment">;</span>
+</code></pre>
+<p><strong>Second</strong> argument <code>listener</code> - a callback function which is run when the watched value changes. The new watched value will be the first argument, and the entire store's state is the second.</p>
+<pre><code class="hljs css language-jsx"><span class="token punctuation">(</span><span class="token parameter">watched<span class="token punctuation">,</span> allState</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span> <span class="token comment">//do things };</span>
+</code></pre>
+<p><strong>Return</strong> value <code>unsubscribe</code> is simply a function you can run in order to stop listening.</p>
+<h2><a class="anchor" aria-hidden="true" id="subscribe-examples"></a><a href="#subscribe-examples" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Subscribe Examples</h2>
+<h3><a class="anchor" aria-hidden="true" id="leaflet-tile-change"></a><a href="#leaflet-tile-change" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Leaflet tile change</h3>
+<p><em>(Listening for an option change in our store to update a Leaflet tile layer's source)</em></p>
+<pre><code class="hljs css language-tsx"><span class="token comment">// a useEffect() hook in a functional component</span>
+
+<span class="token function">useEffect</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token keyword">const</span> tileLayer <span class="token operator">=</span> <span class="token constant">L</span><span class="token punctuation">.</span><span class="token function">tileLayer</span><span class="token punctuation">(</span>tileTemplate<span class="token punctuation">.</span>url<span class="token punctuation">,</span> <span class="token punctuation">{</span>
+    minZoom<span class="token punctuation">:</span> <span class="token number">3</span><span class="token punctuation">,</span>
+    maxZoom<span class="token punctuation">:</span> <span class="token number">18</span><span class="token punctuation">,</span>
+  <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">addTo</span><span class="token punctuation">(</span>mapRef<span class="token punctuation">.</span>current<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+  <span class="token keyword">const</span> unsubscribeFromTileTemplate <span class="token operator">=</span> GISStore<span class="token punctuation">.</span><span class="token function">subscribe</span><span class="token punctuation">(</span>
+    <span class="token parameter">s</span> <span class="token operator">=></span> s<span class="token punctuation">.</span>tileLayerTemplate<span class="token punctuation">,</span>
+    <span class="token parameter">newTemplate</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+      tileLayer<span class="token punctuation">.</span><span class="token function">setUrl</span><span class="token punctuation">(</span>newTemplate<span class="token punctuation">.</span>url<span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">)</span><span class="token punctuation">;</span>
+  
+  <span class="token keyword">return</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    <span class="token function">unsubscribeFromTileTemplate</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  <span class="token punctuation">}</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">,</span> <span class="token punctuation">[</span><span class="token punctuation">]</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>As you can see from the example, we listen to the <code>tileLayerTemplate</code> value in <code>GISStore</code>. If that changes, we want to set our Leaflet <code>tileLayer</code> to the new url, which will change the source of images used for our map's tiles.</p>
+<p>Also note that the value returned from <code>subscribe()</code> is a function. We should call this function to remove the listener when we don't need it anymore - here in the &quot;cleanup&quot; returned function of <code>useEffect()</code>.</p>
+<hr>
+<h3><a class="anchor" aria-hidden="true" id="firebase-realtime-database"></a><a href="#firebase-realtime-database" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Firebase Realtime Database</h3>
+<p>Another interesting use-case could be subscribing to a Firebase realtime data node, based on a certain value in your store.</p>
+<pre><code class="hljs css language-tsx"><span class="token keyword">let</span> <span class="token function-variable function">previousCityUnsubscribe</span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token keyword">null</span><span class="token punctuation">;</span>
+
+<span class="token keyword">function</span> <span class="token function">startWatchingCity</span><span class="token punctuation">(</span><span class="token parameter">cityCode</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token keyword">return</span> db<span class="token punctuation">.</span><span class="token function">collection</span><span class="token punctuation">(</span><span class="token string">"cities"</span><span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">doc</span><span class="token punctuation">(</span>cityCode<span class="token punctuation">)</span>
+    <span class="token punctuation">.</span><span class="token function">onSnapshot</span><span class="token punctuation">(</span><span class="token keyword">function</span><span class="token punctuation">(</span><span class="token parameter">doc</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      CityStore<span class="token punctuation">.</span><span class="token function">update</span><span class="token punctuation">(</span><span class="token parameter">s</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+        s<span class="token punctuation">.</span>watchedCities<span class="token punctuation">[</span>cityCode<span class="token punctuation">]</span> <span class="token operator">=</span> <span class="token punctuation">{</span> updated<span class="token punctuation">:</span> <span class="token keyword">new</span> <span class="token class-name">Date</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">,</span> data<span class="token punctuation">:</span> doc<span class="token punctuation">.</span><span class="token function">data</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">}</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+<span class="token keyword">function</span> <span class="token function">getRealtimeUpdatesForCityCode</span><span class="token punctuation">(</span><span class="token parameter">cityCode</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">previousCityUnsubscribe</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+  previousCityUnsubscribe <span class="token operator">=</span> <span class="token function">startWatchingCity</span><span class="token punctuation">(</span>watchedValue<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+
+CityStore<span class="token punctuation">.</span><span class="token function">subscribe</span><span class="token punctuation">(</span><span class="token parameter">s</span> <span class="token operator">=></span> s<span class="token punctuation">.</span>currentCityCode<span class="token punctuation">,</span> getRealtimeUpdatesForCityCode<span class="token punctuation">)</span><span class="token punctuation">;</span>
+
+<span class="token comment">// inside some initialization code on the client (run after initial</span>
+<span class="token comment">// store hydration, if any), start watching initial city</span>
+<span class="token keyword">function</span> <span class="token function">initializeClientThings</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+  <span class="token function">getRealtimeUpdatesForCityCode</span><span class="token punctuation">(</span>CityStore<span class="token punctuation">.</span><span class="token function">getRawState</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">.</span>currentCityCode<span class="token punctuation">)</span><span class="token punctuation">;</span>
+<span class="token punctuation">}</span>
+</code></pre>
+<p>And now, any time you run an update somewhere in your app:</p>
+<pre><code class="hljs css language-tsx">CityStore<span class="token punctuation">.</span><span class="token function">update</span><span class="token punctuation">(</span><span class="token parameter">s</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  s<span class="token punctuation">.</span>currentCityCode <span class="token operator">=</span> newCode<span class="token punctuation">;</span>
+<span class="token punctuation">}</span><span class="token punctuation">)</span>
+</code></pre>
+<p>If the value has actually changed, the current realtime database listener should be unsubscribed and a new one created with the new <code>currentCityCode</code>.</p>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/pullstate/docs/inject-store-state"><span class="arrow-prev">← </span><span class="function-name-prevnext">&lt;InjectStoreState&gt;</span></a><a class="docs-next button" href="/pullstate/docs/update-store"><span>update()</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#subscribe-api">Subscribe API</a></li><li><a href="#subscribe-examples">Subscribe Examples</a><ul class="toc-headings"><li><a href="#leaflet-tile-change">Leaflet tile change</a></li><li><a href="#firebase-realtime-database">Firebase Realtime Database</a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/pullstate/" class="nav-home"><img src="/pullstate/img/icon-transparent-ondark-new.png" alt="Pullstate" width="66" height="58"/></a><div><h5>Docs</h5><a href="/pullstate/docs/installation.html">Installation</a><a href="/pullstate/docs/quick-example.html">A Quick Example</a><a href="/pullstate/docs/create-state-client-side.html">More</a></div><div><h5>Community</h5><a href="https://github.com/lostpebble/pullstate" target="_blank">GitHub</a></div></section><a href="https://github.com/lostpebble/pullstate" target="_blank" rel="noreferrer noopener" class="pullstate-logo"><img src="/pullstate/img/logo-ondark-small.png" alt="Pullstate" width="210" height="141"/></a><section class="copyright">Copyright © 2019 Paul Myburgh</section></footer></div></body></html>

@@ -1,0 +1,107 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Reactions · Pullstate</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="&lt;p&gt;A reaction is very similar to running an &lt;code&gt;update()&lt;/code&gt;, except that it&#x27;s an update that runs when a certain value has changed in your store.&lt;/p&gt;
+"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Reactions · Pullstate"/><meta property="og:type" content="website"/><meta property="og:url" content="https://lostpebble.github.io/pullstate/"/><meta property="og:description" content="&lt;p&gt;A reaction is very similar to running an &lt;code&gt;update()&lt;/code&gt;, except that it&#x27;s an update that runs when a certain value has changed in your store.&lt;/p&gt;
+"/><meta property="og:image" content="https://lostpebble.github.io/pullstate/img/docusaurus.png"/><meta name="twitter:card" content="summary"/><meta name="twitter:image" content="https://lostpebble.github.io/pullstate/img/docusaurus.png"/><link rel="shortcut icon" href="/pullstate/img/icon-transparent-onlight.png"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><link rel="stylesheet" href="/pullstate/css/prism.css"/><link rel="stylesheet" href="/pullstate/css/main.css"/><script src="/pullstate/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/pullstate/"><img class="logo" src="/pullstate/img/icon-transparent-ondark-new.png" alt="Pullstate"/><h2 class="headerTitleWithLogo">Pullstate</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive"><a href="/pullstate/docs/quick-example" target="_self">Docs</a></li><li class=""><a href="https://github.com/lostpebble/pullstate" target="_self">GitHub</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><i></i></div><h2><i>›</i><span>Updating Store State</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle">Getting Started</h3><ul class=""><li class="navListItem"><a class="navItem" href="/pullstate/docs/installation">Installation</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/quick-example">Quick example</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/quick-example-server-rendered">Quick example (server rendering)</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Reading Store State</h3><ul class=""><li class="navListItem"><a class="navItem" href="/pullstate/docs/use-store-state-hook">useStoreState (hook)</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/inject-store-state">&lt;InjectStoreState&gt;</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/subscribe">Subscribe</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Updating Store State</h3><ul class=""><li class="navListItem"><a class="navItem" href="/pullstate/docs/update-store">update()</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/pullstate/docs/reactions">Reactions</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Async Actions</h3><ul class=""><li class="navListItem"><a class="navItem" href="/pullstate/docs/async-actions-introduction">Introduction</a></li><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Creating Async Actions</h4><ul><li class="navListItem"><a class="navItem" href="/pullstate/docs/anatomy-of-an-async-action">Anatomy of an Async Action</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/action-hooks">Action Hooks</a></li></ul></div><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Using Async Actions</h4><ul><li class="navListItem"><a class="navItem" href="/pullstate/docs/watching-async-action">Watching</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/beckoning-async-action">Beckoning</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/running-async-action">Direct running</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/cache-clearing">Cache Clearing</a></li></ul></div><li class="navListItem"><a class="navItem" href="/pullstate/docs/async-server-rendering">Resolve async state on the server</a></li></ul></div></div></section></div><script>
+            var coll = document.getElementsByClassName('collapsible');
+            var checkActiveCategory = true;
+            for (var i = 0; i < coll.length; i++) {
+              var links = coll[i].nextElementSibling.getElementsByTagName('*');
+              if (checkActiveCategory){
+                for (var j = 0; j < links.length; j++) {
+                  if (links[j].classList.contains('navListItemActive')){
+                    coll[i].nextElementSibling.classList.toggle('hide');
+                    coll[i].childNodes[1].classList.toggle('rotate');
+                    checkActiveCategory = false;
+                    break;
+                  }
+                }
+              }
+
+              coll[i].addEventListener('click', function() {
+                var arrow = this.childNodes[1];
+                arrow.classList.toggle('rotate');
+                var content = this.nextElementSibling;
+                content.classList.toggle('hide');
+              });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              const headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                if (event.target.tagName === 'A') {
+                  document.body.classList.remove('tocActive');
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 class="postHeaderTitle">Reactions</h1></header><article><div><span><p>A reaction is very similar to running an <code>update()</code>, except that it's an update that runs when a certain value has changed in your store.</p>
+<p>Their API is very similar to <a href="/pullstate/docs/subscribe">Subscriptions</a> in the way they watch values, the difference being that Reactions allow you to react and change your store's state at the same time in a &quot;batched&quot; way. Subscriptions only send you the new values. The reason these two are separated is for performance reasons - if you do not need to react and change your store's state on an update, rather use <a href="/pullstate/docs/subscribe">subscriptions</a>.</p>
+<p>Reactions on a store are run directly after a call to <code>update()</code> on that store. They check their watched value in the store, and if changed, react with further state updates as you define. This is all batched in one go before notifying our React components to re-render as needed.</p>
+<h2><a class="anchor" aria-hidden="true" id="creating-a-reaction"></a><a href="#creating-a-reaction" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Creating a reaction</h2>
+<p>You register a reaction by calling <code>createReaction()</code> on your store:</p>
+<div class="tabs"><div class="nav-tabs"><div id="tab-group-25-tab-26" class="nav-link active" data-group="group_25" data-tab="tab-group-25-content-26">JavaScript</div><div id="tab-group-25-tab-27" class="nav-link" data-group="group_25" data-tab="tab-group-25-content-27">TypeScript</div></div><div class="tab-content"><div id="tab-group-25-content-26" class="tab-pane active" data-group="group_25" tabindex="-1"><div><span><pre><code class="hljs css language-jsx">StoreName<span class="token punctuation">.</span><span class="token function">createReaction</span><span class="token punctuation">(</span>watch<span class="token punctuation">,</span> reaction<span class="token punctuation">)</span><span class="token punctuation">;</span><br /></code></pre>
+</span></div></div><div id="tab-group-25-content-27" class="tab-pane" data-group="group_25" tabindex="-1"><div><span><pre><code class="hljs css language-tsx"><span class="token keyword">type</span> TReactionFunction<span class="token operator">&lt;</span><span class="token constant">S</span><span class="token punctuation">,</span> <span class="token constant">T</span><span class="token operator">></span> <span class="token operator">=</span> <span class="token punctuation">(</span><span class="token parameter">watched<span class="token punctuation">:</span>  <span class="token constant">T</span><span class="token punctuation">,</span> draft<span class="token punctuation">:</span> <span class="token constant">S</span><span class="token punctuation">,</span> original<span class="token punctuation">:</span> <span class="token constant">S</span></span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token keyword">void</span><span class="token punctuation">;</span><br /><br />StoreName<span class="token punctuation">.</span><span class="token function">createReaction</span><span class="token punctuation">(</span><span class="token function-variable function">watch</span><span class="token punctuation">:</span> <span class="token punctuation">(</span><span class="token parameter">state<span class="token punctuation">:</span> <span class="token constant">S</span></span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token constant">T</span><span class="token punctuation">,</span> reaction<span class="token punctuation">:</span> TReactionFunction<span class="token operator">&lt;</span><span class="token constant">S</span><span class="token punctuation">,</span> <span class="token constant">T</span><span class="token operator">></span><span class="token punctuation">)</span><span class="token punctuation">:</span> <span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token keyword">void</span><br /></code></pre>
+</span></div></div></div></div>
+<p>Similar to how we select sub-state with <code>useStoreState()</code> and <code>&lt;InjectStoreState&gt;</code>, the first argument, <code>watch</code>, is function which returns a sub-selection of the store's state. This is the value we will be watching for changes:</p>
+<pre><code class="hljs"><span class="hljs-attribute">storeState</span> =&gt; storeState.watchedValue<span class="hljs-comment">;</span>
+</code></pre>
+<p>The watched value is checked every time the store is updated. If the value has changed, the <code>reaction</code> function is run. This is done in a performant way - reactions are run directly after updates before notifying your React components to update.</p>
+<p>The <code>reaction</code> function:</p>
+<pre><code class="hljs css language-jsx"><span class="token punctuation">(</span><span class="token parameter">watched<span class="token punctuation">,</span> draft<span class="token punctuation">,</span> original</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span> <span class="token comment">//do things };</span>
+</code></pre>
+<p>The new watched value will be passed as the first argument,<code>watched</code></p>
+<p>The next two arguments are the same as those used whe running <code>update()</code> on a store:</p>
+<ul>
+<li><p>You can mutate your store directly, using <code>draft</code></p></li>
+<li><p><code>original</code> is passed as a performance consideration. It is exactly the same as <code>draft</code> but without all the <code>immer</code> magic. It's a plain object of your state.</p>
+<ul>
+<li><strong>Why?</strong> Referencing values directly on your <code>draft</code> object can be a performance hit in certain situations because of the way that immer works internally (JavaScript proxies) - so if you need to <em>reference</em> the current store state, you should use <code>original</code>. But if you want to <em>change</em> it, you use <code>draft</code>. <a href="https://github.com/immerjs/immer#pitfalls">Read more on immer's github</a>.</li>
+</ul></li>
+</ul>
+<h2><a class="anchor" aria-hidden="true" id="example"></a><a href="#example" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Example</h2>
+<p>Listening to a <a href="https://en.wikipedia.org/wiki/Cron#Overview">Cron Tab</a> string value, <code>crontab</code>, and calculating other values such as a human readable time and the previous and next dates of the cron run:</p>
+<pre><code class="hljs css language-tsx">CronJobStore<span class="token punctuation">.</span><span class="token function">createReaction</span><span class="token punctuation">(</span><span class="token parameter">s</span> <span class="token operator">=></span> s<span class="token punctuation">.</span>crontab<span class="token punctuation">,</span> <span class="token punctuation">(</span><span class="token parameter">crontab<span class="token punctuation">,</span> draft</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+    <span class="token keyword">if</span> <span class="token punctuation">(</span>crontab <span class="token operator">!==</span> <span class="token keyword">null</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
+      <span class="token keyword">const</span> resp <span class="token operator">=</span> utils<span class="token punctuation">.</span><span class="token function">getTimesAndTextFromCronTab</span><span class="token punctuation">(</span><span class="token punctuation">{</span> crontab <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
+      <span class="token keyword">if</span> <span class="token punctuation">(</span>resp<span class="token punctuation">.</span>positive<span class="token punctuation">)</span> <span class="token punctuation">{</span>
+        draft<span class="token punctuation">.</span>currentCronJobTimesAndText <span class="token operator">=</span> resp<span class="token punctuation">.</span>payload<span class="token punctuation">;</span>
+      <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+        draft<span class="token punctuation">.</span>currentCronJobTimesAndText <span class="token operator">=</span> <span class="token punctuation">{</span>
+          text<span class="token punctuation">:</span> <span class="token template-string"><span class="token string">`Bad crontab`</span></span><span class="token punctuation">,</span>
+          times<span class="token punctuation">:</span> <span class="token punctuation">{</span>
+            prevTime<span class="token punctuation">:</span> <span class="token keyword">null</span><span class="token punctuation">,</span>
+            nextTime<span class="token punctuation">:</span> <span class="token keyword">null</span><span class="token punctuation">,</span>
+          <span class="token punctuation">}</span><span class="token punctuation">,</span>
+        <span class="token punctuation">}</span><span class="token punctuation">;</span>
+      <span class="token punctuation">}</span>
+    <span class="token punctuation">}</span> <span class="token keyword">else</span> <span class="token punctuation">{</span>
+      draft<span class="token punctuation">.</span>currentCronJobTimesAndText <span class="token operator">=</span> <span class="token punctuation">{</span>
+         times<span class="token punctuation">:</span> <span class="token punctuation">{</span>
+           prevTime<span class="token punctuation">:</span> <span class="token keyword">null</span><span class="token punctuation">,</span>
+           nextTime<span class="token punctuation">:</span> <span class="token keyword">null</span><span class="token punctuation">,</span>
+         <span class="token punctuation">}</span><span class="token punctuation">,</span>
+         text<span class="token punctuation">:</span> <span class="token template-string"><span class="token string">`No crontab`</span></span><span class="token punctuation">,</span>
+       <span class="token punctuation">}</span><span class="token punctuation">;</span>
+    <span class="token punctuation">}</span>
+  <span class="token punctuation">}</span>
+<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="unsubscribe-from-a-reaction-client-side-only"></a><a href="#unsubscribe-from-a-reaction-client-side-only" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Unsubscribe from a reaction (client-side only)</h2>
+<p>You may unsubscribe from a reaction on the client side of your app by simply running the function which is returned when you created the reaction.</p>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/pullstate/docs/update-store"><span class="arrow-prev">← </span><span>update()</span></a><a class="docs-next button" href="/pullstate/docs/async-actions-introduction"><span>Introduction</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#creating-a-reaction">Creating a reaction</a></li><li><a href="#example">Example</a></li><li><a href="#unsubscribe-from-a-reaction-client-side-only">Unsubscribe from a reaction (client-side only)</a></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/pullstate/" class="nav-home"><img src="/pullstate/img/icon-transparent-ondark-new.png" alt="Pullstate" width="66" height="58"/></a><div><h5>Docs</h5><a href="/pullstate/docs/installation.html">Installation</a><a href="/pullstate/docs/quick-example.html">A Quick Example</a><a href="/pullstate/docs/create-state-client-side.html">More</a></div><div><h5>Community</h5><a href="https://github.com/lostpebble/pullstate" target="_blank">GitHub</a></div></section><a href="https://github.com/lostpebble/pullstate" target="_blank" rel="noreferrer noopener" class="pullstate-logo"><img src="/pullstate/img/logo-ondark-small.png" alt="Pullstate" width="210" height="141"/></a><section class="copyright">Copyright © 2019 Paul Myburgh</section></footer></div></body></html>
