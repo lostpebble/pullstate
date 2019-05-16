@@ -1,5 +1,6 @@
 // @ts-ignore
 import { Patch } from "immer";
+import { useStoreState } from "./useStoreState";
 
 const Immer = require("immer");
 
@@ -147,6 +148,12 @@ export class Store<S = any> {
 
   getRawState(): S {
     return this.currentState;
+  }
+
+  useState<S = any>(): S;
+  useState<S = any, SS = any>(getSubState: (state: S) => SS): SS;
+  useState(getSubState?: (state) => any): any {
+    return useStoreState(this, getSubState);
   }
 
   update(updater: TUpdateFunction<S>, patchesCallback?: (patches: Patch[], inversePatches: Patch[]) => void) {

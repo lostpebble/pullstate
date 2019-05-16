@@ -43,7 +43,7 @@ class Footer extends React.Component {
             <a href={this.docUrl('quick-example.html')}>
               A Quick Example
             </a>
-            <a href={this.docUrl('create-state-client-side.html')}>
+            <a href={this.docUrl('use-store-state-hook.html')}>
               More
             </a>
           </div>

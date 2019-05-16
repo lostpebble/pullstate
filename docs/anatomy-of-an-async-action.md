@@ -167,9 +167,11 @@ The `tags` property here is a way to easily react to more specific error states 
 
 In our example we didn't actually touch our Pullstate stores, and that's just fine - there are many times where we just need to listen to asynchronous state without updating our stores (waiting for `Image.onload()` for example).
 
-But the Pullstate Way (tm) is generally to maintain our state in our stores for better control over things.
+But the Pullstate Way™ is generally to maintain our state in our stores for better control over things.
 
 A naive way to do this might be like so:
+
+**DO NOT DO THIS!**
 
 <!--DOCUSAURUS_CODE_TABS-->
 <!--Client-side only app-->
@@ -250,8 +252,8 @@ export const PictureExample = (props: { tag: string }) => {
 
 <!--END_DOCUSAURUS_CODE_TABS-->
 
-Can you think what the problem might be?
+So what exactly is the problem? At first glance it might not be very clear.
 
-Because our actions are cached, when we return to a previously run action (with the same "fingerprint" of arguments) the action will not be run again.
+**The problem:** Because our actions are cached, when we return to a previously run action (with the same "fingerprint" of arguments) the action will not be run again, and our store will not be updated.
 
 This brings us to our next section, Async Hooks - and specifically for this scenario, we would make use of the `postActionHook()`.
