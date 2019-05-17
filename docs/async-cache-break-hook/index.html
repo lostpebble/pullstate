@@ -1,0 +1,54 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Cache break hook · Pullstate</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="&lt;p&gt;[Todo]&lt;/p&gt;
+"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Cache break hook · Pullstate"/><meta property="og:type" content="website"/><meta property="og:url" content="https://lostpebble.github.io/pullstate/"/><meta property="og:description" content="&lt;p&gt;[Todo]&lt;/p&gt;
+"/><meta name="twitter:card" content="summary"/><link rel="shortcut icon" href="/pullstate/img/icon-transparent-onlight.png"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><link rel="stylesheet" href="/pullstate/css/prism.css"/><link rel="stylesheet" href="/pullstate/css/main.css"/><script src="/pullstate/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/pullstate/"><img class="logo" src="/pullstate/img/icon-transparent-ondark-new.png" alt="Pullstate"/><h2 class="headerTitleWithLogo">Pullstate</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive"><a href="/pullstate/docs/quick-example" target="_self">Docs</a></li><li class=""><a href="https://github.com/lostpebble/pullstate" target="_self">GitHub</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><i></i></div><h2><i>›</i><span>Async Actions</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle">Getting Started</h3><ul class=""><li class="navListItem"><a class="navItem" href="/pullstate/docs/installation">Installation</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/quick-example">Quick example</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/quick-example-server-rendered">Quick example (server rendering)</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Reading Store State</h3><ul class=""><li class="navListItem"><a class="navItem" href="/pullstate/docs/use-store-state-hook">useStoreState (hook)</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/inject-store-state">&lt;InjectStoreState&gt;</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/subscribe">Subscribe</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Updating Store State</h3><ul class=""><li class="navListItem"><a class="navItem" href="/pullstate/docs/update-store">update()</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/reactions">Reactions</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Async Actions</h3><ul class=""><li class="navListItem"><a class="navItem" href="/pullstate/docs/async-actions-introduction">Introduction</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/async-actions-creating">Creating an Async Action</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/async-action-use">Use Async Actions</a></li><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Async Action Hooks</h4><ul><li class="navListItem"><a class="navItem" href="/pullstate/docs/async-hooks-overview">Hooks overview</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/async-post-action-hook">Post action hook</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/async-short-circuit-hook">Short circuit hook</a></li><li class="navListItem navListItemActive"><a class="navItem" href="/pullstate/docs/async-cache-break-hook">Cache break hook</a></li></ul></div><li class="navListItem"><a class="navItem" href="/pullstate/docs/async-cache-clearing">Cache clearing</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/async-server-rendering">Resolve async state on the server</a></li></ul></div></div></section></div><script>
+            var coll = document.getElementsByClassName('collapsible');
+            var checkActiveCategory = true;
+            for (var i = 0; i < coll.length; i++) {
+              var links = coll[i].nextElementSibling.getElementsByTagName('*');
+              if (checkActiveCategory){
+                for (var j = 0; j < links.length; j++) {
+                  if (links[j].classList.contains('navListItemActive')){
+                    coll[i].nextElementSibling.classList.toggle('hide');
+                    coll[i].childNodes[1].classList.toggle('rotate');
+                    checkActiveCategory = false;
+                    break;
+                  }
+                }
+              }
+
+              coll[i].addEventListener('click', function() {
+                var arrow = this.childNodes[1];
+                arrow.classList.toggle('rotate');
+                var content = this.nextElementSibling;
+                content.classList.toggle('hide');
+              });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              const headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                if (event.target.tagName === 'A') {
+                  document.body.classList.remove('tocActive');
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 class="postHeaderTitle">Cache break hook</h1></header><article><div><span><p>[Todo]</p>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/pullstate/docs/async-short-circuit-hook"><span class="arrow-prev">← </span><span>Short circuit hook</span></a><a class="docs-next button" href="/pullstate/docs/async-cache-clearing"><span>Cache clearing</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/pullstate/" class="nav-home"><img src="/pullstate/img/icon-transparent-ondark-new.png" alt="Pullstate" width="66" height="58"/></a><div><h5>Docs</h5><a href="/pullstate/docs/installation.html">Installation</a><a href="/pullstate/docs/quick-example.html">A Quick Example</a><a href="/pullstate/docs/use-store-state-hook.html">More</a></div><div><h5>Community</h5><a href="https://github.com/lostpebble/pullstate" target="_blank">GitHub</a></div></section><a href="https://github.com/lostpebble/pullstate" target="_blank" rel="noreferrer noopener" class="pullstate-logo"><img src="/pullstate/img/logo-ondark-small.png" alt="Pullstate" width="210" height="141"/></a><section class="copyright">Created by Paul Myburgh</section></footer></div></body></html>

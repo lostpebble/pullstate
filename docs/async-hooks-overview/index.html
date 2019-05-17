@@ -1,0 +1,80 @@
+<!DOCTYPE html><html lang="en"><head><meta charSet="utf-8"/><meta http-equiv="X-UA-Compatible" content="IE=edge"/><title>Async hooks overview · Pullstate</title><meta name="viewport" content="width=device-width"/><meta name="generator" content="Docusaurus"/><meta name="description" content="&lt;p&gt;The second argument while creating Async Actions allows us to pass hooks for the action:&lt;/p&gt;
+"/><meta name="docsearch:language" content="en"/><meta property="og:title" content="Async hooks overview · Pullstate"/><meta property="og:type" content="website"/><meta property="og:url" content="https://lostpebble.github.io/pullstate/"/><meta property="og:description" content="&lt;p&gt;The second argument while creating Async Actions allows us to pass hooks for the action:&lt;/p&gt;
+"/><meta name="twitter:card" content="summary"/><link rel="shortcut icon" href="/pullstate/img/icon-transparent-onlight.png"/><link rel="stylesheet" href="//cdnjs.cloudflare.com/ajax/libs/highlight.js/9.12.0/styles/default.min.css"/><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><link rel="stylesheet" href="/pullstate/css/prism.css"/><link rel="stylesheet" href="/pullstate/css/main.css"/><script src="/pullstate/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/pullstate/"><img class="logo" src="/pullstate/img/icon-transparent-ondark-new.png" alt="Pullstate"/><h2 class="headerTitleWithLogo">Pullstate</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class="siteNavGroupActive"><a href="/pullstate/docs/quick-example" target="_self">Docs</a></li><li class=""><a href="https://github.com/lostpebble/pullstate" target="_self">GitHub</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container docsNavContainer" id="docsNav"><nav class="toc"><div class="toggleNav"><section class="navWrapper wrapper"><div class="navBreadcrumb wrapper"><div class="navToggle" id="navToggler"><i></i></div><h2><i>›</i><span>Async Actions</span></h2><div class="tocToggler" id="tocToggler"><i class="icon-toc"></i></div></div><div class="navGroups"><div class="navGroup"><h3 class="navGroupCategoryTitle">Getting Started</h3><ul class=""><li class="navListItem"><a class="navItem" href="/pullstate/docs/installation">Installation</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/quick-example">Quick example</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/quick-example-server-rendered">Quick example (server rendering)</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Reading Store State</h3><ul class=""><li class="navListItem"><a class="navItem" href="/pullstate/docs/use-store-state-hook">useStoreState (hook)</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/inject-store-state">&lt;InjectStoreState&gt;</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/subscribe">Subscribe</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Updating Store State</h3><ul class=""><li class="navListItem"><a class="navItem" href="/pullstate/docs/update-store">update()</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/reactions">Reactions</a></li></ul></div><div class="navGroup"><h3 class="navGroupCategoryTitle">Async Actions</h3><ul class=""><li class="navListItem"><a class="navItem" href="/pullstate/docs/async-actions-introduction">Introduction</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/async-actions-creating">Creating an Async Action</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/async-action-use">Use Async Actions</a></li><div class="navGroup subNavGroup"><h4 class="navGroupSubcategoryTitle">Async Action Hooks</h4><ul><li class="navListItem navListItemActive"><a class="navItem" href="/pullstate/docs/async-hooks-overview">Hooks overview</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/async-post-action-hook">Post action hook</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/async-short-circuit-hook">Short circuit hook</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/async-cache-break-hook">Cache break hook</a></li></ul></div><li class="navListItem"><a class="navItem" href="/pullstate/docs/async-cache-clearing">Cache clearing</a></li><li class="navListItem"><a class="navItem" href="/pullstate/docs/async-server-rendering">Resolve async state on the server</a></li></ul></div></div></section></div><script>
+            var coll = document.getElementsByClassName('collapsible');
+            var checkActiveCategory = true;
+            for (var i = 0; i < coll.length; i++) {
+              var links = coll[i].nextElementSibling.getElementsByTagName('*');
+              if (checkActiveCategory){
+                for (var j = 0; j < links.length; j++) {
+                  if (links[j].classList.contains('navListItemActive')){
+                    coll[i].nextElementSibling.classList.toggle('hide');
+                    coll[i].childNodes[1].classList.toggle('rotate');
+                    checkActiveCategory = false;
+                    break;
+                  }
+                }
+              }
+
+              coll[i].addEventListener('click', function() {
+                var arrow = this.childNodes[1];
+                arrow.classList.toggle('rotate');
+                var content = this.nextElementSibling;
+                content.classList.toggle('hide');
+              });
+            }
+
+            document.addEventListener('DOMContentLoaded', function() {
+              createToggler('#navToggler', '#docsNav', 'docsSliderActive');
+              createToggler('#tocToggler', 'body', 'tocActive');
+
+              const headings = document.querySelector('.toc-headings');
+              headings && headings.addEventListener('click', function(event) {
+                if (event.target.tagName === 'A') {
+                  document.body.classList.remove('tocActive');
+                }
+              }, false);
+
+              function createToggler(togglerSelector, targetSelector, className) {
+                var toggler = document.querySelector(togglerSelector);
+                var target = document.querySelector(targetSelector);
+
+                if (!toggler) {
+                  return;
+                }
+
+                toggler.onclick = function(event) {
+                  event.preventDefault();
+
+                  target.classList.toggle(className);
+                };
+              }
+            });
+        </script></nav></div><div class="container mainContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 class="postHeaderTitle">Async hooks overview</h1></header><article><div><span><p>The second argument while creating Async Actions allows us to pass hooks for the action:</p>
+<pre><code class="hljs css language-tsx"><span class="token keyword">const</span> searchPicturesForTag <span class="token operator">=</span> <span class="token function">createAsyncAction</span><span class="token punctuation">(</span><span class="token keyword">async</span> <span class="token punctuation">(</span><span class="token parameter"><span class="token punctuation">{</span> tag <span class="token punctuation">}</span></span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
+  <span class="token comment">// action code</span>
+<span class="token punctuation">}</span><span class="token punctuation">,</span> hooksGoHere<span class="token punctuation">)</span><span class="token punctuation">;</span>
+</code></pre>
+<p>This <code>hooksGoHere</code> object has three hook types which we can set for this action, as follows:</p>
+<pre><code class="hljs css language-tsx"><span class="token punctuation">{</span>
+  postActionHook<span class="token punctuation">,</span>
+  shortCircuitHook<span class="token punctuation">,</span>
+  cacheBreakHook
+<span class="token punctuation">}</span>
+</code></pre>
+<h2><a class="anchor" aria-hidden="true" id="async-hooks-flow-diagram"></a><a href="#async-hooks-flow-diagram" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Async hooks flow diagram</h2>
+<p>To try and give you a quick overview of how actions work with hooks, lets look at a top-down flow diagram of an Async Action's execution:</p>
+<p><img src="/pullstate/docs/assets/async-flow.png" alt="Async Action hooks in action"></p>
+<h2><a class="anchor" aria-hidden="true" id="quick-overview-of-each"></a><a href="#quick-overview-of-each" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a>Quick overview of each</h2>
+<h3><a class="anchor" aria-hidden="true" id="postactionhook-args-result-stores-context"></a><a href="#postactionhook-args-result-stores-context" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><code>postActionHook({ args, result, stores, context })</code></h3>
+<p>Post action hook is for consistently running state updates after an action completes for the first time or hits a cached value.</p>
+<p>Read more on the <a href="/pullstate/docs/async-post-action-hook">post action hook</a>.</p>
+<h3><a class="anchor" aria-hidden="true" id="shortcircuithook-args-stores"></a><a href="#shortcircuithook-args-stores" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><code>shortCircuitHook({ args, stores })</code></h3>
+<p>The short circuit hook is for checking the current state of your app and manually deciding that an action does not actually need to be run, and returning a replacement resolved value yourself.</p>
+<p>Read more on the <a href="/pullstate/docs/async-short-circuit-hook">short circuit hook</a>.</p>
+<h3><a class="anchor" aria-hidden="true" id="cachebreakhook-args-result-stores"></a><a href="#cachebreakhook-args-result-stores" aria-hidden="true" class="hash-link"><svg class="hash-link-icon" aria-hidden="true" height="16" version="1.1" viewBox="0 0 16 16" width="16"><path fill-rule="evenodd" d="M4 9h1v1H4c-1.5 0-3-1.69-3-3.5S2.55 3 4 3h4c1.45 0 3 1.69 3 3.5 0 1.41-.91 2.72-2 3.25V8.59c.58-.45 1-1.27 1-2.09C10 5.22 8.98 4 8 4H4c-.98 0-2 1.22-2 2.5S3 9 4 9zm9-3h-1v1h1c1 0 2 1.22 2 2.5S13.98 12 13 12H9c-.98 0-2-1.22-2-2.5 0-.83.42-1.64 1-2.09V6.25c-1.09.53-2 1.84-2 3.25C6 11.31 7.55 13 9 13h4c1.45 0 3-1.69 3-3.5S14.5 6 13 6z"></path></svg></a><code>cacheBreakHook({ args, result, stores })</code></h3>
+<p>This hook is run only when an action has already resolve at least once. It takes the currently cached value and decides whether we should &quot;break&quot; the cache and run the action again instead of returning it.</p>
+<p>Read more on the <a href="/pullstate/docs/async-cache-break-hook">cache break hook</a>.</p>
+<hr>
+<p><strong>NOTE:</strong> In all these hooks, <code>stores</code> is only available when you are doing server rendering and you have used your centralized Pullstate <code>core</code> to create your Async Actions (see the server-rendering part <a href="/pullstate/docs/async-actions-creating">Creating an Async Action</a>). If you have a client-side only app, just import and use your stores directly.</p>
+</span></div></article></div><div class="docs-prevnext"><a class="docs-prev button" href="/pullstate/docs/async-action-use"><span class="arrow-prev">← </span><span>Use Async Actions</span></a><a class="docs-next button" href="/pullstate/docs/async-post-action-hook"><span>Post action hook</span><span class="arrow-next"> →</span></a></div></div></div><nav class="onPageNav"><ul class="toc-headings"><li><a href="#async-hooks-flow-diagram">Async hooks flow diagram</a></li><li><a href="#quick-overview-of-each">Quick overview of each</a><ul class="toc-headings"><li><a href="#postactionhook-args-result-stores-context"><code>postActionHook({ args, result, stores, context })</code></a></li><li><a href="#shortcircuithook-args-stores"><code>shortCircuitHook({ args, stores })</code></a></li><li><a href="#cachebreakhook-args-result-stores"><code>cacheBreakHook({ args, result, stores })</code></a></li></ul></li></ul></nav></div><footer class="nav-footer" id="footer"><section class="sitemap"><a href="/pullstate/" class="nav-home"><img src="/pullstate/img/icon-transparent-ondark-new.png" alt="Pullstate" width="66" height="58"/></a><div><h5>Docs</h5><a href="/pullstate/docs/installation.html">Installation</a><a href="/pullstate/docs/quick-example.html">A Quick Example</a><a href="/pullstate/docs/use-store-state-hook.html">More</a></div><div><h5>Community</h5><a href="https://github.com/lostpebble/pullstate" target="_blank">GitHub</a></div></section><a href="https://github.com/lostpebble/pullstate" target="_blank" rel="noreferrer noopener" class="pullstate-logo"><img src="/pullstate/img/logo-ondark-small.png" alt="Pullstate" width="210" height="141"/></a><section class="copyright">Created by Paul Myburgh</section></footer></div></body></html>
