@@ -185,7 +185,7 @@ export function createAsyncAction<
         if (cacheBreakLoop) {
           console.error(`[${key}] Pullstate detected an infinite loop caused by cacheBreakHook()
 returning true too often (breaking cache as soon as your action is resolving - hence
-causing beckoned actions to run the action again) in one of your AsyncActions - prevented
+causing beckoned actions to run the action again) in one of your AsyncActions - Pullstate prevented
 further looping. Fix in your cacheBreakHook() is needed.`);
         } else {
           cacheBreakWatcher[key] = 0;

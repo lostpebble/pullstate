@@ -78,7 +78,7 @@ class HomeSplash extends React.Component {
               React hooks
             </div>
             <div style={{ maxWidth: "35em", padding: "3em 2em", opacity: 1 }}>
-              <div style={{ fontSize: "1.95em", color: "#7c8ef1" }}>
+              <div style={{ fontSize: "1.95em", color: "#9f59f2" }}>
                 <em>
                   <strong>Version 1.0.0 released!</strong>
                 </em>

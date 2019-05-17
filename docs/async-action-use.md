@@ -29,6 +29,10 @@ const [finished, result, updating] = GetUserAction.useBeckon({ userId });
 
 * Same action states, except for `started` since we are starting this action by default
 
+`beckon()` also takes an options object as the second argument.
+
+If you are server rendering and you would _not_ like a certain Async Action to be instigated on the server (i.e. you are fine with the action resolving itself client-side only), you can pass as an option to beckon `{ ssr: false }`.
+
 ### Run an Async Action directly
 
 ```tsx

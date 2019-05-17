@@ -6,7 +6,7 @@ sidebar_label: Resolve async state on the server
 
 ## Universal fetching
 
-Any action that is making use of `useBeckon()` ([discussed in detail here](async-action-use.md)) in the current render tree, like in our example, can have its state resolved on the server before rendering to the client. This allows us to generate dynamic pages on the fly!
+Any action that is making use of `useBeckon()` ([discussed in detail here](async-action-use.md)) in the current render tree, like in our example in ["Creating an Async Action"](async-actions-creating.md), can have its state resolved on the server before rendering to the client. This allows us to generate dynamic pages on the fly!
 
 **But very importantly:** The asynchronous action code needs to be able to resolve on both the server and client - so make sure that your data-fetching functions are "isomorphic" or "universal" in nature. Examples of such functionality are the [Apollo Client](https://www.apollographql.com/docs/react/api/apollo-client.html) or [Wildcard API](https://github.com/brillout/wildcard-api).
 

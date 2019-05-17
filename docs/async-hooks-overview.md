@@ -50,4 +50,4 @@ Read more on the [cache break hook](async-cache-break-hook.md).
 
 ---
 
-**NOTE:** In all these hooks, `stores` is only available when you are doing server rendering and you have used your centralized Pullstate `core` to create your Async Actions (see the server-rendering part [Creating an Async Action](async-actions-creating.md)). If you have a client-side only app, just import and use your stores directly.
+**NOTE:** In all these hooks, `stores` is only available when you are doing server rendering and you have used your centralized Pullstate "Core" to create your Async Actions (see the server-rendering part [Creating an Async Action](async-actions-creating.md)). If you have a client-side only app, just import and use your stores directly.

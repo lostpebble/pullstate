@@ -62,7 +62,7 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
       return instantiated;
     }
 
-    const newStores = {} as S;
+    const newStores: IPullstateAllStores = {};
 
     for (const storeName of Object.keys(this.originStores)) {
       if (hydrateSnapshot == null) {
@@ -82,7 +82,7 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
       });
     }
 
-    return new PullstateInstance(newStores);
+    return new PullstateInstance(newStores as S);
   }
 
   useStores(): S {
