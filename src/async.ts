@@ -1,6 +1,5 @@
 import { IPullstateAllStores, PullstateContext } from "./PullstateCore";
-const shallowEqual = require("fbjs/lib/shallowEqual");
-import { useContext, useEffect, useRef, useState, useMemo } from "react";
+import { useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   EAsyncEndTags,
   EPostActionContext,
@@ -21,6 +20,8 @@ import {
   TPullstateAsyncAction,
   TPullstateAsyncWatchResponse,
 } from "./async-types";
+
+const shallowEqual = require("fbjs/lib/shallowEqual");
 
 export const clientAsyncCache: IPullstateAsyncCache = {
   listeners: {},
@@ -198,7 +199,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
             cache.results[key][2] as TAsyncActionResult<R, T>,
             args,
             stores,
-            EPostActionContext.WATCH_HIT_CACHE
+            initiate ? EPostActionContext.BECKON_HIT_CACHE : EPostActionContext.WATCH_HIT_CACHE
           );
         }
 

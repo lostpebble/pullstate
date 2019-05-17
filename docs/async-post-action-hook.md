@@ -8,6 +8,8 @@ sidebar_label: Post action hook
 
 This is useful for updating our app's state (mostly concerning views, organising action results into specific store state that's in the current app's focus) in a consistent manner after actions, whether we hit the cache or directly ran them for the first time.
 
+Be sure to check out the [async hooks flow diagram](async-hooks-overview.md#async-hooks-flow-diagram) to understand better where this hook fits in.
+
 Let's quickly look at our previously explored **naive** example from [Creating an Async Action](async-actions-creating.md):
 
 **DO NOT DO THIS!**
@@ -69,6 +71,8 @@ postActionHook(inputs) { // Do things with inputs for this async action run };
 ```tsx
 { args, result, stores, context }
 ```
+
+> As per all Async Action things, `stores` here is only available as an option if you are making use of `<PullstateProvider>` in your app (server-side rendering).
 
 * `args` are the arguments for this run of the Async Action
 * `result` is the result of the run

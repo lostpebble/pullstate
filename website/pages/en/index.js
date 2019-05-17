@@ -5,9 +5,9 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const React = require('react');
+const React = require("react");
 
-const CompLibrary = require('../../core/CompLibrary.js');
+const CompLibrary = require("../../core/CompLibrary.js");
 
 const MarkdownBlock = CompLibrary.MarkdownBlock; /* Used to read markdown */
 const Container = CompLibrary.Container;
@@ -15,10 +15,10 @@ const GridBlock = CompLibrary.GridBlock;
 
 class HomeSplash extends React.Component {
   render() {
-    const {siteConfig, language = ''} = this.props;
-    const {baseUrl, docsUrl} = siteConfig;
-    const docsPart = `${docsUrl ? `${docsUrl}/` : ''}`;
-    const langPart = `${language ? `${language}/` : ''}`;
+    const { siteConfig, language = "" } = this.props;
+    const { baseUrl, docsUrl } = siteConfig;
+    const docsPart = `${docsUrl ? `${docsUrl}/` : ""}`;
+    const langPart = `${language ? `${language}/` : ""}`;
     const docUrl = doc => `${baseUrl}${docsPart}${langPart}${doc}`;
 
     const SplashContainer = props => (
@@ -61,13 +61,39 @@ class HomeSplash extends React.Component {
     return (
       <SplashContainer>
         <img width={350} src={`${baseUrl}img/logo-newest.png`} alt="Project Logo" />
-        <div className="inner" style={{ display: "flex", marginTop: "1em", flexGrow: 1, alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
+        <div
+          className="inner"
+          style={{
+            display: "flex",
+            marginTop: "1em",
+            flexGrow: 1,
+            alignItems: "center",
+            justifyContent: "center",
+            flexDirection: "column",
+          }}>
           {/*<ProjectTitle siteConfig={siteConfig} />*/}
           <div>
-            <div style={{ maxWidth: "35em", padding: "1em 2em", opacity: 0.8 }}>Ridiculously simple state stores with performant retrieval anywhere in your React tree using React hooks</div>
-            <div style={{ maxWidth: "35em", padding: "3em 2em", opacity: 0.8 }}><em><strong>Now featuring async state handling too!</strong></em></div>
+            <div style={{ maxWidth: "35em", padding: "1em 2em", opacity: 0.8 }}>
+              Ridiculously simple state stores with performant retrieval anywhere in your React tree using
+              React hooks
+            </div>
+            <div style={{ maxWidth: "35em", padding: "3em 2em", opacity: 1 }}>
+              <div style={{ fontSize: "1.95em", color: "#7c8ef1" }}>
+                <em>
+                  <strong>Version 1.0.0 released!</strong>
+                </em>
+              </div>
+              <div style={{ fontSize: "1em" }}>
+                API settled, and <a href={docUrl("quick-example.html")}>new documentation site</a> live
+              </div>
+            </div>
+            <div style={{ maxWidth: "35em", padding: "3em 2em", opacity: 0.8 }}>
+              <em>
+                <strong>Now featuring async state handling too!</strong>
+              </em>
+            </div>
             <Button href={docUrl("quick-example.html")}>Jump into a quick example</Button>
-            <div style={{ maxWidth: "35em", padding: "2em 2em", opacity: 0.8 }}/>
+            <div style={{ maxWidth: "35em", padding: "2em 2em", opacity: 0.8 }} />
           </div>
         </div>
       </SplashContainer>
@@ -77,11 +103,9 @@ class HomeSplash extends React.Component {
 
 class Index extends React.Component {
   render() {
-    const {config: siteConfig, language = ''} = this.props;
+    const { config: siteConfig, language = "" } = this.props;
 
-    return (
-      <HomeSplash siteConfig={siteConfig} language={language} />
-    );
+    return <HomeSplash siteConfig={siteConfig} language={language} />;
   }
 }
 

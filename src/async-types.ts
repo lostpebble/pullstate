@@ -86,6 +86,7 @@ export type TPullstateAsyncCacheBreakHook<A, R, T extends string, S extends IPul
 
 export enum EPostActionContext {
   WATCH_HIT_CACHE = "WATCH_HIT_CACHE",
+  BECKON_HIT_CACHE = "BECKON_HIT_CACHE",
   RUN_HIT_CACHE = "RUN_HIT_CACHE",
   SHORT_CIRCUIT = "SHORT_CIRCUIT",
   DIRECT_RUN = "DIRECT_RUN",

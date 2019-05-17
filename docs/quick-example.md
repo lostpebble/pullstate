@@ -12,6 +12,15 @@ sidebar_label: Quick example
 Let's dive right in and define and export our first **state store**:
 
 <!--DOCUSAURUS_CODE_TABS-->
+<!--JavaScript-->
+```jsx
+import { Store } from "pullstate";
+
+export const UIStore = new Store({
+  isDarkMode: true,
+});
+```
+
 <!--TypeScript-->
 ```tsx
 import { Store } from "pullstate";
@@ -21,15 +30,6 @@ interface IUIStore {
 }
 
 export const UIStore = new Store<IUIStore>({
-  isDarkMode: true,
-});
-```
-
-<!--JavaScript-->
-```jsx
-import { Store } from "pullstate";
-
-export const UIStore = new Store({
   isDarkMode: true,
 });
 ```
@@ -93,9 +93,9 @@ Notice how we call `update()` on `UIStore`, inside which we directly mutate the 
 Another pattern, which helps to illustrate this further, would be to actually define the action of toggling dark mode to a function on its own:
 
 <!--DOCUSAURUS_CODE_TABS-->
-<!--TypeScript-->
+<!--JavaScript-->
 ```tsx
-function toggleMode(s: IUIStore) {
+function toggleMode(s) {
   s.isDarkMode = !s.isDarkMode;
 }
 
@@ -103,9 +103,9 @@ function toggleMode(s: IUIStore) {
 <button onClick={() => UIStore.update(toggleMode)}>Toggle Dark Mode</button>
 ```
 
-<!--JavaScript-->
+<!--TypeScript-->
 ```tsx
-function toggleMode(s) {
+function toggleMode(s: IUIStore) {
   s.isDarkMode = !s.isDarkMode;
 }
 
