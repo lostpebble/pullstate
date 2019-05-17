@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="https://github.com/lostpebble/pullstate/raw/master/graphics/logo-new.png" alt="Pullstate" />
+  <img src="https://github.com/lostpebble/pullstate/raw/master/graphics/logo-newest.png" alt="Pullstate" />
 </p>
 
 ### pullstate
