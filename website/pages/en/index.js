@@ -60,7 +60,7 @@ class HomeSplash extends React.Component {
 
     return (
       <SplashContainer>
-        <img width={350} src={`${baseUrl}img/logo-new.png`} alt="Project Logo" />
+        <img width={350} src={`${baseUrl}img/logo-newest.png`} alt="Project Logo" />
         <div className="inner" style={{ display: "flex", marginTop: "1em", flexGrow: 1, alignItems: "center", justifyContent: "center", flexDirection: "column" }}>
           {/*<ProjectTitle siteConfig={siteConfig} />*/}
           <div>

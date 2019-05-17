@@ -1,28 +1,14 @@
 ---
-id: action-hooks
-title: Action Hooks
-sidebar_label: Action Hooks
+id: async-post-action-hook
+title: Post action hook
+sidebar_label: Post action hook
 ---
 
-The second argument while creating Async Actions allows us to pass hooks for the action:
+`postActionHook()` is a function which is run directly after your action has completed. **And most importantly**, this is also run after we hit an already resolved and cached value.
 
-```tsx
-const searchPicturesForTag = createAsyncAction(async ({ tag }) => {
-  // action code
-}, hooksGoHere);
-```
+This is useful for updating our app's state (mostly concerning views, organising action results into specific store state that's in the current app's focus) in a consistent manner after actions, whether we hit the cache or directly ran them for the first time.
 
-Notice `hooksGoHere` above.
-
-This object has three hook types which we can set for this action. Let's go through them one by one and how we might use them in this specific example.
-
-## postActionHook()
-
-This is a function which is run directly after your action has completed. **And most importantly**, this is also run after we hit an already completely and cached value.
-
-This is useful for updating our app's state in a consistent manner after actions, after cached hit or direct run.
-
-Let's quickly look at our previously explored **naive** example:
+Let's quickly look at our previously explored **naive** example from [Creating an Async Action](async-actions-creating.md):
 
 **DO NOT DO THIS!**
 
@@ -41,7 +27,7 @@ const searchPicturesForTag = PullstateCore.createAsyncAction(async ({ tag }, { G
 });
 ```
 
-Here we are updating our `GalleryStore` inside the action. The problem with this is that upon hitting a cached value, this action will not be run again - and hence the state inside the store will not be updated with the new pictures.
+Here we are updating our `GalleryStore` inside the action. The problem with this is that upon hitting a cached value, this action will not be run again ([unless cache broken](async-cache-clearing.md)) - and hence the `pictures` state inside the store will not be replaced with the new pictures.
 
 In comes `postActionHook` to save the day:
 
@@ -68,12 +54,14 @@ const searchPicturesForTag = PullstateCore.createAsyncAction(
 );
 ```
 
-And now our state is guaranteed to be updated the same, no matter if we hit the cache or ran the action directly.
+_( `stores` here is a server-rendering only argument. For client-side only rendering, update your stores directly )_
+
+Notice how we removed the update logic from the action itself and moved it inside the post action hook. Now our state is guaranteed to be updated the same, no matter if we hit the cache or ran the action directly.
 
 ### API of `postActionHook`:
 
 ```tsx
-postActionHook(inputs);
+postActionHook(inputs) { // Do things with inputs for this async action run };
 ```
 
 `inputs` is the only argument passed to `postActionHook` and has a structure like so:
@@ -84,15 +72,15 @@ postActionHook(inputs);
 
 * `args` are the arguments for this run of the Async Action
 * `result` is the result of the run
-* `stores` is an object with all your state stores (server rendering only)
+* `stores` is an object with all your state stores (**server rendering only**)
 * `context` is the context of where this post action hook was run:
     
-`context` helps us know how we came to be running this post action hook, and allows us to block certain scenarios where we might be running it twice. It all depends on your app and how you make use of async actions.
+`context` helps us know how we came to be running this post action hook, and allows us to block certain scenarios (and prevent duplicate runs in some scenarios). It all depends on your app and how you make use of async actions.
 
 `context` will be set to one of the following values:
 
 * `WATCH_HIT_CACHE`
-  * Ran after a [`watch`](watching-async-action.md) or [`beckon`](beckoning-async-action.md) hit a cached value on this action
+  * Ran after a [`watch`](watching-async-action.md) or [`beckon`](beckoning-async-action.md) hit a cached value on this action (triggered after a UI change where old arguments put into `watch()` or `beckon()` again)
 * `RUN_HIT_CACHE`
   * Ran after we called [`run`](running-async-action.md) on this action with `respectCache: true`, and the cache was hit on this action
 * `SHORT_CIRCUIT`

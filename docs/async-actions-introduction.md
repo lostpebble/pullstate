@@ -4,10 +4,6 @@ title: Introduction to Async Actions
 sidebar_label: Introduction
 ---
 
-Jump straight into an example here:
-
-[![Edit Pullstate Async](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/84x92qq2k2?fontsize=14)
-
 More often than not, our stores do not exist in purely synchronous states. We often need to perform actions asynchronously, such as pulling data from an API.
 
 * It would be nice to have an easy way to keep our view up to date with the state of these actions **without putting too much onus on our stores directly** which quickly floods them with variables such as `userLoading`, `updatingUserInfo`, `userLoadError` etc - which we then have to make sure we're handling for each unique situation - it just gets messy quickly.

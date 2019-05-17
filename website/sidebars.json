@@ -5,16 +5,14 @@
     "Updating Store State": ["update-store", "reactions"],
     "Async Actions": [
       "async-actions-introduction",
+      "async-actions-creating",
+      "async-action-use",
       {
         "type": "subcategory",
-        "label": "Creating Async Actions",
-        "ids": ["anatomy-of-an-async-action", "action-hooks"]
+        "label": "Async Action Hooks",
+        "ids": ["async-hooks-overview", "async-post-action-hook", "async-short-circuit-hook", "async-cache-break-hook"]
       },
-      {
-        "type": "subcategory",
-        "label": "Using Async Actions",
-        "ids": ["watching-async-action", "beckoning-async-action", "running-async-action", "cache-clearing"]
-      },
+      "async-cache-clearing",
       "async-server-rendering"
     ]
   }

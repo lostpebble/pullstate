@@ -8,29 +8,41 @@
       "_removed": {
         "title": "_removed"
       },
-      "action-hooks": {
-        "title": "Action Hooks",
-        "sidebar_label": "Action Hooks"
+      "async-action-use": {
+        "title": "Ways to make use of Async Actions",
+        "sidebar_label": "Use Async Actions"
       },
-      "anatomy-of-an-async-action": {
-        "title": "Anatomy of an Async Action",
-        "sidebar_label": "Anatomy of an Async Action"
+      "async-actions-creating": {
+        "title": "Creating an Async Action",
+        "sidebar_label": "Creating an Async Action"
       },
       "async-actions-introduction": {
         "title": "Introduction to Async Actions",
         "sidebar_label": "Introduction"
       },
+      "async-cache-break-hook": {
+        "title": "Cache break hook",
+        "sidebar_label": "Cache break hook"
+      },
+      "async-cache-clearing": {
+        "title": "Async cache clearing",
+        "sidebar_label": "Cache clearing"
+      },
+      "async-hooks-overview": {
+        "title": "Async hooks overview",
+        "sidebar_label": "Hooks overview"
+      },
+      "async-post-action-hook": {
+        "title": "Post action hook",
+        "sidebar_label": "Post action hook"
+      },
       "async-server-rendering": {
         "title": "Resolving async state while server-rendering",
         "sidebar_label": "Resolve async state on the server"
       },
-      "beckoning-async-action": {
-        "title": "Beckoning an Async Action",
-        "sidebar_label": "Beckoning"
-      },
-      "cache-clearing": {
-        "title": "Cache Clearing",
-        "sidebar_label": "Cache Clearing"
+      "async-short-circuit-hook": {
+        "title": "Short circuit hook",
+        "sidebar_label": "Short circuit hook"
       },
       "inject-store-state": {
         "title": "<InjectStoreState>",
@@ -52,10 +64,6 @@
         "title": "Reactions",
         "sidebar_label": "Reactions"
       },
-      "running-async-action": {
-        "title": "Direct running an Async Action",
-        "sidebar_label": "Direct running"
-      },
       "subscribe": {
         "title": "Subscribe",
         "sidebar_label": "Subscribe"
@@ -67,10 +75,6 @@
       "use-store-state-hook": {
         "title": "useStoreState (hook)",
         "sidebar_label": "useStoreState (hook)"
-      },
-      "watching-async-action": {
-        "title": "Watching an Async Action",
-        "sidebar_label": "Watching"
       }
     },
     "links": {

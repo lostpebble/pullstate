@@ -418,7 +418,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       }
     }
 
-    if (shortCircuitHook !== undefined) {
+    if (!ignoreShortCircuit && shortCircuitHook !== undefined) {
       const shortCircuitResponse = shortCircuitHook({ args, stores: _stores });
       if (shortCircuitResponse !== false) {
         _asyncCache.results[key] = [true, true, shortCircuitResponse, false];
@@ -442,7 +442,12 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     if (prevFinished && treatAsUpdate) {
       _asyncCache.results[key] = [true, true, prevResp, true];
     } else {
-      _asyncCache.results[key] = [true, false, prevResp, false];
+      _asyncCache.results[key] = [true, false, {
+        error: true,
+        message: "",
+        payload: null,
+        tags: [EAsyncEndTags.UNFINISHED],
+      } as IAsyncActionResultNegative<T>, false];
     }
 
     notifyListeners(key);

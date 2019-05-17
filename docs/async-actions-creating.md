@@ -1,10 +1,10 @@
 ---
-id: anatomy-of-an-async-action
-title: Anatomy of an Async Action
-sidebar_label: Anatomy of an Async Action
+id: async-actions-creating
+title: Creating an Async Action
+sidebar_label: Creating an Async Action
 ---
 
-## Creating an action
+**Note the tabs in these examples. If you are server-rendering, switch to the "Server-rendered app" tab.**
 
 Create an Async Action like so:
 
@@ -27,11 +27,11 @@ const myAsyncAction = PullstateCore.createAsyncAction(action, hooks);
 
 Server-rendered apps need to make use of your "core" Pullstate object to create Async Actions which can pre-fetch on the server.
 
-> For the rest of these examples we will be making use of the **client-side** only code to keep things simple and rather focus on the differences between TypeScript and JavaScript interactions
+> Some of these examples will be making use of **client-side** only code to keep things simple and rather focus on the differences between TypeScript and JavaScript interactions. The server-rendering considerations to convert such code is explained in other examples, in the relevant tabs.
 
 <!--END_DOCUSAURUS_CODE_TABS-->
 
-We pass in two arguments. First, our actual `action`, and secondly, any `hooks` ([next section](action-hooks.md)) we would like to set on this action to extend its functionality.
+We pass in two arguments. First, our actual `action`, and secondly, any [`hooks`](async-hooks-overview.md) we would like to set on this action to extend its functionality.
 
 ## The action itself
 
@@ -40,6 +40,36 @@ The argument we pass in for `action` is pretty much just a standard `async` / `P
 To illustrate these considerations, lets use an example Async Action (fetching pictures related to a tag from an API) and its usage:
 
 <!--DOCUSAURUS_CODE_TABS-->
+<!--JavaScript-->
+
+```tsx
+import { createAsyncAction, errorResult, successResult, useStoreState } from "pullstate";
+
+const searchPicturesForTag = createAsyncAction(async ({ tag }) => {
+  const result = await PictureApi.searchWithTag(tag);
+
+  if (result.success) {
+    return successResult(result.pictures);
+  }
+
+  return errorResult([], `Couldn't get pictures: ${result.errorMessage}`);
+});
+
+export const PictureExample = props => {
+  const [finished, result] = searchPicturesForTag.useBeckon({ tag: props.tag });
+
+  if (!finished) {
+    return <div>Loading Pictures for tag "{props.tag}"</div>;
+  }
+
+  if (result.error) {
+    return <div>{result.message}</div>;
+  }
+
+  return <Gallery pictures={result.payload.pictures} />;
+};
+```
+
 <!--TypeScript-->
 
 ```tsx
@@ -80,41 +110,11 @@ export const PictureExample = (props: { tag: string }) => {
 };
 ```
 
-<!--JavaScript-->
-
-```tsx
-import { createAsyncAction, errorResult, successResult, useStoreState } from "pullstate";
-
-const searchPicturesForTag = createAsyncAction(async ({ tag }) => {
-  const result = await PictureApi.searchWithTag(tag);
-
-  if (result.success) {
-    return successResult(result.pictures);
-  }
-
-  return errorResult([], `Couldn't get pictures: ${result.errorMessage}`);
-});
-
-export const PictureExample = props => {
-  const [finished, result] = searchPicturesForTag.useBeckon({ tag: props.tag });
-
-  if (!finished) {
-    return <div>Loading Pictures for tag "{props.tag}"</div>;
-  }
-
-  if (result.error) {
-    return <div>{result.message}</div>;
-  }
-
-  return <Gallery pictures={result.payload.pictures} />;
-};
-```
-
 <!--END_DOCUSAURUS_CODE_TABS-->
 
 ### The cachable "fingerprint"
 
-The first important concept to understand has to do with caching. For the **same arguments**, we do not want to be running these actions over and over again each time we hit them in our component code - what we really only want is the final result of these actions. So we need to be able to cache the results and re-use them where possible. Don't worry, Pullstate provides easy ways to "break" this cache where needed as well.
+The first important concept to understand has to do with caching. For the **same arguments**, we do not want to be running these actions over and over again each time we hit them in our component code - what we really only want is the final result of these actions. So we need to be able to cache the results and re-use them where possible. Don't worry, Pullstate provides easy ways to ["break" this cache](async-cache-clearing.md) where needed as well.
 
 Pullstate does this by internally creating a "fingerprint" from the arguments which are passed in to the action. In our example here, the fingerprint is created from:
 
@@ -126,7 +126,7 @@ So, in the example, if on initial render we pass`{ tag: "dog" }` as props to our
 
 **Importantly:** Always have your actions defined with as many arguments which identify that single action as possible! (But no more than that - be as specific as possible while being as brief as possible).
 
-That said, there very well _could_ be reasons to create async actions that have no arguments and there are ways you can cache bust actions to cause them to run again with the same "fingerprint" - either through an [Async Action hook](action-hooks.md), or [directly](cache-clearing.md).
+That said, there very well _could_ be reasons to create async actions that have no arguments and there are [ways you can cache bust](async-cache-clearing.md) actions to cause them to run again with the same "fingerprint".
 
 ### What to return from an action
 
@@ -171,7 +171,7 @@ But the Pullstate Way™ is generally to maintain our state in our stores for be
 
 A naive way to do this might be like so:
 
-**DO NOT DO THIS!**
+**This code, while functionally correct, will cause unexpected behaviour!**
 
 <!--DOCUSAURUS_CODE_TABS-->
 <!--Client-side only app-->
@@ -256,4 +256,4 @@ So what exactly is the problem? At first glance it might not be very clear.
 
 **The problem:** Because our actions are cached, when we return to a previously run action (with the same "fingerprint" of arguments) the action will not be run again, and our store will not be updated.
 
-This brings us to our next section, Async Hooks - and specifically for this scenario, we would make use of the `postActionHook()`.
+To find out how to work with these scenarios, check out [Async Hooks](async-hooks-overview.md) - and specifically for this scenario, we would make use of the [`postActionHook()`](async-post-action-hook.md).

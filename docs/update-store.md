@@ -12,7 +12,15 @@ MyStore.update(updater)
 
 The updater function is simply a function which takes the store's current state and allows you to mutate it directly to create the next state. This is thanks to the power of [immer](https://github.com/immerjs/immer).
 
+### patches callback
+
+```tsx
+MyStore.update(updater, patches)
+```
+
 An optional second argument to `update()` is a patch callback - this is a very useful API provided by `immer`, and since `update()` is pretty much just a wrapper around Immer's functionality, we provide a way for you to make use of it in your Pullstate updates too. Read more about patches in `immer` docs, [here](https://github.com/immerjs/immer#patches).
+
+Patches allow fun things such as undo / redo functionality and state time travel!
 
 ## Example for update()
 
