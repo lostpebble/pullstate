@@ -14,6 +14,7 @@ import {
   TAsyncActionBeckon,
   TAsyncActionClearAllCache,
   TAsyncActionClearCache,
+  TAsyncActionDelayedRun,
   TAsyncActionGetCached,
   TAsyncActionResult,
   TAsyncActionRun,
@@ -543,11 +544,13 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       if (checkCacheBreak && cacheBreakHook !== undefined) {
         const stores = onServer ? (useContext(PullstateContext).stores as S) : clientStores;
 
-        if (cacheBreakHook({
+        if (
+          cacheBreakHook({
             args,
             result: cache.results[key][2] as TAsyncActionResult<R, T>,
             stores,
-          })) {
+          })
+        ) {
           cacheBreakable = true;
         }
       }
@@ -573,15 +576,48 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         },
         updating: false,
         existed: false,
-        cacheBreakable
+        cacheBreakable,
       };
     }
+  };
+
+  let delayedRunActionTimeout;
+
+  const delayedRun: TAsyncActionDelayedRun<A> = (
+    args = {} as A,
+    { clearOldRun = true, delay, immediateIfCached = true, ...otherRunOptions }
+  ) => {
+    if (clearOldRun) {
+      clearTimeout(delayedRunActionTimeout);
+    }
+
+    if (immediateIfCached) {
+      const { finished, cacheBreakable } = getCached(args, { checkCacheBreak: true });
+
+      if (finished && !cacheBreakable) {
+        run(args, otherRunOptions);
+        return () => {};
+      }
+    }
+
+    let ref = { cancelled: false };
+
+    delayedRunActionTimeout = setTimeout(() => {
+      if (!ref.cancelled) {
+        run(args, otherRunOptions);
+      }
+    }, delay);
+
+    return () => {
+      ref.cancelled = true;
+    };
   };
 
   return {
     useBeckon,
     useWatch,
     run,
+    delayedRun,
     clearCache,
     clearAllCache,
     getCached,

@@ -148,11 +148,16 @@ export type TAsyncActionRun<A, R, T extends string> = (
 export type TAsyncActionClearCache<A> = (args?: A) => void;
 export type TAsyncActionClearAllCache = () => void;
 export type TAsyncActionGetCached<A, R, T extends string> = (args?: A, options?: IAsyncActionGetCachedOptions) => IGetCachedResponse<R, T>;
+export type TAsyncActionDelayedRun<A> = (
+  args?: A,
+  options?: IAsyncActionRunOptions & { delay: number, clearOldRun?: boolean, immediateIfCached?: boolean }
+) => () => void;
 
 export interface IOCreateAsyncActionOutput<A = any, R = any, T extends string = string> {
   useBeckon: TAsyncActionBeckon<A, R, T>;
   useWatch: TAsyncActionWatch<A, R, T>;
   run: TAsyncActionRun<A, R, T>;
+  delayedRun: TAsyncActionDelayedRun<A>;
   getCached: TAsyncActionGetCached<A, R, T>;
   clearCache: TAsyncActionClearCache<A>;
   clearAllCache: TAsyncActionClearAllCache;
