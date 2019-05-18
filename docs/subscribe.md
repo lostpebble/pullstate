@@ -6,7 +6,7 @@ sidebar_label: Subscribe
 
 Subscriptions are client-side only listeners to changes in your store's state.
 
-They are very similar to [Reactions](reactions.md), the difference being they only listen for state changes and send you the new state. Reactions allow you to react and change your store's state at the same time in a "batched" way. Subscriptions only send you the new values. The reason these two are separated is for performance reasons - if you do not need to react and change your store's state on an update, rather use subscriptions.
+They are very similar to [Reactions](reactions.md), the difference being they only listen for state changes and send you the new state. Reactions allow you to react and change your store's state at the same time in a "batched" way. **Subscriptions only send you the new values.** The reason these two are separated is for performance reasons - if you do not need to react and change your store's state on an update, rather use subscriptions.
 
 Some uses include integrating with third-party tools, for times when you want to align your app's state changes with a change in the tool as well.
 

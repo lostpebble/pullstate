@@ -83,6 +83,8 @@ postActionHook(inputs) { // Do things with inputs for this async action run };
 
 `context` will be set to one of the following values:
 
+* `BECKON_HIT_CACHE`
+  * Ran after a [`watch`](watching-async-action.md) or [`beckon`](beckoning-async-action.md) hit a cached value on this action (triggered after a UI change where old arguments put into `watch()` or `beckon()` again)
 * `WATCH_HIT_CACHE`
   * Ran after a [`watch`](watching-async-action.md) or [`beckon`](beckoning-async-action.md) hit a cached value on this action (triggered after a UI change where old arguments put into `watch()` or `beckon()` again)
 * `RUN_HIT_CACHE`

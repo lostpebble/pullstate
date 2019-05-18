@@ -14,6 +14,7 @@ import {
   TAsyncActionBeckon,
   TAsyncActionClearAllCache,
   TAsyncActionClearCache,
+  TAsyncActionGetCached,
   TAsyncActionResult,
   TAsyncActionRun,
   TAsyncActionWatch,
@@ -161,7 +162,9 @@ export function createAsyncAction<
     ssr: boolean,
     args: A,
     stores: S,
-    fromListener = false
+    fromListener = false,
+    postActionEnabled = true,
+    cacheBreakEnabled = true
   ): TPullstateAsyncWatchResponse<R, T> {
     if (cache.results.hasOwnProperty(key)) {
       const cacheBreakLoop = cacheBreakWatcher.hasOwnProperty(key) && cacheBreakWatcher[key] > 2;
@@ -169,7 +172,7 @@ export function createAsyncAction<
 
       // Only beckon() can cache break - because watch() will not initiate the re-caching mechanism
       if (
-        initiate &&
+        cacheBreakEnabled &&
         cacheBreakHook !== undefined &&
         cacheBreakHook({ args, result: cache.results[key][2] as TAsyncActionResult<R, T>, stores }) &&
         !cacheBreakLoop
@@ -194,7 +197,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         // if the cached result is "finished" (and we are not running
         // this during a listener update) we need to run the post
         // action hook with WATCH_HIT_CACHE context
-        if (cache.results[key][1] && !fromListener) {
+        if (postActionEnabled && cache.results[key][1] && !fromListener) {
           runPostActionHook(
             cache.results[key][2] as TAsyncActionResult<R, T>,
             args,
@@ -211,17 +214,17 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
     // check if it is already pending as an action
     if (!cache.actions.hasOwnProperty(key)) {
-      // if it is not pending, check if for any short circuiting before initiating
-      if (shortCircuitHook !== undefined) {
-        const shortCircuitResponse = shortCircuitHook({ args, stores });
-        if (shortCircuitResponse !== false) {
-          cache.results[key] = [true, true, shortCircuitResponse, false];
-          runPostActionHook(shortCircuitResponse, args, stores, EPostActionContext.SHORT_CIRCUIT);
-          return cache.results[key] as TPullstateAsyncWatchResponse<R, T>;
-        }
-      }
-
       if (initiate) {
+        // if it is not pending, check if for any short circuiting before initiating
+        if (shortCircuitHook !== undefined) {
+          const shortCircuitResponse = shortCircuitHook({ args, stores });
+          if (shortCircuitResponse !== false) {
+            cache.results[key] = [true, true, shortCircuitResponse, false];
+            runPostActionHook(shortCircuitResponse, args, stores, EPostActionContext.SHORT_CIRCUIT);
+            return cache.results[key] as TPullstateAsyncWatchResponse<R, T>;
+          }
+        }
+
         // queue (on server) or start the action now (on client)
         if (ssr || !onServer) {
           cache.actions[key] = () => action(args, stores);
@@ -290,7 +293,12 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
   const useWatch: TAsyncActionWatch<A, R, T> = (
     args = {} as A,
-    { initiate = false, ssr = true }: IAsyncActionWatchOptions = {}
+    {
+      initiate = false,
+      ssr = true,
+      postActionEnabled = false,
+      cacheBreakEnabled = false,
+    }: IAsyncActionWatchOptions = {}
   ) => {
     const key = createKey(ordinal, args);
 
@@ -321,7 +329,17 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         // console.log(`[${key}][${watchId}] should update: ${shouldUpdate[key][watchId.current]}`);
         // console.log(`[${key}][${watchId}] will update?: ${!shallowEqual(responseRef.current, cache.results[key])} - ${responseRef.current} !== ${cache.results[key]}`);
         if (shouldUpdate[key][watchId.current] && !shallowEqual(responseRef.current, cache.results[key])) {
-          responseRef.current = checkKeyAndReturnResponse(key, cache, initiate, ssr, args, stores, true);
+          responseRef.current = checkKeyAndReturnResponse(
+            key,
+            cache,
+            initiate,
+            ssr,
+            args,
+            stores,
+            true,
+            postActionEnabled,
+            cacheBreakEnabled
+          );
 
           setWatchUpdate(prev => {
             return prev + 1;
@@ -365,19 +383,28 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       }
 
       prevKeyRef.current = key;
-      responseRef.current = checkKeyAndReturnResponse(key, cache, initiate, ssr, args, stores);
+      responseRef.current = checkKeyAndReturnResponse(
+        key,
+        cache,
+        initiate,
+        ssr,
+        args,
+        stores,
+        postActionEnabled,
+        cacheBreakEnabled
+      );
     }
 
-    // console.log(`[${key}][${watchId}] Returning from watch() [update no. ${watchUpdate}] with response: ${JSON.stringify(responseRef.current)}`);
+    // console.log(`[${key}][${watchId}] Returning from watch() [update no. ${_}] with response: ${JSON.stringify(responseRef.current)}`);
     return responseRef.current;
   };
 
   // Same as watch - just initiated, so no need for "started" return value
   const useBeckon: TAsyncActionBeckon<A, R, T> = (
     args = {} as A,
-    { ssr = true }: IAsyncActionBeckonOptions = {}
+    { ssr = true, postActionEnabled = true, cacheBreakEnabled = true }: IAsyncActionBeckonOptions = {}
   ) => {
-    const result = useWatch(args, { initiate: true, ssr });
+    const result = useWatch(args, { initiate: true, ssr, postActionEnabled, cacheBreakEnabled });
     return [result[1], result[2], result[3]];
   };
 
@@ -392,6 +419,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     }: IAsyncActionRunOptions = {}
   ): Promise<TAsyncActionResult<R, T>> => {
     const key = createKey(ordinal, args);
+    console.log(`[${key}] Running action`);
 
     if (_asyncCache.results.hasOwnProperty(key) && respectCache) {
       if (
@@ -443,12 +471,17 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     if (prevFinished && treatAsUpdate) {
       _asyncCache.results[key] = [true, true, prevResp, true];
     } else {
-      _asyncCache.results[key] = [true, false, {
-        error: true,
-        message: "",
-        payload: null,
-        tags: [EAsyncEndTags.UNFINISHED],
-      } as IAsyncActionResultNegative<T>, false];
+      _asyncCache.results[key] = [
+        true,
+        false,
+        {
+          error: true,
+          message: "",
+          payload: null,
+          tags: [EAsyncEndTags.UNFINISHED],
+        } as IAsyncActionResultNegative<T>,
+        false,
+      ];
     }
 
     notifyListeners(key);
@@ -497,11 +530,60 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     }
   };
 
+  const getCached: TAsyncActionGetCached<A, R, T> = (args = {} as A, { checkCacheBreak = false } = {}) => {
+    const key = createKey(ordinal, args);
+
+    let cacheBreakable = false;
+
+    const cache: IPullstateAsyncCache = onServer
+      ? useContext(PullstateContext)._asyncCache
+      : clientAsyncCache;
+
+    if (cache.results.hasOwnProperty(key)) {
+      if (checkCacheBreak && cacheBreakHook !== undefined) {
+        const stores = onServer ? (useContext(PullstateContext).stores as S) : clientStores;
+
+        if (cacheBreakHook({
+            args,
+            result: cache.results[key][2] as TAsyncActionResult<R, T>,
+            stores,
+          })) {
+          cacheBreakable = true;
+        }
+      }
+
+      const [started, finished, result, updating] = cache.results[key];
+      return {
+        started,
+        finished,
+        result: result as TAsyncActionResult<R, T>,
+        existed: true,
+        cacheBreakable,
+        updating,
+      };
+    } else {
+      return {
+        started: false,
+        finished: false,
+        result: {
+          message: "",
+          tags: [EAsyncEndTags.UNFINISHED],
+          error: true,
+          payload: null,
+        },
+        updating: false,
+        existed: false,
+        cacheBreakable
+      };
+    }
+  };
+
   return {
     useBeckon,
     useWatch,
     run,
     clearCache,
     clearAllCache,
+    getCached,
   };
 }

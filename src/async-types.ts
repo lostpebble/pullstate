@@ -104,6 +104,8 @@ export type TPullstateAsyncPostActionHook<A, R, T extends string, S extends IPul
 
 export interface IAsyncActionBeckonOptions {
   ssr?: boolean;
+  postActionEnabled?: boolean;
+  cacheBreakEnabled?: boolean;
 }
 
 export interface IAsyncActionWatchOptions extends IAsyncActionBeckonOptions {
@@ -116,6 +118,19 @@ export interface IAsyncActionRunOptions<S extends IPullstateAllStores = any> {
   respectCache?: boolean;
   _asyncCache?: IPullstateAsyncCache;
   _stores?: S;
+}
+
+export interface IAsyncActionGetCachedOptions {
+  checkCacheBreak?: boolean;
+}
+
+export interface IGetCachedResponse<R, T extends string> {
+  started: boolean;
+  finished: boolean;
+  result: TAsyncActionResult<R, T>;
+  updating: boolean;
+  existed: boolean;
+  cacheBreakable: boolean;
 }
 
 export type TAsyncActionBeckon<A, R, T extends string> = (
@@ -132,11 +147,13 @@ export type TAsyncActionRun<A, R, T extends string> = (
 ) => TPullstateAsyncRunResponse<R, T>;
 export type TAsyncActionClearCache<A> = (args?: A) => void;
 export type TAsyncActionClearAllCache = () => void;
+export type TAsyncActionGetCached<A, R, T extends string> = (args?: A, options?: IAsyncActionGetCachedOptions) => IGetCachedResponse<R, T>;
 
 export interface IOCreateAsyncActionOutput<A = any, R = any, T extends string = string> {
   useBeckon: TAsyncActionBeckon<A, R, T>;
   useWatch: TAsyncActionWatch<A, R, T>;
   run: TAsyncActionRun<A, R, T>;
+  getCached: TAsyncActionGetCached<A, R, T>;
   clearCache: TAsyncActionClearCache<A>;
   clearAllCache: TAsyncActionClearAllCache;
 }
