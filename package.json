@@ -11,7 +11,6 @@
     "clean": "rimraf ./dist",
     "build": "npm run clean && rollup -c",
     "uglify": "terser ./dist/index.js -o ./dist/index.js",
-    "prepublish": "in-publish && npm run build",
     "benchmark-all": "cross-env TS_NODE_PROJECT=./test/tsconfig.json node -r ts-node/register --max-old-space-size=4096  test/benchmark/all.ts",
     "benchmark-async-argument": "cross-env TS_NODE_PROJECT=./test/tsconfig.json node -r ts-node/register --max-old-space-size=4096  test/benchmark/benchmark-async-argument.ts",
     "benchmark-destructuring": "cross-env TS_NODE_PROJECT=./test/tsconfig.json node -r ts-node/register --max-old-space-size=4096  test/benchmark/benchmark-destructuring.ts",
