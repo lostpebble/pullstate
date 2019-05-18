@@ -74,7 +74,7 @@ Pullstate provides two ways to resolve your async state on the server - re-rende
 
 Until there is a better way to crawl through your react tree, the current easiest way to resolve async state on the server-side while rendering your React app is to simply render it multiple times. This allows Pullstate to register which async actions are required to resolve before we do our final render for the client.
 
-Using the `instance` which we create from our `PullstateCore` object of all our stores:
+Using the `instance` which we create from our `PullstateCore` object (see [Server Rendering Example](quick-example-server-rendered.md#gather-stores-under-a-core-collection)) of all our stores:
 
 ```tsx
   const instance = PullstateCore.instantiate({ ssr: true });
