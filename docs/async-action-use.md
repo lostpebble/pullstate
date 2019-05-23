@@ -81,7 +81,50 @@ If set to `true`, will not run the [short circuit hook](async-short-circuit-hook
 
 ## `InjectAsyncAction` component
 
+You could also inject Async Action state directly into your React app without a hook.
 
+This is particularly useful for things like watching the state of an image loading. If we take this Async Action as an example:
+
+```tsx
+async function loadImageFully(src: string) {
+  return new Promise((resolve, reject) => {
+    let img = new Image();
+    img.onload = resolve;
+    img.onerror = reject;
+    img.src = src;
+  });
+}
+
+export const AsyncActionImageLoad = createAsyncAction<{ src: string }>(async ({ src }) => {
+  await loadImageFully(src);
+  return successResult();
+});
+```
+
+We can inject the async state of loading an image directly into our App using `<InjectAsyncAction>`:
+
+```tsx
+<InjectAsyncAction
+  type={EAsyncActionInjectType.BECKON}
+  action={AsyncActionImageLoad}
+  args={{ src: p.thumbnailImageUrl }}>
+  {([finished]) => {
+    return <div
+      style={{
+        opacity: finished ? 1 : 0,
+        transition: "opacity 0.25s ease-in-out",
+        minHeight: "5em",
+        background: `url(${p.thumbnailImageUrl}) no-repeat center center`,
+        backgroundSize: "cover",
+      }}>
+    </div>
+  }}
+</InjectAsyncAction>
+```
+
+We've very quickly made our App have images which will fade in once completely loaded! (You'd probably want to turn this into a component of its own and simply use the hooks - but as an example its fine for now)
+
+You can make use of the exported `EAsyncActionInjectType` which provides you with `BECKON` or `WATCH` constant variables - or you can provide them as a strings directly `"beckon"` or `"watch"`.
 
 ## Clear an Async Action's cache
 

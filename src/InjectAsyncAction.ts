@@ -8,8 +8,8 @@ import {
 } from "./async-types";
 
 export enum EAsyncActionInjectType {
-  WATCH = "WATCH",
-  BECKON = "BECKON",
+  WATCH = "watch",
+  BECKON = "beckon",
 }
 
 interface IPropsInjectAsyncActionBase<A, R, T extends string> {
