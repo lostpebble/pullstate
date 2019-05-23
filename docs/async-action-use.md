@@ -17,7 +17,7 @@ const [started, finished, result, updating] = GetUserAction.useWatch({ userId })
   * `started` : This action has begun its execution.
   * `finished`: This action has finished
   * `updating`: This is a special action state which can be instigated through `run()`, which we will see further down.
-* `result` is the structured result object you return from your action (see above in action creation).
+* `result` is the structured result object you return from your action ([see more in action creation](async-actions-creating.md#what-to-return-from-an-action)).
 
 ## Beckon an Async Action (React hook)
 

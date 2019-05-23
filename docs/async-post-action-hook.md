@@ -56,7 +56,7 @@ const searchPicturesForTag = PullstateCore.createAsyncAction(
 );
 ```
 
-_( `stores` here is a server-rendering only argument. For client-side only rendering, update your stores directly )_
+> _`stores` here is a server-rendering only argument. For client-side only rendering, update your stores directly_
 
 Notice how we removed the update logic from the action itself and moved it inside the post action hook. Now our state is guaranteed to be updated the same, no matter if we hit the cache or ran the action directly.
 
