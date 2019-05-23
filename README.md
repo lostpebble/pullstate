@@ -9,9 +9,9 @@
 
 * ~2.81KB minified and gzipped! (excluding Immer and React)
 * Built with Typescript, providing a great dev experience if you're using it too
-* Provides `<InjectStoreState>` component for those who don't like change 🐌
+* Provides `<InjectStoreState>` component
 * Uses [immer](https://github.com/mweststrate/immer) for state updates - easily and safely mutate your state directly!
-* **NEW** - [Create async actions](#async-actions) and use hooks to watch their state. Pullstate's version of React suspense!
+* **NEW** - [Create async actions](#async-actions) and use hooks to watch their state, or use `<InjectAsyncAction>`. Pullstate's version of React suspense!
 
 _Originally inspired by the now seemingly abandoned library - [bey](https://github.com/jamiebuilds/bey). Although substantially
 different now- with Server-side rendering and Async Actions built in! Bey was in turn inspired by
@@ -20,6 +20,8 @@ different now- with Server-side rendering and Async Actions built in! Bey was in
 Try out a quick example:
 
 [![Edit Pullstate Client-only Example](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/myvj8zzypp)
+
+## 🎉 [New documentation site is live!](https://lostpebble.github.io/pullstate/)
 
 # **Let's dive right in**
 

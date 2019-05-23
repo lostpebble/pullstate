@@ -159,7 +159,12 @@ ServerReactRouter.get("*", async (ctx) => {
   const { pullstateInstance } = ctx.state;
 
   // render React app with pullstate instance
+  <PullstateProvider instance={pullstateInstance}>
+     <App />
+  </PullstateProvider>
 ```
+
+> Even though you are resolving actions outside of the render cycle, **you still need to use** `<PullstateProvider>` as its the only way to provide your pre-run action's state to your app during rendering. If you didn't put that instance into the provider, `useBeckon()` can't see the result and will have queued up another run the regular way (multiple renders required).
 
 The Async Actions you use on the server and the ones you use on the client are exactly the same - so they are really nice for server-rendered SPAs. Everything just runs and caches as needed.
 

@@ -6,7 +6,7 @@ sidebar_label: Use Async Actions
 
 *For the sake of being complete in our examples, all possible return states are shown - in real application usage, you might only use a subset of these values.*
 
-### Watch an Async Action (React hook)
+## Watch an Async Action (React hook)
 
 ```tsx
 const [started, finished, result, updating] = GetUserAction.useWatch({ userId });
@@ -19,7 +19,7 @@ const [started, finished, result, updating] = GetUserAction.useWatch({ userId })
   * `updating`: This is a special action state which can be instigated through `run()`, which we will see further down.
 * `result` is the structured result object you return from your action (see above in action creation).
 
-### Beckon an Async Action (React hook)
+## Beckon an Async Action (React hook)
 
 ```tsx
 const [finished, result, updating] = GetUserAction.useBeckon({ userId });
@@ -33,7 +33,7 @@ const [finished, result, updating] = GetUserAction.useBeckon({ userId });
 
 If you are server rendering and you would _not_ like a certain Async Action to be instigated on the server (i.e. you are fine with the action resolving itself client-side only), you can pass as an option to beckon `{ ssr: false }`.
 
-### Run an Async Action directly
+## Run an Async Action directly
 
 ```tsx
 const result = await GetUserAction.run({ userId });
@@ -79,7 +79,11 @@ But there are times when you do actually want to hit the cache on a direct run, 
 
 If set to `true`, will not run the [short circuit hook](async-short-circuit-hook.md) for this run of the action.
 
-### Clear an Async Action's cache
+## `InjectAsyncAction` component
+
+
+
+## Clear an Async Action's cache
 
 ```tsx
 GetUserAction.clearCache({ userId });
@@ -93,7 +97,7 @@ Clears all known state about this action (specific to the passed arguments).
 
 * Any beckoned actions (`useBeckon()`) will have their actions re-instigated anew.
 
-### Clear the Async Action cache for *all* argument combinations
+## Clear the Async Action cache for *all* argument combinations
 
 ```tsx
 GetUserAction.clearAllCache();
