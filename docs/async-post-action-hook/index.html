@@ -111,6 +111,10 @@
 <p><code>context</code> helps us know how we came to be running this post action hook, and allows us to block certain scenarios (and prevent duplicate runs in some scenarios). It all depends on your app and how you make use of async actions.</p>
 <p><code>context</code> will be set to one of the following values:</p>
 <ul>
+<li><code>BECKON_HIT_CACHE</code>
+<ul>
+<li>Ran after a <a href="watching-async-action.md"><code>watch</code></a> or <a href="beckoning-async-action.md"><code>beckon</code></a> hit a cached value on this action (triggered after a UI change where old arguments put into <code>watch()</code> or <code>beckon()</code> again)</li>
+</ul></li>
 <li><code>WATCH_HIT_CACHE</code>
 <ul>
 <li>Ran after a <a href="watching-async-action.md"><code>watch</code></a> or <a href="beckoning-async-action.md"><code>beckon</code></a> hit a cached value on this action (triggered after a UI change where old arguments put into <code>watch()</code> or <code>beckon()</code> again)</li>
