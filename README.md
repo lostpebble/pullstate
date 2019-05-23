@@ -7,11 +7,11 @@
 > Ridiculously simple state stores with performant retrieval anywhere
 > in your React tree using the wonderful concept of React hooks!
 
-* ~2.81KB minified and gzipped! (excluding Immer and React)
+* ~4KB minified and gzipped! (excluding Immer and React)
 * Built with Typescript, providing a great dev experience if you're using it too
 * Provides `<InjectStoreState>` component
 * Uses [immer](https://github.com/mweststrate/immer) for state updates - easily and safely mutate your state directly!
-* **NEW** - [Create async actions](#async-actions) and use hooks to watch their state, or use `<InjectAsyncAction>`. Pullstate's version of React suspense!
+* **NEW** - [Create async actions](https://lostpebble.github.io/pullstate/docs/async-actions-introduction) and use React hooks to watch their state, or use `<InjectAsyncAction>`. Pullstate's version of React suspense!
 
 _Originally inspired by the now seemingly abandoned library - [bey](https://github.com/jamiebuilds/bey). Although substantially
 different now- with Server-side rendering and Async Actions built in! Bey was in turn inspired by
@@ -21,263 +21,122 @@ Try out a quick example:
 
 [![Edit Pullstate Client-only Example](https://codesandbox.io/static/img/play-codesandbox.svg)](https://codesandbox.io/s/myvj8zzypp)
 
-## 🎉 [New documentation site is live!](https://lostpebble.github.io/pullstate/)
+### 🎉 **[New documentation site is live!](https://lostpebble.github.io/pullstate/)**
+
+* [Installation](https://lostpebble.github.io/pullstate/docs/installation)
+* [Quick example](https://lostpebble.github.io/pullstate/docs/quick-example)
+* [Quick example - Server rendering](https://lostpebble.github.io/pullstate/docs/quick-example-server-rendered)
+* [Async Actions](https://lostpebble.github.io/pullstate/docs/async-actions-introduction)
+  * [Creation](https://lostpebble.github.io/pullstate/docs/async-actions-creating)
+  * [Usage](https://lostpebble.github.io/pullstate/docs/async-action-use)
+  * [Async action hooks](https://lostpebble.github.io/pullstate/docs/async-hooks-overview)
+
+---
 
 # **Let's dive right in**
+
+This is taken directly from [the documentation site](https://lostpebble.github.io/pullstate/docs/quick-example), to give you a quick overview of Pullstate here on github. Be sure to check out the site to learn more.
+
+To start off, install `pullstate`.
 
 ```bash
 yarn add pullstate
 ```
 
-After installing, lets define a store by passing an initial state to `new Store()`:
+## Create a store
 
-```tsx
+Define the first **state store**, by passing an initial state to `new Store()`:
+
+<!--JavaScript-->
+```jsx
 import { Store } from "pullstate";
 
 export const UIStore = new Store({
-  theme: {
-    mode: EThemeMode.DARK,
-  },
-  message: `What a lovely day`,
+  isDarkMode: true,
 });
 ```
+
+## Read our store's state
 
 Then, in React, we can start using the state of that store using a simple hook `useStoreState()`:
 
 ```tsx
-import { UIStore } from "./stores/UIStore";
+import * as React from "react";
 import { useStoreState } from "pullstate";
+import { UIStore } from "./UIStore";
 
-const App = () => {
-  const theme = useStoreState(UIStore, s => s.theme);
+export const App = () => {
+  const isDarkMode = useStoreState(UIStore, s => s.isDarkMode);
 
   return (
-    <div className={`app ${theme}`}>
-      <button
-        onClick={() => {
-          UIStore.update(s => {
-            s.theme.mode = theme.mode === EThemeMode.DARK ? EThemeMode.LIGHT : EThemeMode.DARK;
-          });
-        }}
-      >
-        Switch it up!
-      </button>
+    <div
+      style={{
+        background: isDarkMode ? "black" : "white",
+        color: isDarkMode ? "white" : "black",
+      }}>
+      <h1>Hello Pullstate</h1>
     </div>
   );
 };
 ```
 
-Notice, that we also made use of `update()`, which allows us to update our stores' state anywhere we please - (literally anywhere in your JS code, not only inside React components - __but if you are using Server Rendering, see below 👇__) - over here we simply did it inside a click event to change the theme.
+The second argument to `useStoreState()` over here (`s => s.isDarkMode`), is a selection function that ensures we select only the state that we actually need for this component. This is a big performance booster, as we only listen for changes (and if changed, re-render the component) on the exact returned values - in this case, simply the value of `isDarkMode`.
 
-Also notice, the second argument to `useStoreState()`:
+---
 
-```tsx
-const theme = useStoreState(UIStore, s => s.theme);
-```
+## Add interaction (update state)
 
-This selects a sub-state within our store. This ensures that this specific "hook" into our store will only update when that specific return value is actually changed in our store. This enhances our app's performance by ignoring any changes in the store this component does not care about, preventing unnecessary renders.
-
-**E.g** If we had to update the value of `message` in the `UIStore`, nothing would happen here since we are only listening
-for changes on `theme`.
-
-If you want you can leave out the second argument altogether:
+Great, so we are able to pull our state from `UIStore` into our App. Now lets add some basic interaction with a `<button>`:
 
 ```tsx
-const storeState = useStoreState(UIStore);
-```
-
-This will return the entire store's state - and listen to all changes on the store - so it is generally not recommended.
-
-To listen to more parts of the state within a store simply pick out more values:
-
-```tsx
-const { theme, message } = useStoreState(UIStore, s => ({ theme: s.theme, message: s.message }));
-```
-
-Lastly, lets look at how we update our stores:
-
-```tsx
-UIStore.update(s => {
-  s.theme.mode = theme.mode === EThemeMode.DARK ? EThemeMode.LIGHT : EThemeMode.DARK;
-});
-```
-
-Using the power of [immer](https://github.com/mweststrate/immer), we update a store by calling a function called `update()` on it. The argument is the updater function, which is given the current state of our store to mutate however we like! For more information on how this works, go check out [immer](https://github.com/mweststrate/immer). Its great.
-
-And that's pretty much it!
-
-As an added convenience (and for those who still enjoy using components directly for accessing these things), you can also work with state using the `<InjectStoreState>` component, like so:
-
-```tsx
-import { InjectStoreState } from "pullstate";
-
-// ... somewhere in your JSX :
-<InjectStoreState store={UIStore} on={s => s.message}>{message => <h2>{message}</h2>}</InjectStoreState>
-```
-
-# Server Rendering
-
-The above will sort you out nicely if you are simply running a client-rendered app. But Server Rendering is a little more involved (although not much).
-
-## Create a central place for all your stores using `createPullstateCore()`
-
-```tsx
-import { UIStore } from "./stores/UIStore";
-import { UserStore } from "./stores/UserStore";
-import { createPullstateCore } from "pullstate";
-
-export const PullstateCore = createPullstateCore({
-  UIStore,
-  UserStore,
-});
-```
-
-You pass in the stores you created before. This creates a centralized object from which Pullstate can instantiate your state before each render.
-
-## Using your stores on the server
-
-```tsx
-import { PullstateCore } from "./state/PullstateCore";
-import ReactDOMServer from "react-dom/server";
-import { PullstateProvider } from "pullstate";
-
-// A server request
-async function someRequest(req) {
-  const instance = PullstateCore.instantiate({ ssr: true });
-
-  const user = await UserApi.getUser(id);
-
-  instance.stores.UserStore.update(userStore => {
-    userStore.userName = user.name;
-  });
-
-  const reactHtml = ReactDOMServer.renderToString(
-    <PullstateProvider instance={instance}>
-      <App />
-    </PullstateProvider>
-  );
-
-  const body = `
-<script>window.__PULLSTATE__ = '${JSON.stringify(instance.getPullstateSnapshot())}'</script>
-${reactHtml}`;
-
-  // do something with the generated html and send response
-}
-```
-
-* Instantiate fresh stores before each render using `instantiate()` - passing in `ssr: true`
-* Manipulate your state directly during your server's request by using the `stores` property of the instantiated object.
-* Notice we called `update()` directly on the `UserStore` here - this is a convenience method (which is actually available on all stores).
-* We pass our pullstate instance into the rendering function. We use `<PullstateProvider>` to do so, providing the `instance`.
-* Lastly, we need to return this state to the client somehow. Here we call `getPullstateSnapshot()` on the instance and set it on `window.__PULLSTATE__`, to be parsed and hydrated on the client.
-
-## Client state hydration
-
-```tsx
-const hydrateSnapshot = JSON.parse(window.__PULLSTATE__);
-
-const instance = PullstateCore.instantiate({ ssr: false, hydrateSnapshot });
-
-ReactDOM.render(
-  <PullstateProvider instance={instance}>
-    <App />
-  </PullstateProvider>,
-  document.getElementById("react-mount")
-);
-```
-
-* We create a new instance on the client using the same method as on the server, except this time we can pass the `hydrateSnapshot` and `ssr: false`, which will instantiate our new stores with the state where our server left off.
-
-## Using our stores throughout our React app
-
-So now that we have our stores properly injected into our react app through `<PullstateProvider>`, we need to actually make use of them correctly. Because we are server rendering, we can't use the singleton-type stores we made before - we need to target these injected store instances directly.
-
-For that we need a new hook - `useStores()`.
-
-This hook uses React's context to obtain the current render's stores, given to us by `<PullstateProvider>`.
-
-Lets refactor the previous client-side-only example to work with Server Rendering:
-
-```tsx
-import { useStoreState, useStores } from "pullstate";
-
-const App = () => {
-  const { UIStore, UserStore } = useStores();
-  const theme = useStoreState(UIStore, s => s.theme);
-  const userName = useStoreState(UserStore, s => s.userName)
-
   return (
-    <div className={`app ${theme}`}>
+    <div
+      style={{
+        background: isDarkMode ? "black" : "white",
+        color: isDarkMode ? "white" : "black",
+      }}>
+      <h1>Hello Pullstate</h1>
       <button
-        onClick={() => {
+        onClick={() =>
           UIStore.update(s => {
-            s.theme.mode = theme.mode === EThemeMode.DARK ? EThemeMode.LIGHT : EThemeMode.DARK;
-          });
-        }}
-      >
-        Switch it up, {userName}!
+            s.isDarkMode = !isDarkMode;
+          })
+        }>
+        Toggle Dark Mode
       </button>
     </div>
   );
-};
 ```
 
-Basically, all you need to do is replace the import
+Notice how we call `update()` on `UIStore`, inside which we directly mutate the store's state. This is all thanks to the power of `immer`, which you can check out [here](https://github.com/immerjs/immer).
 
+Another pattern, which helps to illustrate this further, would be to actually define the action of toggling dark mode to a function on its own:
+
+<!--JavaScript-->
 ```tsx
-import { UIStore } from "./stores/UIStore";
-```
-
-with the context hook:
-
-```tsx
-const { UIStore } = useStores();
-```
-
-As a **TypeScript** convenience, there is a method on your created `PullstateCore` object of all your stores also named `useStores()` which will give you all the typing goodness since it knows about the structure of your stores:
-
-```tsx
-const { UIStore, UserStore } = PullstateCore.useStores();
-```
-
-## Last note about Server Rendering
-
-On the client side, when instantiating your stores, you are now instantiating with your "origin" stores by passing the `ssr: false` like so:
-
-```tsx
-const hydrateSnapshot = JSON.parse(window.__PULLSTATE__);
-
-const instance = PullstateCore.instantiate({ ssr: false, hydrateSnapshot });
-
-ReactDOM.render(
-  <PullstateProvider instance={instance}>
-    <App />
-  </PullstateProvider>,
-  document.getElementById("react-mount")
-);
-```
-
-Basically, what this does is re-uses the exact stores that you originally created.
-
-This allows us to directly update those original stores on the client and we will receive updates as usual. On the server, calling `instantiate({ ssr: true })` creates a fresh copy of your stores (which is required because each client request needs to maintain its own state), but on the client code - its perfectly fine to directly update your created stores because the state is contained to that client alone.
-
-For example, you could now do something like this:
-
-```jsx
-import { UIStore, GraphStore } from "./stores"
-
-async function refreshGraphData() {
-  UIStore.update(s => { s.refreshing = true; });
-  const newData = await GraphDataApi.getNewData();
-  GraphStore.update(s => { s.data = newData; });
-  UIStore.update(s => { s.refreshing = false; });
+function toggleMode(s) {
+  s.isDarkMode = !s.isDarkMode;
 }
+
+// ...in our <button> code
+<button onClick={() => UIStore.update(toggleMode)}>Toggle Dark Mode</button>
 ```
 
-⚠ __Caution Though__ - While this allows for much more ease of use for playing around with state on the client, you must make sure that these state updates are _strictly_ client-side only updates - as they will not apply on the server and you will get unexpected results. Think of these updates as updates that will run after the page has already loaded completely for the user (UI responses, dynamic data loading, loading screen popups etc.).
+Basically, to update our app's state all we need to do is create a function (inline arrow function or regular) which takes the current store's state and mutates it to whatever we'd like the next state to be.
 
-🍩 _For a tighter-controlled, server-compatible and overall easier experience dealing with these types of async updates, see the next section!_
+## Omnipresent state updating
 
+Something interesting to notice at this point is that we are just importing `UIStore` directly and running `update()` on it:
+
+```tsx
+import { UIStore } from "./UIStore";
+
+// ...in our <button> code
+<button onClick={() => UIStore.update(toggleMode)}>Toggle Dark Mode</button>
+```
+
+And our components are being updated accordingly. We have freed our app's state from the confines of the component! This is one of the main advantages of Pullstate - allowing us to separate our state concerns from being locked in at the component level and manage things easily at a more global level from which our components listen and react (through our `useStoreState()` hooks).
+<--
 # Async Actions
 
 Jump straight into an example here:
@@ -505,3 +364,4 @@ const [finished, result, updating] = GetUserAction.useBeckon({ userId }, { ssr: 
 ```
 
 Passing in `ssr: false` will cause this action to be ignored in the server asynchronous state resolve cycle.
+-->

@@ -9,7 +9,7 @@ sidebar_label: Quick example
 
 ## Create a state store
 
-Let's dive right in and define and export our first **state store**:
+Let's dive right in and define and export our first **state store**, by passing an initial state to `new Store()`:
 
 <!--DOCUSAURUS_CODE_TABS-->
 <!--JavaScript-->
