@@ -35,7 +35,7 @@ Try out a quick example:
 
 # **Let's dive right in**
 
-This is taken directly from [the documentation site](https://lostpebble.github.io/pullstate/docs/quick-example), to give you a quick overview of Pullstate here on github. Be sure to check out the site to learn more.
+> This is taken directly from [the documentation site](https://lostpebble.github.io/pullstate/docs/quick-example), to give you a quick overview of Pullstate here on github. Be sure to check out the site to learn more.
 
 To start off, install `pullstate`.
 
