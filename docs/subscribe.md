@@ -22,10 +22,10 @@ myStore.subscribe(watch, listener) => unsubscribe
 storeState => storeState.valueToWatch;
 ```
 
-**Second** argument `listener` - a callback function which is run when the watched value changes. The new watched value will be the first argument, and the entire store's state is the second.
+**Second** argument `listener` - a callback function which is run when the watched value changes. The new watched value will be the first argument, and the entire store's state is the second. The third argument is the last watched value, passed as a convenience for if you ever need to refer to it.
 
 ```jsx
-(watched, allState) => { //do things };
+(watched, allState, prevWatched) => { //do things };
 ```
 
 **Return** value `unsubscribe` is simply a function you can run in order to stop listening.

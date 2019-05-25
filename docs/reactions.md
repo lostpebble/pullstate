@@ -22,7 +22,7 @@ StoreName.createReaction(watch, reaction);
 
 <!--TypeScript-->
 ```tsx
-type TReactionFunction<S, T> = (watched:  T, draft: S, original: S) => void;
+type TReactionFunction<S, T> = (watched:  T, draft: S, original: S, lastWatched: T) => void;
 
 StoreName.createReaction(watch: (state: S) => T, reaction: TReactionFunction<S, T>): () => void
 ```
@@ -40,7 +40,7 @@ The watched value is checked every time the store is updated. If the value has c
 The `reaction` function:
 
 ```jsx
-(watched, draft, original) => { //do things };
+(watched, draft, original, lastWatched) => { //do things };
 ```
 
 The new watched value will be passed as the first argument,`watched` 
@@ -51,6 +51,8 @@ The next two arguments are the same as those used whe running `update()` on a st
 
 * `original` is passed as a performance consideration. It is exactly the same as `draft` but without all the `immer` magic. It's a plain object of your state.
   * **Why?** Referencing values directly on your `draft` object can be a performance hit in certain situations because of the way that immer works internally (JavaScript proxies) - so if you need to _reference_ the current store state, you should use `original`. But if you want to _change_ it, you use `draft`. [Read more on immer's github](https://github.com/immerjs/immer#pitfalls).
+
+The last argument is the last watched value, passed as a convenience for if you ever need to refer to it.
   
 ## Example
 

@@ -15,14 +15,14 @@ export interface IStoreInternalOptions<S> {
 }
 
 type TUpdateFunction<S> = (draft: S, original: S) => void;
-type TReactionFunction<S, T> = (watched: T, draft: S, original: S) => void;
+type TReactionFunction<S, T> = (watched: T, draft: S, original: S, previousWatched: T) => void;
 type TRunReactionFunction = () => void;
 type TReactionCreator<S> = (store: Store<S>) => TRunReactionFunction;
 
 function makeSubscriptionFunction<S, T>(
   store: Store<S>,
   watch: (state: S) => T,
-  listener: (watched: T, allState: S) => void
+  listener: (watched: T, allState: S, previousWatched: T) => void
 ): TRunReactionFunction {
   let lastWatchState: T = watch(store.getRawState());
 
@@ -32,7 +32,7 @@ function makeSubscriptionFunction<S, T>(
 
     if (nextWatchState !== lastWatchState) {
       lastWatchState = nextWatchState;
-      listener(nextWatchState, currentState);
+      listener(nextWatchState, currentState, lastWatchState);
     }
   };
 }
@@ -51,7 +51,7 @@ function makeReactionFunctionCreator<S, T>(
       if (nextWatchState !== lastWatchState) {
         lastWatchState = nextWatchState;
         store._updateStateWithoutReaction(
-          produce(currentState as any, s => reaction(nextWatchState, s, currentState))
+          produce(currentState as any, s => reaction(nextWatchState, s, currentState, lastWatchState))
         );
       }
     };
@@ -120,7 +120,7 @@ export class Store<S = any> {
     this.updateListeners = this.updateListeners.filter(f => f !== listener);
   }
 
-  subscribe<T>(watch: (state: S) => T, listener: (watched: T, allState: S) => void): () => void {
+  subscribe<T>(watch: (state: S) => T, listener: (watched: T, allState: S, previousWatched: T) => void): () => void {
     if (!this.ssr) {
       const func = makeSubscriptionFunction(this, watch, listener);
       this.clientSubscriptions.push(func);
@@ -131,7 +131,7 @@ export class Store<S = any> {
 
     return () => {
       console.warn(
-        `Subscriptions made on the server side are not registered - so therefor this call to unsubscribe does nothing.`
+        `Pullstate: Subscriptions made on the server side are not registered - so therefor this call to unsubscribe does nothing.`
       );
     };
   }
