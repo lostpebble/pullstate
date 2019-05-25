@@ -31,8 +31,8 @@ function makeSubscriptionFunction<S, T>(
     const nextWatchState = watch(currentState);
 
     if (nextWatchState !== lastWatchState) {
-      lastWatchState = nextWatchState;
       listener(nextWatchState, currentState, lastWatchState);
+      lastWatchState = nextWatchState;
     }
   };
 }
@@ -49,10 +49,10 @@ function makeReactionFunctionCreator<S, T>(
       const nextWatchState = watch(currentState);
 
       if (nextWatchState !== lastWatchState) {
-        lastWatchState = nextWatchState;
         store._updateStateWithoutReaction(
           produce(currentState as any, s => reaction(nextWatchState, s, currentState, lastWatchState))
         );
+        lastWatchState = nextWatchState;
       }
     };
   };
