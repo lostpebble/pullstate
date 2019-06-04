@@ -8,6 +8,9 @@ module.exports = {
     "json",
     "node"
   ],
+  moduleDirectories: [
+    "test/node_modules", "node_modules"
+  ],
   "testEnvironment": "jsdom",
   "testRegex": "((test|spec)|(tests|specs))\\.(jsx?|tsx?)$",
   "transform": {
