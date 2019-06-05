@@ -117,8 +117,12 @@ If you really wish to avoid the re-rendering, Async Actions are runnable on your
 We make use of the following API on our Pullstate instance:
 
 ```tsx
-await pullstateInstance.runAsyncAction(CreatedAsyncAction, args);
+await pullstateInstance.runAsyncAction(CreatedAsyncAction, args, options);
 ```
+
+The `options` parameter here is the same as that defined on the regular [`run()` method on an action](async-action-use.md#run-an-async-action-directly). The key options being, `ignoreShortCircuit` (default `false`) and `respectCache` (default `false`).
+
+If you are running actions on the client side again before rendering your app for the first time (perhaps using some kind of isomorphic routing library) - you should be passing the option `{ respectCache: true }` on the client so these actions do not run again.
 
 This example makes use of `koa` and `koa-router`, we inject our instance onto our request's `ctx.state` early on in the request so we can use it along the way until finally rendering our app.
 
