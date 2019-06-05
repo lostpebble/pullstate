@@ -84,10 +84,11 @@ const siteConfig = {
   onPageNav: "separate",
   // No .html extensions for paths.
   cleanUrl: true,
+  gaTrackingId: "UA-141547545-1",
 
   // Open Graph and Twitter card images.
-  // ogImage: "img/docusaurus.png",
-  // twitterImage: "img/docusaurus.png",
+  ogImage: "img/logo-newest.png",
+  twitterImage: "img/logo-newest.png",
 
   // Show documentation's last contributor's name.
   // enableUpdateBy: true,

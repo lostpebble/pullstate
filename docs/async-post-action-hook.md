@@ -84,14 +84,14 @@ postActionHook(inputs) { // Do things with inputs for this async action run };
 `context` will be set to one of the following values:
 
 * `BECKON_HIT_CACHE`
-  * Ran after a [`watch`](watching-async-action.md) or [`beckon`](beckoning-async-action.md) hit a cached value on this action (triggered after a UI change where old arguments put into `watch()` or `beckon()` again)
+  * Ran after a [`watch`](async-action-use.md#watch-an-async-action-react-hook) or [`beckon`](async-action-use.md#beckon-an-async-action-react-hook) hit a cached value on this action (triggered after a UI change where old arguments put into `watch()` or `beckon()` again)
 * `WATCH_HIT_CACHE`
-  * Ran after a [`watch`](watching-async-action.md) or [`beckon`](beckoning-async-action.md) hit a cached value on this action (triggered after a UI change where old arguments put into `watch()` or `beckon()` again)
+  * Ran after a [`watch`](async-action-use.md#watch-an-async-action-react-hook) or [`beckon`](async-action-use.md#beckon-an-async-action-react-hook) hit a cached value on this action (triggered after a UI change where old arguments put into `watch()` or `beckon()` again)
 * `RUN_HIT_CACHE`
-  * Ran after we called [`run`](running-async-action.md) on this action with `respectCache: true`, and the cache was hit on this action
+  * Ran after we called [`run`](async-action-use.md#run-an-async-action-directly) on this action with `respectCache: true`, and the cache was hit on this action
 * `SHORT_CIRCUIT`
   * Ran after first time run, and the `shortCircuit` hook finished the action pre-maturely
 * `DIRECT_RUN`
-  * Ran after we called [`run`](running-async-action.md) on this action with `respectCache` not set to `true`
+  * Ran after we called [`run`](async-action-use.md#run-an-async-action-directly) on this action with `respectCache` not set to `true`
 * `BECKON_RUN`
-  * Ran after a [`beckon`](beckoning-async-action.md) instigated this action for the first time
+  * Ran after a [`beckon`](async-action-use.md#beckon-an-async-action-react-hook) instigated this action for the first time

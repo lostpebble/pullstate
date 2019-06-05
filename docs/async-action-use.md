@@ -146,4 +146,4 @@ Clears all known state about this action (specific to the passed arguments).
 GetUserAction.clearAllCache();
 ```
 
-This is the same as `clearCache()`, except it will clear the cache for every single argument combination (the "fingerprints" we spoke of above) that this action has seen.
+This is the same as `clearCache()`, except it will clear the cache for every single argument combination (the "fingerprints" we spoke of before) that this action has seen.
