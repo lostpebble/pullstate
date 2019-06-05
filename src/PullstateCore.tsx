@@ -52,7 +52,7 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
     ssr = false,
   }: { hydrateSnapshot?: IPullstateSnapshot; ssr?: boolean } = {}): PullstateInstance<S> {
     if (!ssr) {
-      const instantiated = new PullstateInstance(this.originStores);
+      const instantiated = new PullstateInstance(this.originStores, false);
 
       if (hydrateSnapshot != null) {
         instantiated.hydrateFromSnapshot(hydrateSnapshot);
@@ -82,7 +82,7 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
       });
     }
 
-    return new PullstateInstance(newStores as S);
+    return new PullstateInstance(newStores as S, true);
   }
 
   useStores(): S {
@@ -123,6 +123,7 @@ export interface IPullstateInstanceConsumable<T extends IPullstateAllStores = IP
 
 class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores>
   implements IPullstateInstanceConsumable<T> {
+  private _ssr: boolean = false;
   private readonly _stores: T = {} as T;
   _asyncCache: IPullstateAsyncCache = {
     listeners: {},
@@ -131,8 +132,9 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores>
     actionOrd: {},
   };
 
-  constructor(allStores: T) {
+  constructor(allStores: T, ssr: boolean) {
     this._stores = allStores;
+    this._ssr = ssr;
   }
 
   private getAllUnresolvedAsyncActions(): Array<Promise<any>> {
@@ -196,8 +198,11 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores>
     args: A = {} as A,
     runOptions: Pick<IAsyncActionRunOptions, "ignoreShortCircuit" | "respectCache"> = {}
   ): TPullstateAsyncRunResponse<R, X> {
-    (runOptions as IAsyncActionRunOptions)._asyncCache = this._asyncCache;
-    (runOptions as IAsyncActionRunOptions)._stores = this._stores;
+    if (this._ssr) {
+      (runOptions as IAsyncActionRunOptions)._asyncCache = this._asyncCache;
+      (runOptions as IAsyncActionRunOptions)._stores = this._stores;
+    }
+
     return await asyncAction.run(args, runOptions);
   }
 
