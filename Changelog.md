@@ -1,3 +1,7 @@
+## 1.0.0-beta.6
+
+Fixed the `postActionHook` to work correctly when hitting a cached value.
+
 ## 0.8.0.alpha-2
 
 Added `IPullstateInstanceConsumable` as an export to help people who want to create code using the Pullstate stores' instance.

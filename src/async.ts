@@ -317,7 +317,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       shouldUpdate[key][watchId.current] = true;
     }
 
-    // console.log(`[${key}][${watchId}] Starting useWatch()`);
+    // console.log(`[${key}][${watchId.current}] Starting useWatch()`);
 
     const cache: IPullstateAsyncCache = onServer
       ? useContext(PullstateContext)._asyncCache
@@ -327,8 +327,8 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     // only listen for updates when on client
     if (!onServer) {
       const onAsyncStateChanged = () => {
-        // console.log(`[${key}][${watchId}] should update: ${shouldUpdate[key][watchId.current]}`);
-        // console.log(`[${key}][${watchId}] will update?: ${!shallowEqual(responseRef.current, cache.results[key])} - ${responseRef.current} !== ${cache.results[key]}`);
+        // console.log(`[${key}][${watchId.current}] should update: ${shouldUpdate[key][watchId.current]}`);
+        // console.log(`[${key}][${watchId.current}] will update?: ${!shallowEqual(responseRef.current, cache.results[key])} - ${responseRef.current} !== ${cache.results[key]}`);
         if (shouldUpdate[key][watchId.current] && !shallowEqual(responseRef.current, cache.results[key])) {
           responseRef.current = checkKeyAndReturnResponse(
             key,
@@ -391,6 +391,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         ssr,
         args,
         stores,
+        false,
         postActionEnabled,
         cacheBreakEnabled
       );
@@ -420,7 +421,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     }: IAsyncActionRunOptions = {}
   ): Promise<TAsyncActionResult<R, T>> => {
     const key = createKey(ordinal, args);
-    console.log(`[${key}] Running action`);
+    // console.log(`[${key}] Running action`);
 
     if (_asyncCache.results.hasOwnProperty(key) && respectCache) {
       if (
