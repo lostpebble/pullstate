@@ -1,3 +1,7 @@
+## 1.0.0-beta.7
+
+Replaced `shallowEqual` from `fbjs` with the tiny package `fast-deep-equal` for object comparisons in various parts of the lib.
+
 ## 1.0.0-beta.6
 
 Fixed the `postActionHook` to work correctly when hitting a cached value.

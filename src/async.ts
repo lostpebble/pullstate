@@ -23,7 +23,7 @@ import {
   TPullstateAsyncWatchResponse,
 } from "./async-types";
 
-const shallowEqual = require("fbjs/lib/shallowEqual");
+const isEqual = require("fast-deep-equal");
 
 export const clientAsyncCache: IPullstateAsyncCache = {
   listeners: {},
@@ -329,7 +329,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       const onAsyncStateChanged = () => {
         // console.log(`[${key}][${watchId.current}] should update: ${shouldUpdate[key][watchId.current]}`);
         // console.log(`[${key}][${watchId.current}] will update?: ${!shallowEqual(responseRef.current, cache.results[key])} - ${responseRef.current} !== ${cache.results[key]}`);
-        if (shouldUpdate[key][watchId.current] && !shallowEqual(responseRef.current, cache.results[key])) {
+        if (shouldUpdate[key][watchId.current] && !isEqual(responseRef.current, cache.results[key])) {
           responseRef.current = checkKeyAndReturnResponse(
             key,
             cache,

@@ -1,6 +1,7 @@
 // @ts-ignore
 import { Patch } from "immer";
 import { useStoreState } from "./useStoreState";
+const isEqual = require("fast-deep-equal");
 
 const Immer = require("immer");
 
@@ -30,7 +31,8 @@ function makeSubscriptionFunction<S, T>(
     const currentState = store.getRawState();
     const nextWatchState = watch(currentState);
 
-    if (nextWatchState !== lastWatchState) {
+    // nextWatchState !== lastWatchState
+    if (!isEqual(nextWatchState, lastWatchState)) {
       listener(nextWatchState, currentState, lastWatchState);
       lastWatchState = nextWatchState;
     }
@@ -48,7 +50,8 @@ function makeReactionFunctionCreator<S, T>(
       const currentState = store.getRawState();
       const nextWatchState = watch(currentState);
 
-      if (nextWatchState !== lastWatchState) {
+      // if (nextWatchState !== lastWatchState) {
+      if (!isEqual(nextWatchState, lastWatchState)) {
         store._updateStateWithoutReaction(
           produce(currentState as any, s => reaction(nextWatchState, s, currentState, lastWatchState))
         );

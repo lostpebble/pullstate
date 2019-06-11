@@ -1,4 +1,4 @@
-const shallowEqual = require("fbjs/lib/shallowEqual");
+const isEqual = require("fast-deep-equal");
 
 // S = State
 // SS = Sub-state
@@ -31,7 +31,7 @@ function useStoreState(store: Store, getSubState?: (state) => any): any {
 
   const onStoreUpdate = useCallback(() => {
     const nextSubState = updateRef.current.getSubState ? updateRef.current.getSubState(store.getRawState()) : store.getRawState();
-    if (updateRef.current.shouldUpdate && !shallowEqual(updateRef.current.currentSubState, nextSubState)) {
+    if (updateRef.current.shouldUpdate && !isEqual(updateRef.current.currentSubState, nextSubState)) {
       setSubState(nextSubState);
     }
   }, []);
