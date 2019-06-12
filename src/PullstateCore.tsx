@@ -215,8 +215,8 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores>
       }
     }
 
-    clientAsyncCache.results = snapshot.asyncResults;
-    clientAsyncCache.actionOrd = snapshot.asyncActionOrd;
+    clientAsyncCache.results = snapshot.asyncResults || {};
+    clientAsyncCache.actionOrd = snapshot.asyncActionOrd || {};
   }
 }
 
