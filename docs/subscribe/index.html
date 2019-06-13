@@ -119,7 +119,7 @@
 
 <span class="token keyword">function</span> <span class="token function">getRealtimeUpdatesForCityCode</span><span class="token punctuation">(</span><span class="token parameter">cityCode</span><span class="token punctuation">)</span> <span class="token punctuation">{</span>
   <span class="token function">previousCityUnsubscribe</span><span class="token punctuation">(</span><span class="token punctuation">)</span><span class="token punctuation">;</span>
-  previousCityUnsubscribe <span class="token operator">=</span> <span class="token function">startWatchingCity</span><span class="token punctuation">(</span>watchedValue<span class="token punctuation">)</span><span class="token punctuation">;</span>
+  previousCityUnsubscribe <span class="token operator">=</span> <span class="token function">startWatchingCity</span><span class="token punctuation">(</span>cityCode<span class="token punctuation">)</span><span class="token punctuation">;</span>
 <span class="token punctuation">}</span>
 
 CityStore<span class="token punctuation">.</span><span class="token function">subscribe</span><span class="token punctuation">(</span><span class="token parameter">s</span> <span class="token operator">=></span> s<span class="token punctuation">.</span>currentCityCode<span class="token punctuation">,</span> getRealtimeUpdatesForCityCode<span class="token punctuation">)</span><span class="token punctuation">;</span>
