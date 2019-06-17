@@ -9,7 +9,7 @@
     "rename-version": "docusaurus-rename-version"
   },
   "devDependencies": {
-    "docusaurus": "^2.0.0-alpha.18",
+    "docusaurus": "^2.0.0-alpha.19",
     "cross-env": "^5.2.0"
   }
 }

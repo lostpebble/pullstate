@@ -83,7 +83,7 @@ function startWatchingCity(cityCode) {
 
 function getRealtimeUpdatesForCityCode(cityCode) {
   previousCityUnsubscribe();
-  previousCityUnsubscribe = startWatchingCity(watchedValue);
+  previousCityUnsubscribe = startWatchingCity(cityCode);
 }
 
 CityStore.subscribe(s => s.currentCityCode, getRealtimeUpdatesForCityCode);

@@ -19,6 +19,7 @@ import { Store } from "pullstate";
 export const UIStore = new Store({
   isDarkMode: true,
 });
+```
 
 <!--TypeScript-->
 ```tsx
@@ -31,7 +32,6 @@ interface IUIStore {
 export const UIStore = new Store<IUIStore>({
   isDarkMode: true,
 });
-```
 ```
 
 <!--END_DOCUSAURUS_CODE_TABS-->
