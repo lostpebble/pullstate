@@ -8,6 +8,7 @@
   "files": ["dist"],
   "scripts": {
     "test": "jest",
+    "test-watch": "jest --watch",
     "clean": "rimraf ./dist",
     "build": "npm run clean && rollup -c",
     "uglify": "terser ./dist/index.js -o ./dist/index.js",
