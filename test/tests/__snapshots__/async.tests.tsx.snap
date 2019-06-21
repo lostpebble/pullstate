@@ -1,0 +1,31 @@
+// Jest Snapshot v1, https://goo.gl/fbAQLP
+
+exports[`Async rendering renders our initial state with some pre-resolved async state 1`] = `
+"<div>
+    <h1>Async Test</h1>
+    <div><span>User loaded</span>
+        <div id=\\"user-box\\">
+            <h2>Hello,
+                <!-- -->Dave</h2>
+            <h3>aka:
+                <!-- -->davej</h3>
+        </div><button id=\\"initiated-get-user-button\\">Get next user</button>
+    </div>
+    <div><span>Got new user</span>
+        <div id=\\"user-box\\">
+            <h2>Hello,
+                <!-- -->Dave</h2>
+            <h3>aka:
+                <!-- -->davej</h3>
+        </div>
+    </div>
+</div>"
+`;
+
+exports[`Async rendering renders our initial state without pre-resolved async 1`] = `
+"<div data-reactroot=\\"\\">
+    <h1>Async Test</h1>
+    <div><span>Loading user</span><button disabled=\\"\\" id=\\"initiated-get-user-button\\">Get next user</button></div>
+    <div><span>Getting new user</span></div>
+</div>"
+`;

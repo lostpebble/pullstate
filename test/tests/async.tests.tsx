@@ -1,7 +1,7 @@
 import { useStoreState } from "../../src/useStoreState";
 import React from "react";
 import ReactDOMServer from "react-dom/server";
-import { Store } from "../../src";
+import { PullstateProvider, Store } from "../../src";
 import { createTestBasics, IOGetUserInput, IUserStore } from "./TestSetup";
 import { IOCreateAsyncActionOutput } from "../../src/async-types";
 
@@ -15,7 +15,7 @@ interface ITestProps {
 const UninitiatedUserAction = ({ UserStore, ChangeToNewUserAsyncAction }: ITestProps) => {
   // const [userId, setUserId] = useState(0);
   const { user, userId } = useStoreState(UserStore, s => ({ user: s.user, userId: s.currentUserId }));
-  const [started, finished, result, updating] = ChangeToNewUserAsyncAction.useWatch({ userId });
+  const [started, finished, result, updating] = ChangeToNewUserAsyncAction.useWatch();
 
   return (
     <div>
@@ -31,7 +31,7 @@ const UninitiatedUserAction = ({ UserStore, ChangeToNewUserAsyncAction }: ITestP
       {!started && (
         <button
           id="uninitiated-get-user-button"
-          onClick={() => ChangeToNewUserAsyncAction.run({ userId }, { treatAsUpdate: true })}>
+          onClick={() => ChangeToNewUserAsyncAction.run({}, { treatAsUpdate: true })}>
           Initiate Get User for ID: {userId}
         </button>
       )}
@@ -80,10 +80,17 @@ describe("Async rendering", () => {
     expect(beautifyHtml(reactHtml)).toMatchSnapshot();
   });
 
-  it("renders our initial state with some pre-resolved async state", () => {
+  it("renders our initial state with some pre-resolved async state", async () => {
     const { ChangeToNewUserAsyncAction, UserStore, PullstateCore } = createTestBasics();
 
-    const reactHtml = ReactDOMServer.renderToString(<App {...{ ChangeToNewUserAsyncAction, UserStore }} />);
+    const instance = PullstateCore.instantiate({ ssr: false });
+    await instance.runAsyncAction(ChangeToNewUserAsyncAction);
+
+    const reactHtml = ReactDOMServer.renderToString(
+      <PullstateProvider instance={instance}>
+        <App {...{ ChangeToNewUserAsyncAction, UserStore }} />
+      </PullstateProvider>
+    );
     expect(beautifyHtml(reactHtml)).toMatchSnapshot();
   });
 });
