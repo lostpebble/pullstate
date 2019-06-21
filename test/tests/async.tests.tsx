@@ -15,7 +15,7 @@ interface ITestProps {
 const UninitiatedUserAction = ({ UserStore, ChangeToNewUserAsyncAction }: ITestProps) => {
   // const [userId, setUserId] = useState(0);
   const { user, userId } = useStoreState(UserStore, s => ({ user: s.user, userId: s.currentUserId }));
-  const [started, finished, result, updating] = ChangeToNewUserAsyncAction.useWatch();
+  const [started, finished, result, updating] = ChangeToNewUserAsyncAction.useWatch({ userId: 1 });
 
   return (
     <div>
@@ -41,7 +41,7 @@ const UninitiatedUserAction = ({ UserStore, ChangeToNewUserAsyncAction }: ITestP
 
 const InitiatedNextUser = ({ UserStore, ChangeToNewUserAsyncAction }: ITestProps) => {
   const user = useStoreState(UserStore, s => s.user);
-  const [finished] = ChangeToNewUserAsyncAction.useBeckon();
+  const [finished] = ChangeToNewUserAsyncAction.useBeckon({ userId: 1 });
 
   return (
     <div>
@@ -84,7 +84,7 @@ describe("Async rendering", () => {
     const { ChangeToNewUserAsyncAction, UserStore, PullstateCore } = createTestBasics();
 
     const instance = PullstateCore.instantiate({ ssr: false });
-    await instance.runAsyncAction(ChangeToNewUserAsyncAction);
+    await instance.runAsyncAction(ChangeToNewUserAsyncAction, { userId: 1 });
 
     const reactHtml = ReactDOMServer.renderToString(
       <PullstateProvider instance={instance}>
