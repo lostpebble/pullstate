@@ -17,11 +17,12 @@ import {
   TAsyncActionDelayedRun,
   TAsyncActionGetCached,
   TAsyncActionResult,
-  TAsyncActionRun,
+  TAsyncActionRun, TAsyncActionSetCached, TAsyncActionUpdateCached,
   TAsyncActionWatch,
   TPullstateAsyncAction,
   TPullstateAsyncWatchResponse,
 } from "./async-types";
+import produce from "immer";
 
 const isEqual = require("fast-deep-equal");
 
@@ -94,8 +95,8 @@ function actionOrdUpdate(cache: IPullstateAsyncCache, key: string): number {
   return cache.actionOrd[key];
 }
 
-export function successResult<R extends any = null, T extends string = string>(
-  payload: R = null,
+export function successResult<R, T extends string = string>(
+  payload: R,
   tags: (EAsyncEndTags | T)[] = [],
   message: string = ""
 ): IAsyncActionResultPositive<R, T> {
@@ -532,6 +533,29 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     }
   };
 
+  const setCached: TAsyncActionSetCached<A, R, T> = (args, result) => {
+    const key = createKey(ordinal, args);
+
+    const cache: IPullstateAsyncCache = onServer
+      ? useContext(PullstateContext)._asyncCache
+      : clientAsyncCache;
+
+    cache.results[key] = [true, true, result, false];
+  }
+
+  const updateCached: TAsyncActionUpdateCached<A, R, T> = (args, updater) => {
+    const key = createKey(ordinal, args);
+
+    const cache: IPullstateAsyncCache = onServer
+      ? useContext(PullstateContext)._asyncCache
+      : clientAsyncCache;
+
+    if (cache.results.hasOwnProperty(key) && !cache.results[key][2].error) {
+      const currentCached: R = cache.results[key][2].payload;
+      cache.results[key][2].payload = produce(currentCached as any, s => updater(s, currentCached));
+    }
+  }
+
   const getCached: TAsyncActionGetCached<A, R, T> = (args = {} as A, { checkCacheBreak = false } = {}) => {
     const key = createKey(ordinal, args);
 
@@ -622,5 +646,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     clearCache,
     clearAllCache,
     getCached,
+    setCached,
+    updateCached,
   };
 }

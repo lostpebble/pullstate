@@ -1,4 +1,5 @@
 import { IPullstateAllStores } from "./PullstateCore";
+import { TUpdateFunction } from "./Store";
 
 type TPullstateAsyncUpdateListener = () => void;
 
@@ -147,6 +148,8 @@ export type TAsyncActionRun<A, R, T extends string> = (
 ) => TPullstateAsyncRunResponse<R, T>;
 export type TAsyncActionClearCache<A> = (args?: A) => void;
 export type TAsyncActionClearAllCache = () => void;
+export type TAsyncActionSetCached<A, R, T extends string> = (args: A, result: TAsyncActionResult<R, T>) => void;
+export type TAsyncActionUpdateCached<A, R, T extends string> = (args: A, updater: TUpdateFunction<R>) => void;
 export type TAsyncActionGetCached<A, R, T extends string> = (args?: A, options?: IAsyncActionGetCachedOptions) => IGetCachedResponse<R, T>;
 export type TAsyncActionDelayedRun<A> = (
   args?: A,
@@ -159,6 +162,8 @@ export interface IOCreateAsyncActionOutput<A = any, R = any, T extends string = 
   run: TAsyncActionRun<A, R, T>;
   delayedRun: TAsyncActionDelayedRun<A>;
   getCached: TAsyncActionGetCached<A, R, T>;
+  setCached: TAsyncActionSetCached<A, R, T>;
+  updateCached: TAsyncActionUpdateCached<A, R, T>;
   clearCache: TAsyncActionClearCache<A>;
   clearAllCache: TAsyncActionClearAllCache;
 }

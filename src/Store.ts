@@ -15,7 +15,7 @@ export interface IStoreInternalOptions<S> {
   reactionCreators?: TReactionCreator<S>[];
 }
 
-type TUpdateFunction<S> = (draft: S, original: S) => void;
+export type TUpdateFunction<S> = (draft: S, original: S) => void;
 type TReactionFunction<S, T> = (watched: T, draft: S, original: S, previousWatched: T) => void;
 type TRunReactionFunction = () => void;
 type TReactionCreator<S> = (store: Store<S>) => TRunReactionFunction;
