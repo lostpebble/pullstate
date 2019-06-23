@@ -213,6 +213,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     }
 
     // console.log(`[${key}] Pullstate Async: has no results yet`);
+    let currentActionOrd = actionOrdUpdate(cache, key);
 
     // check if it is already pending as an action
     if (!cache.actions.hasOwnProperty(key)) {
@@ -221,22 +222,49 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         if (shortCircuitHook !== undefined) {
           const shortCircuitResponse = shortCircuitHook({ args, stores });
           if (shortCircuitResponse !== false) {
-            cache.results[key] = [true, true, shortCircuitResponse, false];
             runPostActionHook(shortCircuitResponse, args, stores, EPostActionContext.SHORT_CIRCUIT);
+            cache.results[key] = [true, true, shortCircuitResponse, false];
             return cache.results[key] as TPullstateAsyncWatchResponse<R, T>;
           }
         }
 
         // queue (on server) or start the action now (on client)
         if (ssr || !onServer) {
-          cache.actions[key] = () => action(args, stores);
+          cache.actions[key] = () => (action(args, stores) as any).then(resp => {
+            if (currentActionOrd === cache.actionOrd[key]) {
+              runPostActionHook(
+                resp as TAsyncActionResult<R, T>,
+                args,
+                stores,
+                EPostActionContext.BECKON_RUN
+              );
+              cache.results[key] = [true, true, resp, false] as TPullstateAsyncWatchResponse<R, T>;
+            }
+          })
+            .catch(e => {
+              console.error(e);
+              if (currentActionOrd === cache.actionOrd[key]) {
+                const result: TAsyncActionResult<R, T> = {
+                  payload: null,
+                  error: true,
+                  tags: [EAsyncEndTags.THREW_ERROR],
+                  message: e.message,
+                };
+                runPostActionHook(result, args, stores, EPostActionContext.BECKON_RUN);
+                cache.results[key] = [true, true, result, false] as TPullstateAsyncWatchResponse<R, T>;
+              }
+            })
+            .then(() => {
+              delete cache.actions[key];
+              if (!onServer) {
+                notifyListeners(key);
+              }
+            });
         }
-
-        let currentActionOrd = actionOrdUpdate(cache, key);
 
         if (!onServer) {
           cache.actions[key]()
-            .then(resp => {
+            /*.then(resp => {
               if (currentActionOrd === cache.actionOrd[key]) {
                 cache.results[key] = [true, true, resp, false] as TPullstateAsyncWatchResponse<R, T>;
                 runPostActionHook(
@@ -263,7 +291,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
             .then(() => {
               delete cache.actions[key];
               notifyListeners(key);
-            });
+            });*/
         }
       } else {
         return [
