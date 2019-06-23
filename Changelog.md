@@ -1,3 +1,16 @@
+## 1.1.0
+
+Fixed issue with postActionHook not being called on the server for Async Actions.
+
+Added the following methods on Async Actions:
+
+* `setCached()`
+* `updateCached()`
+
+For a more finer-grained control of async action cache.
+
+`updateCached()` functions exactly the same as `update()` on stores, except it only runs on a previously successfully returned cached value. If nothing is cached, nothing is run.
+
 ## 1.0.0-beta.7
 
 Replaced `shallowEqual` from `fbjs` with the tiny package `fast-deep-equal` for object comparisons in various parts of the lib.
