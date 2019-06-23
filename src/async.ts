@@ -96,7 +96,7 @@ function actionOrdUpdate(cache: IPullstateAsyncCache, key: string): number {
 }
 
 export function successResult<R, T extends string = string>(
-  payload: R,
+  payload: R = null,
   tags: (EAsyncEndTags | T)[] = [],
   message: string = ""
 ): IAsyncActionResultPositive<R, T> {
