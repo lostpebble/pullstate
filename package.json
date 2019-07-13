@@ -46,7 +46,7 @@
     "jest-environment-jsdom": "24.8.0",
     "jest-environment-jsdom-global": "1.2.0",
     "jest-dom": "^3.4.0",
-    "lodash": "^4.17.11",
+    "lodash": "^4.17.14",
     "prettier": "^1.16.4",
     "react-test-renderer": "^16.8.3",
     "rollup": "^1.2.2",
