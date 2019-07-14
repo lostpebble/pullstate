@@ -3,7 +3,7 @@ import { Store, update } from "./Store";
 import { InjectStoreState } from "./InjectStoreState";
 import { createPullstateCore, IPullstateInstanceConsumable, PullstateProvider, useStores } from "./PullstateCore";
 import { createAsyncAction, errorResult, successResult } from "./async";
-import { EAsyncActionInjectType, InjectAsyncAction } from "./InjectAsyncAction";
+import { EAsyncActionInjectType, InjectAsyncAction, TInjectAsyncActionProps } from "./InjectAsyncAction";
 import { EAsyncEndTags } from "./async-types";
 
 export {
@@ -21,4 +21,5 @@ export {
   IPullstateInstanceConsumable,
   InjectAsyncAction,
   EAsyncActionInjectType,
+  TInjectAsyncActionProps,
 };

@@ -22,6 +22,7 @@ import {
   TPullstateAsyncAction,
   TPullstateAsyncWatchResponse,
 } from "./async-types";
+// @ts-ignore
 import produce from "immer";
 
 const isEqual = require("fast-deep-equal");
@@ -242,6 +243,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
             }
           })
             .catch(e => {
+              // console.log(`Pullstate async action threw error`);
               console.error(e);
               if (currentActionOrd === cache.actionOrd[key]) {
                 const result: TAsyncActionResult<R, T> = {

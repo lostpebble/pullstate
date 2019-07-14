@@ -15,5 +15,4 @@ export function InjectStoreState<S = any, SS = any>({
 }: IPropsInjectStoreState<S, SS>): React.ReactElement {
   const state: SS = useStoreState(store, on);
   return children(state);
-  // return useMemo(() => children(state), [state]);
 }

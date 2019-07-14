@@ -31,8 +31,10 @@ export interface IPropsInjectAsyncActionWatch<A = any, R = any, T extends string
   options?: IAsyncActionWatchOptions;
 }
 
+export type TInjectAsyncActionProps = IPropsInjectAsyncActionBeckon | IPropsInjectAsyncActionWatch;
+
 export function InjectAsyncAction(
-  props: IPropsInjectAsyncActionBeckon | IPropsInjectAsyncActionWatch
+  props: TInjectAsyncActionProps
 ): React.ReactElement {
   if (props.type === EAsyncActionInjectType.BECKON) {
     const response = props.action.useBeckon(props.args, props.options);
