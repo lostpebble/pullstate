@@ -4,34 +4,6 @@ import { IUpdateRef } from "./useStoreState";
 
 let updateListenerOrd = 0;
 
-function get(obj, path: (string|number)[], defaultValue) {
-  let cur = obj;
-
-  for (let i = 0; i < path.length; i += 1) {
-    if (cur == null) {
-      return defaultValue;
-    }
-
-    if (typeof path[i] === "number") {
-      if (Array.isArray(cur) && cur.length > path[i]) {
-        cur = cur[path[i]];
-      } else {
-        return defaultValue;
-      }
-    } else if (typeof path[i] === "string") {
-      if (cur.hasOwnProperty(path[i])) {
-        cur = cur[path[i]];
-      } else {
-        return defaultValue;
-      }
-    } else {
-      return defaultValue;
-    }
-  }
-
-  return cur;
-}
-
 function fastGet(obj, path: (string|number)[]): any {
   return path.reduce((cur = obj, key: string) => {
     return cur[key];
