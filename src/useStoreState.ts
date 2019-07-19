@@ -5,7 +5,7 @@ const isEqual = require("fast-deep-equal");
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Store } from "./Store";
 
-interface IUpdateRef {
+export interface IUpdateRef {
   shouldUpdate: boolean;
   onStoreUpdate: () => void;
   getSubState: any;

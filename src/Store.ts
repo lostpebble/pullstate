@@ -71,6 +71,15 @@ export class Store<S = any> {
   private reactions: TRunReactionFunction[] = [];
   private clientSubscriptions: TRunReactionFunction[] = [];
   private reactionCreators: TReactionCreator<S>[] = [];
+  private optimizedUpdateListeners: {
+    [listenerOrd: string]: TPullstateUpdateListener;
+  } = {};
+  private optimizedUpdateListenerPaths: {
+    [listenerOrd: string]: string[];
+  };
+  private optimizedListenerPropertyMap: {
+    [pathKey: string]: string[];
+  } = {};
 
   constructor(initialState: S) {
     this.currentState = initialState;
@@ -100,7 +109,7 @@ export class Store<S = any> {
     this.currentState = nextState;
   }
 
-  _updateState(nextState: S) {
+  _updateState(nextState: S, optUpdatePaths: string[] = []) {
     this.currentState = nextState;
 
     for (const runReaction of this.reactions) {
@@ -115,21 +124,55 @@ export class Store<S = any> {
     }
   }
 
+  _hasOptListeners(): boolean {
+    return Object.keys(this.optimizedUpdateListeners).length > 0;
+  }
+
   _addUpdateListener(listener: TPullstateUpdateListener) {
     this.updateListeners.push(listener);
+  }
+
+  _addUpdateListenerOpt(listener: TPullstateUpdateListener, ordKey: string, paths: string[][]) {
+    this.optimizedUpdateListeners[ordKey] = listener;
+    const listenerPathsKeyed = paths.map(path => path.join("~._.~"));
+    this.optimizedUpdateListenerPaths[ordKey] = listenerPathsKeyed;
+
+    for (const keyedPath of listenerPathsKeyed) {
+      if (this.optimizedListenerPropertyMap[keyedPath] == null) {
+        this.optimizedListenerPropertyMap[keyedPath] = [ordKey];
+      } else {
+        this.optimizedListenerPropertyMap[keyedPath].push(ordKey);
+      }
+    }
   }
 
   _removeUpdateListener(listener: TPullstateUpdateListener) {
     this.updateListeners = this.updateListeners.filter(f => f !== listener);
   }
 
-  subscribe<T>(watch: (state: S) => T, listener: (watched: T, allState: S, previousWatched: T) => void): () => void {
+  _removeUpdateListenerOpt(ordKey: string) {
+    const listenerPathsKeyed = this.optimizedUpdateListenerPaths[ordKey];
+
+    for (const keyedPath of listenerPathsKeyed) {
+      this.optimizedListenerPropertyMap[keyedPath] = this.optimizedListenerPropertyMap[keyedPath].filter(
+        ord => ord !== ordKey
+      );
+    }
+
+    delete this.optimizedUpdateListenerPaths[ordKey];
+    delete this.optimizedUpdateListeners[ordKey];
+  }
+
+  subscribe<T>(
+    watch: (state: S) => T,
+    listener: (watched: T, allState: S, previousWatched: T) => void
+  ): () => void {
     if (!this.ssr) {
       const func = makeSubscriptionFunction(this, watch, listener);
       this.clientSubscriptions.push(func);
       return () => {
         this.clientSubscriptions = this.clientSubscriptions.filter(f => f !== func);
-      }
+      };
     }
 
     return () => {
@@ -182,7 +225,21 @@ export function update<S = any>(
   patchesCallback?: (patches: Patch[], inversePatches: Patch[]) => void
 ) {
   const currentState: S = store.getRawState();
-  const nextState: S = produce(currentState as any, s => updater(s, currentState), patchesCallback);
+  let nextState: S;
+
+  if (store._hasOptListeners()) {
+    let changePatches;
+    nextState = produce(currentState as any, s => updater(s, currentState), (patches, inversePatches) => {
+      changePatches = patches;
+
+      if (patchesCallback) {
+        patchesCallback(patches, inversePatches);
+      }
+    });
+  } else {
+    nextState = produce(currentState as any, s => updater(s, currentState), patchesCallback);
+  }
+
   if (nextState !== currentState) {
     store._updateState(nextState);
   }
