@@ -61,6 +61,8 @@ function makeReactionFunctionCreator<S, T>(
   };
 }
 
+const optPathDivider = "~._.~";
+
 // S = State
 export class Store<S = any> {
   private updateListeners: TPullstateUpdateListener[] = [];
@@ -76,7 +78,7 @@ export class Store<S = any> {
   } = {};
   private optimizedUpdateListenerPaths: {
     [listenerOrd: string]: string[];
-  };
+  } = {};
   private optimizedListenerPropertyMap: {
     [pathKey: string]: string[];
   } = {};
@@ -109,7 +111,7 @@ export class Store<S = any> {
     this.currentState = nextState;
   }
 
-  _updateState(nextState: S, optUpdatePaths: string[] = []) {
+  _updateState(nextState: S, updateKeyedPaths: string[] = []) {
     this.currentState = nextState;
 
     for (const runReaction of this.reactions) {
@@ -121,6 +123,20 @@ export class Store<S = any> {
         runSubscription();
       }
       this.updateListeners.forEach(listener => listener());
+
+      if (updateKeyedPaths.length > 0) {
+        const updateOrds = new Set<string>();
+
+        for (const keyedPath of updateKeyedPaths) {
+          for (const ord of this.optimizedListenerPropertyMap[keyedPath]) {
+            updateOrds.add(ord);
+          }
+        }
+
+        for (const ord of updateOrds.values()) {
+          this.optimizedUpdateListeners[ord]();
+        }
+      }
     }
   }
 
@@ -132,9 +148,9 @@ export class Store<S = any> {
     this.updateListeners.push(listener);
   }
 
-  _addUpdateListenerOpt(listener: TPullstateUpdateListener, ordKey: string, paths: string[][]) {
+  _addUpdateListenerOpt(listener: TPullstateUpdateListener, ordKey: string, paths: (string|number)[][]) {
     this.optimizedUpdateListeners[ordKey] = listener;
-    const listenerPathsKeyed = paths.map(path => path.join("~._.~"));
+    const listenerPathsKeyed = paths.map(path => path.join(optPathDivider));
     this.optimizedUpdateListenerPaths[ordKey] = listenerPathsKeyed;
 
     for (const keyedPath of listenerPathsKeyed) {
@@ -225,22 +241,25 @@ export function update<S = any>(
   patchesCallback?: (patches: Patch[], inversePatches: Patch[]) => void
 ) {
   const currentState: S = store.getRawState();
-  let nextState: S;
 
   if (store._hasOptListeners()) {
-    let changePatches;
-    nextState = produce(currentState as any, s => updater(s, currentState), (patches, inversePatches) => {
-      changePatches = patches;
+    let changePatches: Patch[];
 
+    const nextState: S = produce(currentState as any, s => updater(s, currentState), (patches, inversePatches) => {
       if (patchesCallback) {
         patchesCallback(patches, inversePatches);
       }
-    });
-  } else {
-    nextState = produce(currentState as any, s => updater(s, currentState), patchesCallback);
-  }
 
-  if (nextState !== currentState) {
-    store._updateState(nextState);
+      changePatches = patches;
+    });
+
+    if (changePatches.length > 0) {
+      store._updateState(nextState, changePatches.map((patch: Patch) => `${patch.path.join(optPathDivider)}`));
+    }
+  } else {
+    const nextState: S = produce(currentState as any, s => updater(s, currentState), patchesCallback);
+    if (nextState !== currentState) {
+      store._updateState(nextState);
+    }
   }
 }

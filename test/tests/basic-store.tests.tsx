@@ -37,4 +37,4 @@ describe("Store operations", () => {
       s.touched = true;
     });
   });
-})
+});

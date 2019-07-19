@@ -1,16 +1,50 @@
 import { Store } from "./Store";
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { IUpdateRef } from "./useStoreState";
 
 let updateListenerOrd = 0;
 
-function getSubStateFromPaths(store: Store<any>, paths: string[][]): any {
-  const state = store.getRawState();
+function get(obj, path: (string|number)[], defaultValue) {
+  let cur = obj;
 
+  for (let i = 0; i < path.length; i += 1) {
+    if (cur == null) {
+      return defaultValue;
+    }
+
+    if (typeof path[i] === "number") {
+      if (Array.isArray(cur) && cur.length > path[i]) {
+        cur = cur[path[i]];
+      } else {
+        return defaultValue;
+      }
+    } else if (typeof path[i] === "string") {
+      if (cur.hasOwnProperty(path[i])) {
+        cur = cur[path[i]];
+      } else {
+        return defaultValue;
+      }
+    } else {
+      return defaultValue;
+    }
+  }
+
+  return cur;
 }
 
-// function useStoreStateOpt<S = any>(store: Store<S>): S;
-function useStoreStateOpt<S = any, SS = any>(store: Store<S>, paths: string[][]): SS {
+function getSubStateFromPaths(store: Store<any>, paths: (string|number)[][]): any[] {
+  const state = store.getRawState();
+
+  const resp = [];
+
+  for (const path of paths) {
+    resp.push(get(state, path, null));
+  }
+
+  return resp;
+}
+
+function useStoreStateOpt<S = any>(store: Store<S>, paths: (string|number)[][]): any[] {
   const [subState, setSubState] = useState<any>(() =>
     getSubStateFromPaths(store, paths)
   );
@@ -23,10 +57,6 @@ function useStoreStateOpt<S = any, SS = any>(store: Store<S>, paths: string[][])
   });
 
   updateRef.current.currentSubState = subState;
-
-  // const onStoreUpdate = useCallback(() => {
-  //   setSubState(getSubStateFromPaths(store, paths));
-  // }, []);
 
   if (updateRef.current.onStoreUpdate === null) {
     updateRef.current.onStoreUpdate = () => {
@@ -42,6 +72,5 @@ function useStoreStateOpt<S = any, SS = any>(store: Store<S>, paths: string[][])
 
   return subState;
 }
-// function useStoreStateOpt(store: Store, getSubState?: (state) => any): any
 
 export { useStoreStateOpt };
