@@ -128,8 +128,10 @@ export class Store<S = any> {
         const updateOrds = new Set<string>();
 
         for (const keyedPath of updateKeyedPaths) {
-          for (const ord of this.optimizedListenerPropertyMap[keyedPath]) {
-            updateOrds.add(ord);
+          if (this.optimizedListenerPropertyMap[keyedPath]) {
+            for (const ord of this.optimizedListenerPropertyMap[keyedPath]) {
+              updateOrds.add(ord);
+            }
           }
         }
 
@@ -148,7 +150,7 @@ export class Store<S = any> {
     this.updateListeners.push(listener);
   }
 
-  _addUpdateListenerOpt(listener: TPullstateUpdateListener, ordKey: string, paths: (string|number)[][]) {
+  _addUpdateListenerOpt(listener: TPullstateUpdateListener, ordKey: string, paths: (string | number)[][]) {
     this.optimizedUpdateListeners[ordKey] = listener;
     const listenerPathsKeyed = paths.map(path => path.join(optPathDivider));
     this.optimizedUpdateListenerPaths[ordKey] = listenerPathsKeyed;
@@ -245,16 +247,36 @@ export function update<S = any>(
   if (store._hasOptListeners()) {
     let changePatches: Patch[];
 
-    const nextState: S = produce(currentState as any, s => updater(s, currentState), (patches, inversePatches) => {
-      if (patchesCallback) {
-        patchesCallback(patches, inversePatches);
-      }
+    const nextState: S = produce(
+      currentState as any,
+      s => updater(s, currentState),
+      (patches, inversePatches) => {
+        if (patchesCallback) {
+          patchesCallback(patches, inversePatches);
+        }
 
-      changePatches = patches;
-    });
+        changePatches = patches;
+      }
+    );
 
     if (changePatches.length > 0) {
-      store._updateState(nextState, changePatches.map((patch: Patch) => `${patch.path.join(optPathDivider)}`));
+      const updateKeyedPathsMap = {};
+
+      for (const patch of changePatches) {
+        let curKey;
+
+        for (const p of patch.path) {
+          if (curKey) {
+            curKey = `${curKey}${optPathDivider}${p}`;
+          } else {
+            curKey = p;
+          }
+
+          updateKeyedPathsMap[curKey] = true;
+        }
+      }
+
+      store._updateState(nextState, Object.keys(updateKeyedPathsMap));
     }
   } else {
     const nextState: S = produce(currentState as any, s => updater(s, currentState), patchesCallback);

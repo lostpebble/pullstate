@@ -32,13 +32,19 @@ function get(obj, path: (string|number)[], defaultValue) {
   return cur;
 }
 
+function fastGet(obj, path: (string|number)[]): any {
+  return path.reduce((cur = obj, key: string) => {
+    return cur[key];
+  }, undefined);
+}
+
 function getSubStateFromPaths(store: Store<any>, paths: (string|number)[][]): any[] {
   const state = store.getRawState();
 
   const resp = [];
 
   for (const path of paths) {
-    resp.push(get(state, path, null));
+    resp.push(fastGet(state, path));
   }
 
   return resp;
