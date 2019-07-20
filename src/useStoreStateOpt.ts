@@ -4,7 +4,7 @@ import { IUpdateRef } from "./useStoreState";
 
 let updateListenerOrd = 0;
 
-function fastGet<S>(obj: S, path: TInternalPath<S>): any {
+function fastGet<S>(obj: S, path: any[]): any {
   return path.reduce((cur: any = obj, key: string | number) => {
     return cur[key];
   }, undefined);
@@ -20,11 +20,15 @@ type TInternalPath<
     keyof S[K1][K2][K3][K4],
     string | number
   >
-> = [K1] | [K1, K2] | [K1, K2, K3] | [K1, K2, K3, K4] | [K1, K2, K3, K4, K5];
+> = K5 extends undefined
+  ? (K4 extends undefined
+    ? (K3 extends undefined
+      ? (K2 extends undefined ? [K1] : [K1, K2]) : [K1, K2, K3])
+      : [K1, K2, K3, K4])
+  : [K1, K2, K3, K4, K5];
 
 export type TPaths<S> =
   | [TInternalPath<S>]
-  | [TInternalPath<S>, TInternalPath<S>]
   | [TInternalPath<S>, TInternalPath<S>]
   | [TInternalPath<S>, TInternalPath<S>, TInternalPath<S>]
   | [TInternalPath<S>, TInternalPath<S>, TInternalPath<S>, TInternalPath<S>]
@@ -37,8 +41,6 @@ export type TPaths<S> =
       TInternalPath<S>,
       TInternalPath<S>
     ];
-
-type TKeyStringOrNumber<P extends string | number> = P;
 
 type TPathResponseInternal<S, P extends (string | number)[]> = P extends []
   ? null
@@ -72,10 +74,10 @@ function getSubStateFromPaths<S>(store: Store<S>, paths: TPaths<S>): any[] {
   return resp;
 }
 
-function useStoreStateOpt<S = any, P extends (string | number)[][] = TPaths<S>>(
+function useStoreStateOpt<S = any, P extends TPaths<S> = TPaths<S>>(
   store: Store<S>,
-  paths: TPaths<S>
-): any[] {
+  paths: P
+): TPathResponse<S, P> {
   const [subState, setSubState] = useState<any>(() => getSubStateFromPaths(store, paths));
 
   const updateRef = useRef<Partial<IUpdateRef & { ordKey: string }>>({

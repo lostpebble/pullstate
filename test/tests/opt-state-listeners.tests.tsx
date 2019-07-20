@@ -1,9 +1,8 @@
 import { Store, useStoreStateOpt } from "../../src";
 import { ITestUIStore } from "./testStores/TestUIStore";
-// import {} from ""
 
 const ListenerParent = ({ store }: { store: Store<ITestUIStore> }) => {
-  const [count, internal] = useStoreStateOpt(store, [["count"], ["internal"]]);
+  const [internal] = useStoreStateOpt(store, [["internal"], ["internal", ""]]);
 }
 
 describe("Optimized state listeners", () => {
