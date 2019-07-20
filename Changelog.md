@@ -1,3 +1,15 @@
+## 1.2.0
+
+New experimental optimized updates (uses immer patches internally). To use, your state selections need to be made using paths - and make use of the new methods and components `useStoreStateOpt` and `<InjectStoreStateOpr>` respectively.
+
+Instead of passing a function, you now pass an array of path selections. The state returned will be an array of values per each state selection path. E.g:
+
+```ts
+const [isDarkMode] = useStoreStateOpt(UIStore, [["isDarkMode"]])
+```
+
+The performance benefits stem from Pullstate not having to run equality checks on the results of your selected state and then re-render your component accordingly, but instead looks at the immer update patches directly for which paths changed in your state and re-renders the listeners on those paths.
+
 ## 1.1.0
 
 Fixed issue with postActionHook not being called on the server for Async Actions.

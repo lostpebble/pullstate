@@ -5,7 +5,7 @@ const isEqual = require("fast-deep-equal");
 import { useCallback, useEffect, useRef, useState } from "react";
 import { Store } from "./Store";
 
-interface IUpdateRef {
+export interface IUpdateRef {
   shouldUpdate: boolean;
   onStoreUpdate: () => void;
   getSubState: any;
@@ -29,21 +29,27 @@ function useStoreState(store: Store, getSubState?: (state) => any): any {
   updateRef.current.currentSubState = subState;
   updateRef.current.getSubState = getSubState;
 
-  const onStoreUpdate = useCallback(() => {
+  /*const onStoreUpdate = useCallback(() => {
     const nextSubState = updateRef.current.getSubState ? updateRef.current.getSubState(store.getRawState()) : store.getRawState();
     if (updateRef.current.shouldUpdate && !isEqual(updateRef.current.currentSubState, nextSubState)) {
       setSubState(nextSubState);
     }
-  }, []);
+  }, []);*/
 
   if (updateRef.current.onStoreUpdate === null) {
-    updateRef.current.onStoreUpdate = onStoreUpdate;
+    // updateRef.current.onStoreUpdate = onStoreUpdate;
+    updateRef.current.onStoreUpdate = function onStoreUpdate() {
+      const nextSubState = updateRef.current.getSubState ? updateRef.current.getSubState(store.getRawState()) : store.getRawState();
+      if (updateRef.current.shouldUpdate && !isEqual(updateRef.current.currentSubState, nextSubState)) {
+        setSubState(nextSubState);
+      }
+    };
     store._addUpdateListener(updateRef.current.onStoreUpdate);
   }
 
   useEffect(() => () => {
       updateRef.current.shouldUpdate = false;
-      store._removeUpdateListener(onStoreUpdate);
+      store._removeUpdateListener(updateRef.current.onStoreUpdate);
   }, []);
 
   return subState;
