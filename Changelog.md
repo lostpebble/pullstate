@@ -1,6 +1,6 @@
 ## 1.2.0
 
-New experimental optimized updates (uses immer patches internally). To use, your state selections need to be made using paths - and make use of the new methods and components `useStoreStateOpt` and `<InjectStoreStateOpr>` respectively.
+New experimental optimized updates (uses immer patches internally). To use, your state selections need to be made using paths - and make use of the new methods and components `useStoreStateOpt` and `<InjectStoreStateOpt>` respectively.
 
 Instead of passing a function, you now pass an array of path selections. The state returned will be an array of values per each state selection path. E.g:
 
