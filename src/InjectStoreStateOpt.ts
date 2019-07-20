@@ -1,10 +1,10 @@
 import React from "react";
 import { Store } from "./Store";
-import { useStoreStateOpt } from "./useStoreStateOpt";
+import { TPath, useStoreStateOpt } from "./useStoreStateOpt";
 
-export interface IPropsInjectStoreStateOpt<S extends any = any> {
+export interface IPropsInjectStoreStateOpt<S = any, P extends TPath[] = TPath[]> {
   store: Store<S>;
-  paths: (string|number)[][];
+  paths: P;
   children: (output: any[]) => React.ReactElement;
 }
 

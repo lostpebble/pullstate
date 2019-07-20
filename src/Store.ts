@@ -1,7 +1,7 @@
 // @ts-ignore
 import { Patch } from "immer";
 import { useStoreState } from "./useStoreState";
-import { TPaths } from "./useStoreStateOpt";
+import { TPath } from "./useStoreStateOpt";
 const isEqual = require("fast-deep-equal");
 
 const Immer = require("immer");
@@ -69,11 +69,12 @@ export class Store<S = any> {
   private updateListeners: TPullstateUpdateListener[] = [];
   private currentState: S;
   private readonly initialState: S;
-  // private readonly usingProvider: boolean = false;
   private ssr: boolean = false;
   private reactions: TRunReactionFunction[] = [];
   private clientSubscriptions: TRunReactionFunction[] = [];
   private reactionCreators: TReactionCreator<S>[] = [];
+
+  // Optimized listener / updates stuff
   private optimizedUpdateListeners: {
     [listenerOrd: string]: TPullstateUpdateListener;
   } = {};
@@ -83,11 +84,11 @@ export class Store<S = any> {
   private optimizedListenerPropertyMap: {
     [pathKey: string]: string[];
   } = {};
+  public _optListenerCount = 0;
 
   constructor(initialState: S) {
     this.currentState = initialState;
     this.initialState = initialState;
-    // this.usingProvider = usingProvider;
   }
 
   _setInternalOptions({ ssr, reactionCreators = [] }: IStoreInternalOptions<S>) {
@@ -126,6 +127,7 @@ export class Store<S = any> {
       this.updateListeners.forEach(listener => listener());
 
       if (updateKeyedPaths.length > 0) {
+        // console.log(`Got update keyed paths: "${updateKeyedPaths.join(`", "`)}"`);
         const updateOrds = new Set<string>();
 
         for (const keyedPath of updateKeyedPaths) {
@@ -137,21 +139,18 @@ export class Store<S = any> {
         }
 
         for (const ord of updateOrds.values()) {
+          // console.log(`Need to notify opt listener with ord: ${ord}`);
           this.optimizedUpdateListeners[ord]();
         }
       }
     }
   }
 
-  _hasOptListeners(): boolean {
-    return Object.keys(this.optimizedUpdateListeners).length > 0;
-  }
-
   _addUpdateListener(listener: TPullstateUpdateListener) {
     this.updateListeners.push(listener);
   }
 
-  _addUpdateListenerOpt(listener: TPullstateUpdateListener, ordKey: string, paths: TPaths<S>) {
+  _addUpdateListenerOpt(listener: TPullstateUpdateListener, ordKey: string, paths: TPath[]) {
     this.optimizedUpdateListeners[ordKey] = listener;
     const listenerPathsKeyed = paths.map(path => path.join(optPathDivider));
     this.optimizedUpdateListenerPaths[ordKey] = listenerPathsKeyed;
@@ -163,6 +162,8 @@ export class Store<S = any> {
         this.optimizedListenerPropertyMap[keyedPath].push(ordKey);
       }
     }
+
+    this._optListenerCount++;
   }
 
   _removeUpdateListener(listener: TPullstateUpdateListener) {
@@ -180,6 +181,8 @@ export class Store<S = any> {
 
     delete this.optimizedUpdateListenerPaths[ordKey];
     delete this.optimizedUpdateListeners[ordKey];
+
+    this._optListenerCount--;
   }
 
   subscribe<T>(
@@ -245,7 +248,7 @@ export function update<S = any>(
 ) {
   const currentState: S = store.getRawState();
 
-  if (store._hasOptListeners()) {
+  if (store._optListenerCount > 0) {
     let changePatches: Patch[];
 
     const nextState: S = produce(

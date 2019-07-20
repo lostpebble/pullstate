@@ -10,22 +10,29 @@ function fastGet<S>(obj: S, path: any[]): any {
   }, undefined);
 }
 
-type TInternalPath<
+export type TPath = (string|number|symbol)[];
+
+/*
+type TOneKey<S, K1 extends keyof S = keyof S> = [K1];
+type TTwoKey<S, K1 extends keyof S = keyof S, S2 extends any = S[K1], K2 extends keyof S2 = keyof S2> = [K1, K2];
+type TThreeKey<
   S,
-  K1 extends Extract<keyof S, string | number> = Extract<keyof S, string | number>,
-  K2 extends Extract<keyof S[K1], string | number> = Extract<keyof S[K1], string | number>,
-  K3 extends Extract<keyof S[K1][K2], string | number> = Extract<keyof S[K1][K2], string | number>,
-  K4 extends Extract<keyof S[K1][K2][K3], string | number> = Extract<keyof S[K1][K2][K3], string | number>,
-  K5 extends Extract<keyof S[K1][K2][K3][K4], string | number> = Extract<
-    keyof S[K1][K2][K3][K4],
-    string | number
-  >
-> = K5 extends undefined
-  ? (K4 extends undefined
-    ? (K3 extends undefined
-      ? (K2 extends undefined ? [K1] : [K1, K2]) : [K1, K2, K3])
-      : [K1, K2, K3, K4])
-  : [K1, K2, K3, K4, K5];
+  K1 extends keyof S = keyof S,
+  K2 extends keyof S[K1] = keyof S[K1],
+  K3 extends keyof S[K1][K2] = keyof S[K1][K2]
+> = [K1, K2, K3];
+
+
+
+interface ITestStoreInterface {
+  count: number;
+  something: {
+    good: {
+      here: boolean;
+      other: string;
+    };
+  };
+}
 
 export type TPaths<S> =
   | [TInternalPath<S>]
@@ -42,7 +49,7 @@ export type TPaths<S> =
       TInternalPath<S>
     ];
 
-type TPathResponseInternal<S, P extends (string | number)[]> = P extends []
+type TPathResponseInternal<S, P extends TInternalPath<S>> = P extends []
   ? null
   : P extends [keyof S]
     ? S[P[0]]
@@ -52,7 +59,7 @@ type TPathResponseInternal<S, P extends (string | number)[]> = P extends []
         ? S[P[0]][P[1]][P[2]]
         : null;
 
-export type TPathResponse<S, P extends (string | number)[][]> = P extends [[]]
+export type TPathResponse<S, P extends (string | number | symbol)[][]> = P extends [[]]
   ? []
   : P extends [TInternalPath<S>]
     ? [TPathResponseInternal<S, P[0]>]
@@ -60,9 +67,9 @@ export type TPathResponse<S, P extends (string | number)[][]> = P extends [[]]
       ? [TPathResponseInternal<S, P[0]>, TPathResponseInternal<S, P[1]>]
       : P extends [TInternalPath<S>, TInternalPath<S>, TInternalPath<S>]
         ? [TPathResponseInternal<S, P[0]>, TPathResponseInternal<S, P[1]>, TPathResponseInternal<S, P[2]>]
-        : [];
+        : [];*/
 
-function getSubStateFromPaths<S>(store: Store<S>, paths: TPaths<S>): any[] {
+function getSubStateFromPaths<S, P extends TPath[]>(store: Store<S>, paths: P): any[] {
   const state = store.getRawState();
 
   const resp = [];
@@ -74,10 +81,10 @@ function getSubStateFromPaths<S>(store: Store<S>, paths: TPaths<S>): any[] {
   return resp;
 }
 
-function useStoreStateOpt<S = any, P extends TPaths<S> = TPaths<S>>(
+function useStoreStateOpt<S = any>(
   store: Store<S>,
-  paths: P
-): TPathResponse<S, P> {
+  paths: TPath[]
+): any[] {
   const [subState, setSubState] = useState<any>(() => getSubStateFromPaths(store, paths));
 
   const updateRef = useRef<Partial<IUpdateRef & { ordKey: string }>>({
@@ -90,7 +97,8 @@ function useStoreStateOpt<S = any, P extends TPaths<S> = TPaths<S>>(
   updateRef.current.currentSubState = subState;
 
   if (updateRef.current.onStoreUpdate === null) {
-    updateRef.current.onStoreUpdate = () => {
+    updateRef.current.onStoreUpdate = function onStoreUpdateOpt() {
+      // console.log(`Running onStoreUpdate from useStoreStateOpt ${updateRef.current.ordKey}`);
       setSubState(getSubStateFromPaths(store, paths));
     };
     store._addUpdateListenerOpt(updateRef.current.onStoreUpdate, updateRef.current.ordKey, paths);
@@ -98,6 +106,7 @@ function useStoreStateOpt<S = any, P extends TPaths<S> = TPaths<S>>(
 
   useEffect(
     () => () => {
+      // console.log(`removing opt listener ord:"${updateRef.current.ordKey}"`);
       updateRef.current.shouldUpdate = false;
       store._removeUpdateListenerOpt(updateRef.current.ordKey);
     },

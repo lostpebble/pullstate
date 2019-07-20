@@ -2,7 +2,9 @@ import { Store, useStoreStateOpt } from "../../src";
 import { ITestUIStore } from "./testStores/TestUIStore";
 
 const ListenerParent = ({ store }: { store: Store<ITestUIStore> }) => {
-  const [internal] = useStoreStateOpt(store, [["internal"], ["internal", ""]]);
+  const [berries] = useStoreStateOpt(store, [["internal", "berries"]]);
+
+  const bool: boolean = berries;
 }
 
 describe("Optimized state listeners", () => {
