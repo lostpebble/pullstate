@@ -1,6 +1,7 @@
 import { Store } from "./Store";
 import { useEffect, useRef, useState } from "react";
 import { IUpdateRef } from "./useStoreState";
+import { ArrayHasIndex, DeepKeyOfArray, DeepTypeOfArray } from "./useStoreStateOpt-types";
 
 let updateListenerOrd = 0;
 
@@ -10,66 +11,7 @@ function fastGet<S>(obj: S, path: any[]): any {
   }, undefined);
 }
 
-export type TPath = (string|number|symbol)[];
-
-/*
-type TOneKey<S, K1 extends keyof S = keyof S> = [K1];
-type TTwoKey<S, K1 extends keyof S = keyof S, S2 extends any = S[K1], K2 extends keyof S2 = keyof S2> = [K1, K2];
-type TThreeKey<
-  S,
-  K1 extends keyof S = keyof S,
-  K2 extends keyof S[K1] = keyof S[K1],
-  K3 extends keyof S[K1][K2] = keyof S[K1][K2]
-> = [K1, K2, K3];
-
-
-
-interface ITestStoreInterface {
-  count: number;
-  something: {
-    good: {
-      here: boolean;
-      other: string;
-    };
-  };
-}
-
-export type TPaths<S> =
-  | [TInternalPath<S>]
-  | [TInternalPath<S>, TInternalPath<S>]
-  | [TInternalPath<S>, TInternalPath<S>, TInternalPath<S>]
-  | [TInternalPath<S>, TInternalPath<S>, TInternalPath<S>, TInternalPath<S>]
-  | [TInternalPath<S>, TInternalPath<S>, TInternalPath<S>, TInternalPath<S>, TInternalPath<S>]
-  | [
-      TInternalPath<S>,
-      TInternalPath<S>,
-      TInternalPath<S>,
-      TInternalPath<S>,
-      TInternalPath<S>,
-      TInternalPath<S>
-    ];
-
-type TPathResponseInternal<S, P extends TInternalPath<S>> = P extends []
-  ? null
-  : P extends [keyof S]
-    ? S[P[0]]
-    : P extends [keyof S, keyof S[keyof S]]
-      ? S[P[0]][P[1]]
-      : P extends [keyof S, keyof S[keyof S], keyof S[keyof S][keyof S[keyof S]]]
-        ? S[P[0]][P[1]][P[2]]
-        : null;
-
-export type TPathResponse<S, P extends (string | number | symbol)[][]> = P extends [[]]
-  ? []
-  : P extends [TInternalPath<S>]
-    ? [TPathResponseInternal<S, P[0]>]
-    : P extends [TInternalPath<S>, TInternalPath<S>]
-      ? [TPathResponseInternal<S, P[0]>, TPathResponseInternal<S, P[1]>]
-      : P extends [TInternalPath<S>, TInternalPath<S>, TInternalPath<S>]
-        ? [TPathResponseInternal<S, P[0]>, TPathResponseInternal<S, P[1]>, TPathResponseInternal<S, P[2]>]
-        : [];*/
-
-function getSubStateFromPaths<S, P extends TPath[]>(store: Store<S>, paths: P): any[] {
+function getSubStateFromPaths<S, P extends DeepKeyOfArray<S>[]>(store: Store<S>, paths: P): any[] {
   const state = store.getRawState();
 
   const resp = [];
@@ -81,10 +23,27 @@ function getSubStateFromPaths<S, P extends TPath[]>(store: Store<S>, paths: P): 
   return resp;
 }
 
-function useStoreStateOpt<S = any>(
+// prettier-ignore
+function useStoreStateOpt<
+  S,
+  P extends
+    | [DeepKeyOfArray<S>]
+    | [DeepKeyOfArray<S>, DeepKeyOfArray<S>]
+    | [DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>]
+    | [DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>]
+    | [DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>]
+    | [DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>]
+    | [DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>]
+    | [DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>]
+    | [DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>]
+    | [DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>]
+>(
   store: Store<S>,
-  paths: TPath[]
-): any[] {
+  paths: P
+): [
+  DeepTypeOfArray<S, P[0]>]
+  | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>]
+  | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>] {
   const [subState, setSubState] = useState<any>(() => getSubStateFromPaths(store, paths));
 
   const updateRef = useRef<Partial<IUpdateRef & { ordKey: string }>>({
@@ -117,3 +76,28 @@ function useStoreStateOpt<S = any>(
 }
 
 export { useStoreStateOpt };
+
+/*const obj = {
+  inner: {
+    something: "great",
+    innerTwo: {
+      isIt: true,
+    },
+  },
+  innerArr: [{
+    bogus: true,
+  }],
+};
+
+const store = new Store(obj);
+
+const [inner] = useStoreStateOpt(store, [
+  ["inner", "something"],
+]);*/
+
+// if (inner === false) {
+//
+// }
+//
+// if (innerTwo.isIt) {
+// }
