@@ -1,7 +1,7 @@
 // @ts-ignore
 import { Patch } from "immer";
 import { useStoreState } from "./useStoreState";
-import { TPath } from "./useStoreStateOpt";
+import { DeepKeyOfArray, DeepTypeOfArray } from "./useStoreStateOpt-types";
 const isEqual = require("fast-deep-equal");
 
 const Immer = require("immer");
@@ -150,7 +150,7 @@ export class Store<S = any> {
     this.updateListeners.push(listener);
   }
 
-  _addUpdateListenerOpt(listener: TPullstateUpdateListener, ordKey: string, paths: TPath[]) {
+  _addUpdateListenerOpt(listener: TPullstateUpdateListener, ordKey: string, paths: DeepKeyOfArray<S>[]) {
     this.optimizedUpdateListeners[ordKey] = listener;
     const listenerPathsKeyed = paths.map(path => path.join(optPathDivider));
     this.optimizedUpdateListenerPaths[ordKey] = listenerPathsKeyed;

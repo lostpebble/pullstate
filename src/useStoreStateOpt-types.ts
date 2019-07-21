@@ -16,6 +16,17 @@ export interface DeepKeyOfArray<O> extends Array<string | number> {
   [rest: string]: any;
 }
 
+export type TAllPathsParameter<S> = [DeepKeyOfArray<S>]
+  | [DeepKeyOfArray<S>, DeepKeyOfArray<S>]
+  | [DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>]
+  | [DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>]
+  | [DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>]
+  | [DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>]
+  | [DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>]
+  | [DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>]
+  | [DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>]
+  | [DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>];
+
 export type ArrayHasIndex<MinLength extends string> = { [K in MinLength]: any };
 
 export type DeepTypeOfArray<T, L extends DeepKeyOfArray<T>> = L extends ArrayHasIndex<

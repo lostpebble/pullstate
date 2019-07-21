@@ -1,7 +1,7 @@
 import { Store } from "./Store";
 import { useEffect, useRef, useState } from "react";
 import { IUpdateRef } from "./useStoreState";
-import { ArrayHasIndex, DeepKeyOfArray, DeepTypeOfArray } from "./useStoreStateOpt-types";
+import { DeepKeyOfArray, DeepTypeOfArray, TAllPathsParameter } from "./useStoreStateOpt-types";
 
 let updateListenerOrd = 0;
 
@@ -26,24 +26,23 @@ function getSubStateFromPaths<S, P extends DeepKeyOfArray<S>[]>(store: Store<S>,
 // prettier-ignore
 function useStoreStateOpt<
   S,
-  P extends
-    | [DeepKeyOfArray<S>]
-    | [DeepKeyOfArray<S>, DeepKeyOfArray<S>]
-    | [DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>]
-    | [DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>]
-    | [DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>]
-    | [DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>]
-    | [DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>]
-    | [DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>]
-    | [DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>]
-    | [DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>, DeepKeyOfArray<S>]
+  P extends TAllPathsParameter<S>
 >(
   store: Store<S>,
   paths: P
 ): [
   DeepTypeOfArray<S, P[0]>]
   | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>]
-  | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>] {
+  | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>]
+  | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>]
+  | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>, DeepTypeOfArray<S, P[4]>]
+  | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>, DeepTypeOfArray<S, P[4]>, DeepTypeOfArray<S, P[5]>]
+  | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>, DeepTypeOfArray<S, P[4]>, DeepTypeOfArray<S, P[5]>, DeepTypeOfArray<S, P[6]>]
+  | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>, DeepTypeOfArray<S, P[4]>, DeepTypeOfArray<S, P[5]>, DeepTypeOfArray<S, P[6]>, DeepTypeOfArray<S, P[7]>]
+  | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>, DeepTypeOfArray<S, P[4]>, DeepTypeOfArray<S, P[5]>, DeepTypeOfArray<S, P[6]>, DeepTypeOfArray<S, P[7]>, DeepTypeOfArray<S, P[8]>]
+  | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>, DeepTypeOfArray<S, P[4]>, DeepTypeOfArray<S, P[5]>, DeepTypeOfArray<S, P[6]>, DeepTypeOfArray<S, P[7]>, DeepTypeOfArray<S, P[8]>, DeepTypeOfArray<S, P[9]>]
+  | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>, DeepTypeOfArray<S, P[4]>, DeepTypeOfArray<S, P[5]>, DeepTypeOfArray<S, P[6]>, DeepTypeOfArray<S, P[7]>, DeepTypeOfArray<S, P[8]>, DeepTypeOfArray<S, P[9]>, DeepTypeOfArray<S, P[10]>]
+{
   const [subState, setSubState] = useState<any>(() => getSubStateFromPaths(store, paths));
 
   const updateRef = useRef<Partial<IUpdateRef & { ordKey: string }>>({
@@ -77,7 +76,7 @@ function useStoreStateOpt<
 
 export { useStoreStateOpt };
 
-/*const obj = {
+const obj = {
   inner: {
     something: "great",
     innerTwo: {
@@ -87,18 +86,27 @@ export { useStoreStateOpt };
   innerArr: [{
     bogus: true,
   }],
+  firstLevel: "",
 };
+
+export interface IPostSearchStore {
+  posts: any[];
+  currentSearchText: string;
+  loadingPosts: boolean;
+}
+
+export const PostSearchStore = new Store<IPostSearchStore>({
+  posts: [],
+  currentSearchText: "",
+  loadingPosts: false,
+});
 
 const store = new Store(obj);
 
-const [inner, innerTwo] = useStoreStateOpt(store, [
-  ["inner", "something"],
-  ["inner", "innerTwo", "isIt"]
-]);*/
+const [posts, text] = useStoreStateOpt(PostSearchStore, [["posts"], ["currentSearchText"]]);
 
-// if (inner === false) {
-//
-// }
-//
-// if (innerTwo.isIt) {
-// }
+function takeString(take: string) {
+
+}
+
+takeString(text);

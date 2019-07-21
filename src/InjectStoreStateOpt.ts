@@ -1,8 +1,9 @@
 import React from "react";
 import { Store } from "./Store";
-import { TPath, useStoreStateOpt } from "./useStoreStateOpt";
+import { useStoreStateOpt } from "./useStoreStateOpt";
+import { DeepKeyOfArray, TAllPathsParameter } from "./useStoreStateOpt-types";
 
-export interface IPropsInjectStoreStateOpt<S = any, P extends TPath[] = TPath[]> {
+export interface IPropsInjectStoreStateOpt<S = any, P extends TAllPathsParameter<S> = TAllPathsParameter<S>> {
   store: Store<S>;
   paths: P;
   children: (output: any[]) => React.ReactElement;
