@@ -91,8 +91,9 @@ export { useStoreStateOpt };
 
 const store = new Store(obj);
 
-const [inner] = useStoreStateOpt(store, [
+const [inner, innerTwo] = useStoreStateOpt(store, [
   ["inner", "something"],
+  ["inner", "innerTwo", "isIt"]
 ]);*/
 
 // if (inner === false) {
