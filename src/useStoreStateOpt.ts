@@ -30,18 +30,18 @@ function useStoreStateOpt<
 >(
   store: Store<S>,
   paths: P
-): [
-  DeepTypeOfArray<S, P[0]>]
-  | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>]
-  | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>]
-  | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>]
-  | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>, DeepTypeOfArray<S, P[4]>]
-  | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>, DeepTypeOfArray<S, P[4]>, DeepTypeOfArray<S, P[5]>]
-  | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>, DeepTypeOfArray<S, P[4]>, DeepTypeOfArray<S, P[5]>, DeepTypeOfArray<S, P[6]>]
-  | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>, DeepTypeOfArray<S, P[4]>, DeepTypeOfArray<S, P[5]>, DeepTypeOfArray<S, P[6]>, DeepTypeOfArray<S, P[7]>]
-  | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>, DeepTypeOfArray<S, P[4]>, DeepTypeOfArray<S, P[5]>, DeepTypeOfArray<S, P[6]>, DeepTypeOfArray<S, P[7]>, DeepTypeOfArray<S, P[8]>]
-  | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>, DeepTypeOfArray<S, P[4]>, DeepTypeOfArray<S, P[5]>, DeepTypeOfArray<S, P[6]>, DeepTypeOfArray<S, P[7]>, DeepTypeOfArray<S, P[8]>, DeepTypeOfArray<S, P[9]>]
-  | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>, DeepTypeOfArray<S, P[4]>, DeepTypeOfArray<S, P[5]>, DeepTypeOfArray<S, P[6]>, DeepTypeOfArray<S, P[7]>, DeepTypeOfArray<S, P[8]>, DeepTypeOfArray<S, P[9]>, DeepTypeOfArray<S, P[10]>]
+):
+  // [ DeepTypeOfArray<S, P[0]>]
+  // | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>]
+  // | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>]
+  // | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>]
+  // | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>, DeepTypeOfArray<S, P[4]>]
+  // | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>, DeepTypeOfArray<S, P[4]>, DeepTypeOfArray<S, P[5]>]
+  // | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>, DeepTypeOfArray<S, P[4]>, DeepTypeOfArray<S, P[5]>, DeepTypeOfArray<S, P[6]>]
+  // | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>, DeepTypeOfArray<S, P[4]>, DeepTypeOfArray<S, P[5]>, DeepTypeOfArray<S, P[6]>, DeepTypeOfArray<S, P[7]>]
+  // | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>, DeepTypeOfArray<S, P[4]>, DeepTypeOfArray<S, P[5]>, DeepTypeOfArray<S, P[6]>, DeepTypeOfArray<S, P[7]>, DeepTypeOfArray<S, P[8]>]
+  // | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>, DeepTypeOfArray<S, P[4]>, DeepTypeOfArray<S, P[5]>, DeepTypeOfArray<S, P[6]>, DeepTypeOfArray<S, P[7]>, DeepTypeOfArray<S, P[8]>, DeepTypeOfArray<S, P[9]>]
+  [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>, DeepTypeOfArray<S, P[4]>, DeepTypeOfArray<S, P[5]>, DeepTypeOfArray<S, P[6]>, DeepTypeOfArray<S, P[7]>, DeepTypeOfArray<S, P[8]>, DeepTypeOfArray<S, P[9]>, DeepTypeOfArray<S, P[10]>]
 {
   const [subState, setSubState] = useState<any>(() => getSubStateFromPaths(store, paths));
 
@@ -76,6 +76,7 @@ function useStoreStateOpt<
 
 export { useStoreStateOpt };
 
+/*
 const obj = {
   inner: {
     something: "great",
@@ -90,7 +91,10 @@ const obj = {
 };
 
 export interface IPostSearchStore {
-  posts: any[];
+  posts: {
+    inner: boolean;
+    innerArray: string[];
+  }[];
   currentSearchText: string;
   loadingPosts: boolean;
 }
@@ -103,10 +107,11 @@ export const PostSearchStore = new Store<IPostSearchStore>({
 
 const store = new Store(obj);
 
-const [posts, text] = useStoreStateOpt(PostSearchStore, [["posts"], ["currentSearchText"]]);
+const [posts, text, postsArrayItem] = useStoreStateOpt(PostSearchStore, [["posts"], ["currentSearchText"], ["posts", 0]]);
 
 function takeString(take: string) {
 
 }
 
 takeString(text);
+*/
