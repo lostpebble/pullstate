@@ -77,19 +77,19 @@ class HomeSplash extends React.Component {
               Ridiculously simple state stores with performant retrieval anywhere in your React tree using
               React hooks
             </div>
-            <div style={{ maxWidth: "35em", padding: "3em 2em", opacity: 1 }}>
+            {/*<div style={{ maxWidth: "35em", padding: "3em 2em", opacity: 1 }}>
               <div style={{ fontSize: "2em", color: "#9f59f2" }}>
                 <em>
-                  <strong>Version 1.0.0 released!</strong>
+                  <strong>Version 1.2.0 released!</strong>
                 </em>
               </div>
               <div style={{ fontSize: "1em" }}>
                 API settled, and <a href={docUrl("quick-example.html")}>new documentation site</a> live
               </div>
-            </div>
+            </div>*/}
             <div style={{ maxWidth: "35em", padding: "3em 2em", opacity: 0.8 }}>
               <em>
-                <strong>Now featuring async state handling too!</strong>
+                <strong>Featuring easy async state handling too!</strong>
               </em>
             </div>
             <Button href={docUrl("quick-example.html")}>Jump into a quick example</Button>

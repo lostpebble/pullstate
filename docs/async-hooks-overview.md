@@ -42,7 +42,7 @@ The short circuit hook is for checking the current state of your app and manuall
 
 Read more on the [short circuit hook](async-short-circuit-hook.md).
 
-### `cacheBreakHook({ args, result, stores })`
+### `cacheBreakHook({ args, result, stores, timeCached })`
 
 This hook is run only when an action has already resolve at least once. It takes the currently cached value and decides whether we should "break" the cache and run the action again instead of returning it.
 
@@ -50,4 +50,4 @@ Read more on the [cache break hook](async-cache-break-hook.md).
 
 ---
 
-**NOTE:** In all these hooks, `stores` is only available when you are doing server rendering and you have used your centralized Pullstate "Core" to create your Async Actions (see the server-rendering part [Creating an Async Action](async-actions-creating.md)). If you have a client-side only app, just import and use your stores directly.
+**NOTE:** In all these hooks, `stores` is only available when you are doing server rendering and you have used your centralized Pullstate "Core" to create your Async Actions, and are making use of `<PullstateProvider>` (see the server-rendering part [Creating an Async Action](async-actions-creating.md)). If you have a client-side only app, just import and use your stores directly.

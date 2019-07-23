@@ -8,17 +8,21 @@ export type TPullstateAsyncWatchResponse<R = any, T extends string = string> = [
   boolean,
   boolean,
   TAsyncActionResult<R, T>,
-  boolean
+  boolean,
+  number
 ];
 
+// export type TPullstateAsync
+
 // [ started, finished, result, updating, postActionResult ]
-export type TPullstateAsyncResponseCacheFull<R, T extends string> = [
-  boolean,
-  boolean,
-  TAsyncActionResult<R, T>,
-  boolean,
-  TAsyncActionResult<R, T> | true | null
-];
+// export type TPullstateAsyncResponseCacheFull<R, T extends string> = [
+//   boolean,
+//   boolean,
+//   TAsyncActionResult<R, T>,
+//   boolean,
+//   TAsyncActionResult<R, T> | true | null
+// ];
+
 // [finished, result, updating]
 export type TPullstateAsyncBeckonResponse<R = any, T extends string = string> = [
   boolean,
@@ -82,6 +86,7 @@ export type TPullstateAsyncCacheBreakHook<A, R, T extends string, S extends IPul
     args: A;
     result: TAsyncActionResult<R, T>,
     stores: S;
+    timeCached: number;
   }
 ) => boolean;
 
@@ -132,6 +137,15 @@ export interface IGetCachedResponse<R, T extends string> {
   updating: boolean;
   existed: boolean;
   cacheBreakable: boolean;
+  timeCached: number;
+}
+
+export interface IAsyncActionSetCachedOptions {
+  notify?: boolean;
+}
+
+export interface IAsyncActionUpdateCachedOptions extends IAsyncActionSetCachedOptions {
+  resetTimeCached?: boolean;
 }
 
 export type TAsyncActionBeckon<A, R, T extends string> = (
@@ -148,9 +162,10 @@ export type TAsyncActionRun<A, R, T extends string> = (
 ) => TPullstateAsyncRunResponse<R, T>;
 export type TAsyncActionClearCache<A> = (args?: A) => void;
 export type TAsyncActionClearAllCache = () => void;
-export type TAsyncActionSetCached<A, R, T extends string> = (args: A, result: TAsyncActionResult<R, T>) => void;
-export type TAsyncActionUpdateCached<A, R, T extends string> = (args: A, updater: TUpdateFunction<R>) => void;
+export type TAsyncActionClearAllUnwatchedCache = () => void;
 export type TAsyncActionGetCached<A, R, T extends string> = (args?: A, options?: IAsyncActionGetCachedOptions) => IGetCachedResponse<R, T>;
+export type TAsyncActionSetCached<A, R, T extends string> = (args: A, result: TAsyncActionResult<R, T>, options?: IAsyncActionSetCachedOptions) => void;
+export type TAsyncActionUpdateCached<A, R, T extends string> = (args: A, updater: TUpdateFunction<R>, options?: IAsyncActionUpdateCachedOptions) => void;
 export type TAsyncActionDelayedRun<A> = (
   args?: A,
   options?: IAsyncActionRunOptions & { delay: number, clearOldRun?: boolean, immediateIfCached?: boolean }
@@ -166,6 +181,7 @@ export interface IOCreateAsyncActionOutput<A = any, R = any, T extends string = 
   updateCached: TAsyncActionUpdateCached<A, R, T>;
   clearCache: TAsyncActionClearCache<A>;
   clearAllCache: TAsyncActionClearAllCache;
+  clearAllUnwatchedCache: TAsyncActionClearAllUnwatchedCache;
 }
 
 export interface IPullstateAsyncCache {

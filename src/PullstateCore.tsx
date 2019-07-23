@@ -140,27 +140,6 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores>
   private getAllUnresolvedAsyncActions(): Array<Promise<any>> {
     return Object.keys(this._asyncCache.actions).map(key =>
       this._asyncCache.actions[key]()
-        /*.then(resp => {
-          this._asyncCache.results[key] = [true, true, resp, false];
-        })
-        .catch(e => {
-          console.error(e);
-
-          this._asyncCache.results[key] = [
-            true,
-            true,
-            {
-              error: true,
-              message: "Threw error on server",
-              tags: [EAsyncEndTags.THREW_ERROR],
-              payload: null,
-            },
-            false,
-          ];
-        })
-        .then(() => {
-          delete this._asyncCache.actions[key];
-        })*/
     );
   }
 

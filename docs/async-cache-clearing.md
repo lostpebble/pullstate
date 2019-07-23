@@ -16,18 +16,30 @@ To try and make at least one of those things a bit easier for you, Pullstate pro
 
 ## Direct cache invalidation
 
-There are two "direct" ways to invalidate the cache for an action:
+There are three "direct" ways to invalidate the cache for an action:
 
-### [Clear the cache for specific arguments (fingerprint)](async-action-use.md#clear-an-async-action-s-cache)
+### Clear the cache for specific arguments (fingerprint)
+
+[See more](async-action-use.md#clear-an-async-action-s-cache)
 
 ```tsx
 GetUserAction.clearCache({ userId });
 ```
 
-### [Clear the cache completely for an action (all combinations of arguments)](async-action-use.md#clear-the-async-action-cache-for-all-argument-combinations)
+### Clear the cache completely for an action (all combinations of arguments)
+
+[See more](async-action-use.md#clear-the-async-action-cache-for-all-argument-combinations)
 
 ```tsx
 GetUserAction.clearAllCache();
+```
+
+### Clear all unwatched cache for an action
+
+[See more](async-action-use.md#clear-the-async-action-cache-for-unwatched-argument-combinations)
+
+```tsx
+GetUserAction.clearAllUnwatchedCache();
 ```
 
 ## Conditional cache invalidation
@@ -37,5 +49,5 @@ There is also a way to check and clear the cache automatically, using something 
 ### [Cache Break Hook](async-cache-break-hook.md)
 
 ```tsx
-cacheBreakHook: ({ result, args }) => true | false
+cacheBreakHook: ({ result, args, timeCached }) => true | false
 ```

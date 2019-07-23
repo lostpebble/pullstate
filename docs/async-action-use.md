@@ -147,3 +147,106 @@ GetUserAction.clearAllCache();
 ```
 
 This is the same as `clearCache()`, except it will clear the cache for every single argument combination (the "fingerprints" we spoke of before) that this action has seen.
+
+## Clear the Async Action cache for unwatched argument combinations
+
+```tsx
+GetUserAction.clearAllUnwatchedCache();
+```
+
+This will check which argument combinations are not being "watched' in your React app anymore (i.e. usages of `useWatch()` , `useBeckon()` or `<InjectAsyncAction/>`), and will clear the cache for those argument combinations. Pending actions for these arguments are not cleared.
+
+This is useful for simple garbage collection in Apps which tend to show lots of ever-changing data - which most likely won't be returned to (perhaps data based on the current time).
+
+## Get, Set and Update Async Action cache
+
+Pullstate provides three extra methods which allow you to introspect and even change the current value stored in the cache. they are as follows:
+
+```tsx
+GetUserAction.getCached(args, options);
+GetUserAction.setCached(args, result, options);
+GetUserAction.updateCached(args, updater, options);
+```
+
+### `getCached(args, options)`
+
+You pass the action arguments for which you expect a cached result from this action as the first parameter, and optionally you can pass the following `options`:
+
+```tsx
+{
+  checkCacheBreak: boolean; // default = false
+}
+```
+
+If `true` is passed here, then our [`cacheBreakHook`](async-cache-break-hook.md) for this action will be checked, and if this cache can be broken at the moment - `cacheBreakable` will be set to `true` in the response.
+
+The function will return an object which represents the current state of our cache for the passed arguments:
+
+```tsx
+{
+  started: boolean;
+  finished: boolean;
+  result: {
+    error: boolean;
+    payload: any;
+    message: string;
+    tags: string[];
+  };
+  updating: boolean;
+  existed: boolean;
+  cacheBreakable: boolean;
+  timeCached: number;
+}
+```
+
+If no cached value is found `existed` will be `false`.
+
+### `setCached(args, result, options)`
+
+You pass the arguments you'd like to set the cached value for as the first parameter, and the new cached `result` value as the second parameter:
+
+```tsx
+{
+  error: boolean;
+  payload: any;
+  message: string;
+  tags: string[];
+}
+```
+
+(Hint: You can use convenience functions [`successResult()`](async-actions-creating.md#convenience-function-for-success) and [`errorResult()`](async-actions-creating.md#convenience-function-for-error) to help with this )
+
+Optionally, you can provide an `options` object:
+
+```tsx
+{
+  notify?: boolean; // default = true
+}
+```
+
+If `notify` is `true` (the default), then any listeners on this Async Action for these arguments will be notified and reflect the changes of the new cached value.
+
+It has no return value.
+
+### `updateCached(args, updater, options)`
+
+This is similar to `setCached()`, but only runs on an already cached and non-error state cached value. Hence, we only need to affect `payload` on the result object.
+
+It works exactly the same as a regular store `update()`, except it acts on the currently cached `payload` value for the passed arguments. So, `updater` is a function that looks like this:
+
+```tsx
+(currentlyCachedPayload) => {
+   // directly mutate currentlyCachedPayload here
+};
+```
+
+Optionally you can provide some options:
+
+```tsx
+  notify?: boolean; // default = true
+  resetTimeCached?: boolean; // default = true
+```
+
+`notify` is the same as in `setCached()`.
+
+If `resetTimeCached` is `true` Pullstate will internally set a new value for `timeCached` to the current time.

@@ -1,3 +1,9 @@
+## 1.3.0
+
+* Expanded on `getCached()`, `setCached()` and `updateCached()` on Async Actions - and made sure they can optionally notify any listeners on their cached values to re-render on changes.
+* Added `clearAllUnwatchedCache()` on Async Actions for quick and easy garbage collection.
+* Added `timeCached` as a passed argument to the `cacheBreakHook()`, allowing for easier cache invalidation against the time the value was last cached.
+
 ## 1.2.0
 
 New experimental optimized updates (uses immer patches internally). To use, your state selections need to be made using paths - and make use of the new methods and components `useStoreStateOpt` and `<InjectStoreStateOpt>` respectively.
