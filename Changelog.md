@@ -1,3 +1,7 @@
+### 1.3.1
+
+* Fixed Reactions to work with path change optimizations (see `1.2.0`). Previously only `update()` kept track of path changes - forgot to add path tracking to Reactions.
+
 ## 1.3.0
 
 * Expanded on `getCached()`, `setCached()` and `updateCached()` on Async Actions - and made sure they can optionally notify any listeners on their cached values to re-render on changes.

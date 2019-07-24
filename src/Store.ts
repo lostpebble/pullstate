@@ -1,7 +1,8 @@
 // @ts-ignore
 import { Patch } from "immer";
 import { useStoreState } from "./useStoreState";
-import { DeepKeyOfArray, DeepTypeOfArray } from "./useStoreStateOpt-types";
+import { DeepKeyOfArray } from "./useStoreStateOpt-types";
+
 const isEqual = require("fast-deep-equal");
 
 const Immer = require("immer");
@@ -33,7 +34,6 @@ function makeSubscriptionFunction<S, T>(
     const currentState = store.getRawState();
     const nextWatchState = watch(currentState);
 
-    // nextWatchState !== lastWatchState
     if (!isEqual(nextWatchState, lastWatchState)) {
       listener(nextWatchState, currentState, lastWatchState);
       lastWatchState = nextWatchState;
@@ -52,20 +52,26 @@ function makeReactionFunctionCreator<S, T>(
       const currentState = store.getRawState();
       const nextWatchState = watch(currentState);
 
-      // if (nextWatchState !== lastWatchState) {
       if (!isEqual(nextWatchState, lastWatchState)) {
-        let changePatches: Patch[];
+        if (store._optListenerCount > 0) {
+          let changePatches: Patch[];
+
+          store._updateStateWithoutReaction(
+            produce(currentState as any, s => reaction(nextWatchState, s, currentState, lastWatchState), (patches, inversePatches) => {
+              changePatches = patches;
+            })
+          );
+          lastWatchState = nextWatchState;
+
+          if (changePatches.length > 0) {
+            return getChangedPathsFromPatches(changePatches);
+          }
+        }
 
         store._updateStateWithoutReaction(
-          produce(currentState as any, s => reaction(nextWatchState, s, currentState, lastWatchState), (patches, inversePatches) => {
-            changePatches = patches;
-          })
+          produce(currentState as any, s => reaction(nextWatchState, s, currentState, lastWatchState))
         );
         lastWatchState = nextWatchState;
-
-        if (changePatches.length > 0) {
-          return getChangedPathsFromPatches(changePatches);
-        }
       }
 
       return [];
