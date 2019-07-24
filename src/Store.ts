@@ -141,7 +141,6 @@ export class Store<S = any> {
       for (const runSubscription of this.clientSubscriptions) {
         runSubscription();
       }
-      this.updateListeners.forEach(listener => listener());
 
       if (updateKeyedPaths.length > 0) {
         // console.log(`Got update keyed paths: "${updateKeyedPaths.join(`", "`)}"`);
@@ -157,9 +156,13 @@ export class Store<S = any> {
 
         for (const ord of updateOrds.values()) {
           // console.log(`Need to notify opt listener with ord: ${ord}`);
-          this.optimizedUpdateListeners[ord]();
+          if (this.optimizedUpdateListeners[ord]) {
+            this.optimizedUpdateListeners[ord]();
+          }
         }
       }
+
+      this.updateListeners.forEach(listener => listener());
     }
   }
 
@@ -171,16 +174,16 @@ export class Store<S = any> {
     this.optimizedUpdateListeners[ordKey] = listener;
     const listenerPathsKeyed = paths.map(path => path.join(optPathDivider));
     this.optimizedUpdateListenerPaths[ordKey] = listenerPathsKeyed;
-
     for (const keyedPath of listenerPathsKeyed) {
+
       if (this.optimizedListenerPropertyMap[keyedPath] == null) {
         this.optimizedListenerPropertyMap[keyedPath] = [ordKey];
       } else {
         this.optimizedListenerPropertyMap[keyedPath].push(ordKey);
       }
     }
-
     this._optListenerCount++;
+    // console.log(`Added update listener with ORD: ${ordKey} - total: ${this._optListenerCount}`);
   }
 
   _removeUpdateListener(listener: TPullstateUpdateListener) {
@@ -200,6 +203,7 @@ export class Store<S = any> {
     delete this.optimizedUpdateListeners[ordKey];
 
     this._optListenerCount--;
+    // console.log(`Removed update listener with ORD: ${ordKey} - total: ${this._optListenerCount}`);
   }
 
   subscribe<T>(
