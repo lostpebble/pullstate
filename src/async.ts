@@ -72,7 +72,7 @@ function notifyListeners(key: string) {
   if (clientAsyncCache.listeners.hasOwnProperty(key)) {
     // console.log(`[${key}] Notifying (${Object.keys(clientAsyncCache.listeners[key]).length}) listeners`);
     for (const watchId of Object.keys(clientAsyncCache.listeners[key])) {
-      console.log(`[${key}] Notifying listener with watch id: [${watchId}]`);
+      // console.log(`[${key}] Notifying listener with watch id: [${watchId}]`);
       clientAsyncCache.listeners[key][watchId]();
     }
   }
@@ -351,7 +351,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     // only listen for updates when on client
     if (!onServer) {
       const onAsyncStateChanged = () => {
-        console.log(`[${key}][${watchId.current}] should update: ${shouldUpdate[key][watchId.current]}`);
+        /*console.log(`[${key}][${watchId.current}] should update: ${shouldUpdate[key][watchId.current]}`);
         console.log(
           `[${key}][${watchId.current}] will update?: ${!isEqual(
             responseRef.current,
@@ -359,7 +359,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
           )} - ${responseRef.current} !== ${cache.results[key]}`
         );
         console.log(responseRef.current);
-        console.log(cache.results[key]);
+        console.log(cache.results[key]);*/
         if (shouldUpdate[key][watchId.current] && !isEqual(responseRef.current, cache.results[key])) {
           responseRef.current = checkKeyAndReturnResponse(
             key,

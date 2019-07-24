@@ -18,14 +18,15 @@ export interface IStoreInternalOptions<S> {
 
 export type TUpdateFunction<S> = (draft: S, original: S) => void;
 type TReactionFunction<S, T> = (watched: T, draft: S, original: S, previousWatched: T) => void;
-type TRunReactionFunction = () => void;
+type TRunReactionFunction = () => string[];
+type TRunSubscriptionFunction = () => void;
 type TReactionCreator<S> = (store: Store<S>) => TRunReactionFunction;
 
 function makeSubscriptionFunction<S, T>(
   store: Store<S>,
   watch: (state: S) => T,
   listener: (watched: T, allState: S, previousWatched: T) => void
-): TRunReactionFunction {
+): TRunSubscriptionFunction {
   let lastWatchState: T = watch(store.getRawState());
 
   return () => {
@@ -44,7 +45,7 @@ function makeReactionFunctionCreator<S, T>(
   watch: (state: S) => T,
   reaction: TReactionFunction<S, T>
 ): TReactionCreator<S> {
-  return store => {
+  return (store) => {
     let lastWatchState: T = watch(store.getRawState());
 
     return () => {
@@ -53,11 +54,21 @@ function makeReactionFunctionCreator<S, T>(
 
       // if (nextWatchState !== lastWatchState) {
       if (!isEqual(nextWatchState, lastWatchState)) {
+        let changePatches: Patch[];
+
         store._updateStateWithoutReaction(
-          produce(currentState as any, s => reaction(nextWatchState, s, currentState, lastWatchState))
+          produce(currentState as any, s => reaction(nextWatchState, s, currentState, lastWatchState), (patches, inversePatches) => {
+            changePatches = patches;
+          })
         );
         lastWatchState = nextWatchState;
+
+        if (changePatches.length > 0) {
+          return getChangedPathsFromPatches(changePatches);
+        }
       }
+
+      return [];
     };
   };
 }
@@ -71,7 +82,7 @@ export class Store<S = any> {
   private readonly initialState: S;
   private ssr: boolean = false;
   private reactions: TRunReactionFunction[] = [];
-  private clientSubscriptions: TRunReactionFunction[] = [];
+  private clientSubscriptions: TRunSubscriptionFunction[] = [];
   private reactionCreators: TReactionCreator<S>[] = [];
 
   // Optimized listener / updates stuff
@@ -117,7 +128,7 @@ export class Store<S = any> {
     this.currentState = nextState;
 
     for (const runReaction of this.reactions) {
-      runReaction();
+      updateKeyedPaths.push(...runReaction());
     }
 
     if (!this.ssr) {
@@ -241,6 +252,26 @@ export function applyPatchesToStore<S = any>(store: Store<S>, patches: Patch[]) 
   }
 }
 
+function getChangedPathsFromPatches(changePatches: Patch[]): string[] {
+  const updateKeyedPathsMap: { [path: string]: 1 } = {};
+
+  for (const patch of changePatches) {
+    let curKey;
+
+    for (const p of patch.path) {
+      if (curKey) {
+        curKey = `${curKey}${optPathDivider}${p}`;
+      } else {
+        curKey = p;
+      }
+
+      updateKeyedPathsMap[curKey] = 1;
+    }
+  }
+
+  return Object.keys(updateKeyedPathsMap);
+}
+
 export function update<S = any>(
   store: Store<S>,
   updater: TUpdateFunction<S>,
@@ -264,23 +295,7 @@ export function update<S = any>(
     );
 
     if (changePatches.length > 0) {
-      const updateKeyedPathsMap = {};
-
-      for (const patch of changePatches) {
-        let curKey;
-
-        for (const p of patch.path) {
-          if (curKey) {
-            curKey = `${curKey}${optPathDivider}${p}`;
-          } else {
-            curKey = p;
-          }
-
-          updateKeyedPathsMap[curKey] = true;
-        }
-      }
-
-      store._updateState(nextState, Object.keys(updateKeyedPathsMap));
+      store._updateState(nextState, getChangedPathsFromPatches(changePatches));
     }
   } else {
     const nextState: S = produce(currentState as any, s => updater(s, currentState), patchesCallback);
