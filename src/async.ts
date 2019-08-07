@@ -584,7 +584,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     }
   };
 
-  const setCached: TAsyncActionSetCached<A, R, T> = (args, result, { notify = true }) => {
+  const setCached: TAsyncActionSetCached<A, R, T> = (args, result, { notify = true } = {}) => {
     const key = createKey(ordinal, args);
 
     const cache: IPullstateAsyncCache = onServer
