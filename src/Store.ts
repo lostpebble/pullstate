@@ -1,5 +1,5 @@
 // @ts-ignore
-import { Patch } from "immer";
+import { Patch, PatchListener } from "immer";
 import { useStoreState } from "./useStoreState";
 import { DeepKeyOfArray } from "./useStoreStateOpt-types";
 
@@ -8,6 +8,7 @@ const isEqual = require("fast-deep-equal");
 const Immer = require("immer");
 
 const produce = Immer.produce;
+const produceWithPatches = Immer.produceWithPatches;
 const applyPatches = Immer.applyPatches;
 
 export type TPullstateUpdateListener = () => void;
@@ -45,7 +46,7 @@ function makeReactionFunctionCreator<S, T>(
   watch: (state: S) => T,
   reaction: TReactionFunction<S, T>
 ): TReactionCreator<S> {
-  return (store) => {
+  return store => {
     let lastWatchState: T = watch(store.getRawState());
 
     return () => {
@@ -54,24 +55,34 @@ function makeReactionFunctionCreator<S, T>(
 
       if (!isEqual(nextWatchState, lastWatchState)) {
         if (store._optListenerCount > 0) {
-          let changePatches: Patch[];
-
-          store._updateStateWithoutReaction(
-            produce(currentState as any, s => reaction(nextWatchState, s, currentState, lastWatchState), (patches, inversePatches) => {
-              changePatches = patches;
-            })
+          const [nextState, patches, inversePatches] = produceWithPatches(currentState as any, s =>
+            reaction(nextWatchState, s, currentState, lastWatchState)
           );
+
+          store._updateStateWithoutReaction(nextState);
           lastWatchState = nextWatchState;
 
-          if (changePatches.length > 0) {
-            return getChangedPathsFromPatches(changePatches);
+          if (patches.length > 0) {
+            store._patchListeners.forEach(listener => listener(patches, inversePatches));
+            return getChangedPathsFromPatches(patches);
           }
-        }
+        } else {
+          if (store._patchListeners.length > 0) {
+            const [nextState, patches, inversePatches] = produceWithPatches(currentState as any, s =>
+              reaction(nextWatchState, s, currentState, lastWatchState)
+            );
 
-        store._updateStateWithoutReaction(
-          produce(currentState as any, s => reaction(nextWatchState, s, currentState, lastWatchState))
-        );
-        lastWatchState = nextWatchState;
+            if (patches.length > 0) {
+              store._patchListeners.forEach(listener => listener(patches, inversePatches));
+            }
+            store._updateStateWithoutReaction(nextState);
+          } else {
+            store._updateStateWithoutReaction(
+              produce(currentState as any, s => reaction(nextWatchState, s, currentState, lastWatchState))
+            );
+          }
+          lastWatchState = nextWatchState;
+        }
       }
 
       return [];
@@ -80,6 +91,8 @@ function makeReactionFunctionCreator<S, T>(
 }
 
 const optPathDivider = "~._.~";
+
+// type TPatchListener = Immer.
 
 // S = State
 export class Store<S = any> {
@@ -102,6 +115,7 @@ export class Store<S = any> {
     [pathKey: string]: string[];
   } = {};
   public _optListenerCount = 0;
+  public _patchListeners: PatchListener[] = [];
 
   constructor(initialState: S) {
     this.currentState = initialState;
@@ -175,7 +189,6 @@ export class Store<S = any> {
     const listenerPathsKeyed = paths.map(path => path.join(optPathDivider));
     this.optimizedUpdateListenerPaths[ordKey] = listenerPathsKeyed;
     for (const keyedPath of listenerPathsKeyed) {
-
       if (this.optimizedListenerPropertyMap[keyedPath] == null) {
         this.optimizedListenerPropertyMap[keyedPath] = [ordKey];
       } else {
@@ -204,6 +217,13 @@ export class Store<S = any> {
 
     this._optListenerCount--;
     // console.log(`Removed update listener with ORD: ${ordKey} - total: ${this._optListenerCount}`);
+  }
+
+  listenToPatches(patchListener: PatchListener): () => void {
+    this._patchListeners.push(patchListener);
+    return () => {
+      this._patchListeners = this._patchListeners.filter(f => f !== patchListener);
+    };
   }
 
   subscribe<T>(
@@ -258,7 +278,7 @@ export function applyPatchesToStore<S = any>(store: Store<S>, patches: Patch[]) 
   const currentState: S = store.getRawState();
   const nextState = applyPatches(currentState, patches);
   if (nextState !== currentState) {
-    store._updateState(nextState);
+    store._updateState(nextState, getChangedPathsFromPatches(patches));
   }
 }
 
@@ -290,25 +310,40 @@ export function update<S = any>(
   const currentState: S = store.getRawState();
 
   if (store._optListenerCount > 0) {
-    let changePatches: Patch[];
+    const [nextState, patches, inversePatches] = produceWithPatches(currentState as any, s =>
+      updater(s, currentState)
+    );
 
-    const nextState: S = produce(
-      currentState as any,
-      s => updater(s, currentState),
-      (patches, inversePatches) => {
+    if (patches.length > 0) {
+      if (patchesCallback) {
+        patchesCallback(patches, inversePatches);
+      }
+
+      store._patchListeners.forEach(listener => listener(patches, inversePatches));
+
+      store._updateState(nextState, getChangedPathsFromPatches(patches));
+    }
+  } else {
+    let nextState: S;
+
+    if (store._patchListeners.length > 0 || patchesCallback) {
+      const [ns, patches, inversePatches] = produceWithPatches(currentState as any, s =>
+        updater(s, currentState)
+      );
+
+      if (patches.length > 0) {
         if (patchesCallback) {
           patchesCallback(patches, inversePatches);
         }
 
-        changePatches = patches;
+        store._patchListeners.forEach(listener => listener(patches, inversePatches));
       }
-    );
 
-    if (changePatches.length > 0) {
-      store._updateState(nextState, getChangedPathsFromPatches(changePatches));
+      nextState = ns;
+    } else {
+      nextState = produce(currentState as any, s => updater(s, currentState));
     }
-  } else {
-    const nextState: S = produce(currentState as any, s => updater(s, currentState), patchesCallback);
+
     if (nextState !== currentState) {
       store._updateState(nextState);
     }
