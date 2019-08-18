@@ -1,3 +1,10 @@
+## 1.4.0
+
+* Added the ability to listen for change patches on an entire store, using `Store.listenToPatches(patchListener)`.
+
+* Fixed a bug where applying patches to stores didn't trigger the new optimized updates.
+* Fixed bug with Reactions running twice
+
 ### 1.3.1
 
 * Fixed Reactions to work with path change optimizations (see `1.2.0`). Previously only `update()` kept track of path changes - forgot to add path tracking to Reactions.

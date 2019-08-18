@@ -186,7 +186,7 @@ export class Store<S = any> {
 
   _addUpdateListenerOpt(listener: TPullstateUpdateListener, ordKey: string, paths: DeepKeyOfArray<S>[]) {
     this.optimizedUpdateListeners[ordKey] = listener;
-    const listenerPathsKeyed = paths.map(path => path.join(optPathDivider));
+    const listenerPathsKeyed: string[] = paths.map(path => path.join(optPathDivider));
     this.optimizedUpdateListenerPaths[ordKey] = listenerPathsKeyed;
     for (const keyedPath of listenerPathsKeyed) {
       if (this.optimizedListenerPropertyMap[keyedPath] == null) {
