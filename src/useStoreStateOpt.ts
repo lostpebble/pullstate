@@ -30,18 +30,7 @@ function useStoreStateOpt<
 >(
   store: Store<S>,
   paths: P
-):
-  // [ DeepTypeOfArray<S, P[0]>]
-  // | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>]
-  // | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>]
-  // | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>]
-  // | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>, DeepTypeOfArray<S, P[4]>]
-  // | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>, DeepTypeOfArray<S, P[4]>, DeepTypeOfArray<S, P[5]>]
-  // | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>, DeepTypeOfArray<S, P[4]>, DeepTypeOfArray<S, P[5]>, DeepTypeOfArray<S, P[6]>]
-  // | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>, DeepTypeOfArray<S, P[4]>, DeepTypeOfArray<S, P[5]>, DeepTypeOfArray<S, P[6]>, DeepTypeOfArray<S, P[7]>]
-  // | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>, DeepTypeOfArray<S, P[4]>, DeepTypeOfArray<S, P[5]>, DeepTypeOfArray<S, P[6]>, DeepTypeOfArray<S, P[7]>, DeepTypeOfArray<S, P[8]>]
-  // | [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>, DeepTypeOfArray<S, P[4]>, DeepTypeOfArray<S, P[5]>, DeepTypeOfArray<S, P[6]>, DeepTypeOfArray<S, P[7]>, DeepTypeOfArray<S, P[8]>, DeepTypeOfArray<S, P[9]>]
-  [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>, DeepTypeOfArray<S, P[4]>, DeepTypeOfArray<S, P[5]>, DeepTypeOfArray<S, P[6]>, DeepTypeOfArray<S, P[7]>, DeepTypeOfArray<S, P[8]>, DeepTypeOfArray<S, P[9]>, DeepTypeOfArray<S, P[10]>]
+): [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>, DeepTypeOfArray<S, P[4]>, DeepTypeOfArray<S, P[5]>, DeepTypeOfArray<S, P[6]>, DeepTypeOfArray<S, P[7]>, DeepTypeOfArray<S, P[8]>, DeepTypeOfArray<S, P[9]>, DeepTypeOfArray<S, P[10]>]
 {
   const [subState, setSubState] = useState<any>(() => getSubStateFromPaths(store, paths));
 
@@ -57,7 +46,9 @@ function useStoreStateOpt<
   if (updateRef.current.onStoreUpdate === null) {
     updateRef.current.onStoreUpdate = function onStoreUpdateOpt() {
       // console.log(`Running onStoreUpdate from useStoreStateOpt ${updateRef.current.ordKey}`);
-      setSubState(getSubStateFromPaths(store, paths));
+      if (updateRef.current.shouldUpdate) {
+        setSubState(getSubStateFromPaths(store, paths));
+      }
     };
     store._addUpdateListenerOpt(updateRef.current.onStoreUpdate, updateRef.current.ordKey, paths);
   }
@@ -75,43 +66,3 @@ function useStoreStateOpt<
 }
 
 export { useStoreStateOpt };
-
-/*
-const obj = {
-  inner: {
-    something: "great",
-    innerTwo: {
-      isIt: true,
-    },
-  },
-  innerArr: [{
-    bogus: true,
-  }],
-  firstLevel: "",
-};
-
-export interface IPostSearchStore {
-  posts: {
-    inner: boolean;
-    innerArray: string[];
-  }[];
-  currentSearchText: string;
-  loadingPosts: boolean;
-}
-
-export const PostSearchStore = new Store<IPostSearchStore>({
-  posts: [],
-  currentSearchText: "",
-  loadingPosts: false,
-});
-
-const store = new Store(obj);
-
-const [posts, text, postsArrayItem] = useStoreStateOpt(PostSearchStore, [["posts"], ["currentSearchText"], ["posts", 0]]);
-
-function takeString(take: string) {
-
-}
-
-takeString(text);
-*/

@@ -1,6 +1,6 @@
 {
   "name": "pullstate",
-  "version": "1.4.0",
+  "version": "1.4.1",
   "description": "Simple state stores using immer and React hooks",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
@@ -29,7 +29,8 @@
   "author": "Paul Myburgh",
   "license": "MIT",
   "dependencies": {
-    "fast-deep-equal": "^2.0.1"
+    "fast-deep-equal": "^2.0.1",
+    "immer": "^3.2.0"
   },
   "repository": "https://github.com/lostpebble/pullstate",
   "devDependencies": {
@@ -41,7 +42,6 @@
     "benchmark": "^2.1.4",
     "cross-env": "^5.2.0",
     "in-publish": "^2.0.0",
-    "immer": "^3.2.0",
     "jest": "24.8.0",
     "jest-environment-jsdom": "24.8.0",
     "jest-environment-jsdom-global": "1.2.0",
