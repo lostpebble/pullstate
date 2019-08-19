@@ -64,10 +64,6 @@ export function keyFromObject(json: any): string {
   return (prefix += "}");
 }
 
-function createKey(ordinal, args: any) {
-  return `${ordinal}-${keyFromObject(args)}`;
-}
-
 function notifyListeners(key: string) {
   if (clientAsyncCache.listeners.hasOwnProperty(key)) {
     // console.log(`[${key}] Notifying (${Object.keys(clientAsyncCache.listeners[key]).length}) listeners`);
@@ -136,10 +132,18 @@ export function createAsyncAction<
     shortCircuitHook,
     cacheBreakHook,
     postActionHook,
+    subsetKey,
   }: ICreateAsyncActionOptions<A, R, T, S> = {}
 ): IOCreateAsyncActionOutput<A, R, T> {
   const ordinal: number = asyncCreationOrdinal++;
   const onServer: boolean = typeof window === "undefined";
+
+  function _createKey(keyOrdinal, args: any) {
+    if (subsetKey !== undefined) {
+      return `${keyOrdinal}-${keyFromObject(subsetKey(args))}`
+    }
+    return `${keyOrdinal}-${keyFromObject(args)}`;
+  }
 
   let cacheBreakWatcher: { [actionKey: string]: number } = {};
   let watchIdOrd: number = 0;
@@ -325,13 +329,18 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       cacheBreakEnabled = false,
     }: IAsyncActionWatchOptions = {}
   ) => {
-    const key = createKey(ordinal, args);
+    // Where we store the current response that will be returned from our hook
+    const responseRef = useRef<TPullstateAsyncWatchResponse<R, T>>(null);
+
+    // For comparisons to our previous "fingerprint" / key from args
+    const prevKeyRef = useRef(null);
+
+    const key = _createKey(ordinal, args);
 
     let watchId = useRef<number>(null);
     if (watchId.current === null) {
       watchId.current = watchIdOrd++;
     }
-    const prevKeyRef = useRef(null);
 
     if (!shouldUpdate.hasOwnProperty(key)) {
       shouldUpdate[key] = {
@@ -409,11 +418,13 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       );
     }
 
-    // Where we store the current response that will be returned from our hook
-    const responseRef = useRef<TPullstateAsyncWatchResponse<R, T>>(null);
-
     // Purely for forcing this hook to update
     const [_, setWatchUpdate] = useState<number>(0);
+
+    /*// If we've run this before, and the keys are equal, quick return with the current set result
+    if (prevKeyRef.current !== null && prevKeyRef.current === key) {
+      return responseRef.current;
+    }*/
 
     if (prevKeyRef.current !== key) {
       // console.log(`[${key}][${watchId}] KEYS MISMATCH old !== new [${prevKeyRef.current} !== ${key}]`);
@@ -459,7 +470,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       _stores = clientStores,
     }: IAsyncActionRunOptions = {}
   ): Promise<TAsyncActionResult<R, T>> => {
-    const key = createKey(ordinal, args);
+    const key = _createKey(ordinal, args);
     // console.log(`[${key}] Running action`);
 
     if (_asyncCache.results.hasOwnProperty(key) && respectCache) {
@@ -563,7 +574,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
   };
 
   const clearCache: TAsyncActionClearCache<A> = (args = {} as A) => {
-    const key = createKey(ordinal, args);
+    const key = _createKey(ordinal, args);
     clearActionCache(key);
   };
 
@@ -585,7 +596,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
   };
 
   const setCached: TAsyncActionSetCached<A, R, T> = (args, result, { notify = true } = {}) => {
-    const key = createKey(ordinal, args);
+    const key = _createKey(ordinal, args);
 
     const cache: IPullstateAsyncCache = onServer
       ? useContext(PullstateContext)._asyncCache
@@ -602,7 +613,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     updater,
     { notify = true, resetTimeCached = true } = {}
   ) => {
-    const key = createKey(ordinal, args);
+    const key = _createKey(ordinal, args);
 
     const cache: IPullstateAsyncCache = onServer
       ? useContext(PullstateContext)._asyncCache
@@ -630,7 +641,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
   };
 
   const getCached: TAsyncActionGetCached<A, R, T> = (args = {} as A, { checkCacheBreak = false } = {}) => {
-    const key = createKey(ordinal, args);
+    const key = _createKey(ordinal, args);
 
     let cacheBreakable = false;
 

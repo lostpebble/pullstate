@@ -91,14 +91,11 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
 
   createAsyncAction<A = any, R = any, T extends string = string>(
     action: TPullstateAsyncAction<A, R, T, S>,
-    options: Omit<ICreateAsyncActionOptions<A, R, T, S>, "clientStores"> = {}
+    // options: Omit<ICreateAsyncActionOptions<A, R, T, S>, "clientStores"> = {}
+    options: ICreateAsyncActionOptions<A, R, T, S> = {}
   ): IOCreateAsyncActionOutput<A, R, T> {
-    return createAsyncAction<A, R, T, S>(action, {
-      clientStores: this.originStores,
-      shortCircuitHook: options.shortCircuitHook,
-      cacheBreakHook: options.cacheBreakHook,
-      postActionHook: options.postActionHook,
-    });
+    options.clientStores = this.originStores;
+    return createAsyncAction<A, R, T, S>(action, options);
   }
 }
 

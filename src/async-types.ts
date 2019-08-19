@@ -207,4 +207,5 @@ export interface ICreateAsyncActionOptions<A, R, T extends string, S extends IPu
   shortCircuitHook?: TPullstateAsyncShortCircuitHook<A, R, T, S>;
   cacheBreakHook?: TPullstateAsyncCacheBreakHook<A, R, T, S>;
   postActionHook?: TPullstateAsyncPostActionHook<A, R, T, S>;
+  subsetKey?: (args: A) => any;
 }
