@@ -1,3 +1,7 @@
+### 1.4.1
+
+* Added `immer` as direct dependency. Was `peerDependency` before - but this is not sufficient when requiring certain versions of `immer` for new functionality. Also `peerDependency` gives errors to users whose projects don't use `immer` outside of `pullstate`.
+
 ## 1.4.0
 
 * Added the ability to listen for change patches on an entire store, using `Store.listenToPatches(patchListener)`.
