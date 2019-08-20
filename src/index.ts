@@ -10,7 +10,7 @@ import {
 } from "./PullstateCore";
 import { createAsyncAction, errorResult, successResult } from "./async";
 import { EAsyncActionInjectType, InjectAsyncAction, TInjectAsyncActionProps } from "./InjectAsyncAction";
-import { EAsyncEndTags, TPullstateAsyncAction } from "./async-types";
+import { EAsyncEndTags, TPullstateAsyncAction, TAsyncActionResult } from "./async-types";
 import { InjectStoreStateOpt } from "./InjectStoreStateOpt";
 
 export {
@@ -32,4 +32,5 @@ export {
   EAsyncActionInjectType,
   TInjectAsyncActionProps,
   TPullstateAsyncAction,
+  TAsyncActionResult,
 };
