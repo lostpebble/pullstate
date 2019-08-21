@@ -1,3 +1,7 @@
+### 1.5.1
+
+Added `--strictNullChecks` in TypeScript and fixed loads of types which had undefined / null options. Should let Pullstate play nicely with the other children now.
+
 ## 1.5.0
 
 Allow selecting a subset of passed arguments too an async function to create the fingerprint. This is purely for performance reasons when you want to pass in large data sets.
