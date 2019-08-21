@@ -174,7 +174,8 @@ export function createAsyncAction<
     stores: S,
     fromListener = false,
     postActionEnabled = true,
-    cacheBreakEnabled = true
+    cacheBreakEnabled = true,
+    holdingResult: TPullstateAsyncWatchResponse<R, T>|undefined = undefined,
   ): TPullstateAsyncWatchResponse<R, T> {
     if (cache.results.hasOwnProperty(key)) {
       const cacheBreakLoop = cacheBreakWatcher.hasOwnProperty(key) && cacheBreakWatcher[key] > 2;
@@ -291,6 +292,12 @@ further looping. Fix in your cacheBreakHook() is needed.`);
           cache.actions[key]();
         }
       } else {
+        if (holdingResult) {
+          const response = [...holdingResult] as TPullstateAsyncWatchResponse<R, T>;
+          response[3] = true;
+          return response;
+        }
+
         return [
           false,
           false,
@@ -304,6 +311,12 @@ further looping. Fix in your cacheBreakHook() is needed.`);
           -1,
         ] as TPullstateAsyncWatchResponse<R, T>;
       }
+    }
+
+    if (holdingResult) {
+      const response = [...holdingResult] as TPullstateAsyncWatchResponse<R, T>;
+      response[3] = true;
+      return response;
     }
 
     return [
@@ -327,6 +340,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       ssr = true,
       postActionEnabled = false,
       cacheBreakEnabled = false,
+      holdPrevious = false,
     }: IAsyncActionWatchOptions = {}
   ) => {
     // Where we store the current response that will be returned from our hook
@@ -443,7 +457,10 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         stores,
         false,
         postActionEnabled,
-        cacheBreakEnabled
+        cacheBreakEnabled,
+        // If we want to hold previous and the previous result was finished -
+        // keep showing that until this new one resolves
+        (holdPrevious && responseRef.current && responseRef.current[1]) ? responseRef.current : undefined
       );
     }
 
@@ -454,9 +471,9 @@ further looping. Fix in your cacheBreakHook() is needed.`);
   // Same as watch - just initiated, so no need for "started" return value
   const useBeckon: TAsyncActionBeckon<A, R, T> = (
     args = {} as A,
-    { ssr = true, postActionEnabled = true, cacheBreakEnabled = true }: IAsyncActionBeckonOptions = {}
+    { ssr = true, postActionEnabled = true, cacheBreakEnabled = true, holdPrevious = false }: IAsyncActionBeckonOptions = {}
   ) => {
-    const result = useWatch(args, { initiate: true, ssr, postActionEnabled, cacheBreakEnabled });
+    const result = useWatch(args, { initiate: true, ssr, postActionEnabled, cacheBreakEnabled, holdPrevious });
     return [result[1], result[2], result[3]];
   };
 

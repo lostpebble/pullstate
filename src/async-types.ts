@@ -112,6 +112,7 @@ export interface IAsyncActionBeckonOptions {
   ssr?: boolean;
   postActionEnabled?: boolean;
   cacheBreakEnabled?: boolean;
+  holdPrevious?: boolean;
 }
 
 export interface IAsyncActionWatchOptions extends IAsyncActionBeckonOptions {
