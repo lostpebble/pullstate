@@ -12,9 +12,9 @@ function fastGet<S>(obj: S, path: any[]): any {
 }
 
 function getSubStateFromPaths<S, P extends DeepKeyOfArray<S>[]>(store: Store<S>, paths: P): any[] {
-  const state = store.getRawState();
+  const state: any = store.getRawState();
 
-  const resp = [];
+  const resp: any[] = [];
 
   for (const path of paths) {
     resp.push(fastGet(state, path));
@@ -23,15 +23,22 @@ function getSubStateFromPaths<S, P extends DeepKeyOfArray<S>[]>(store: Store<S>,
   return resp;
 }
 
-// prettier-ignore
-function useStoreStateOpt<
-  S,
-  P extends TAllPathsParameter<S>
->(
+function useStoreStateOpt<S, P extends TAllPathsParameter<S>>(
   store: Store<S>,
   paths: P
-): [DeepTypeOfArray<S, P[0]>, DeepTypeOfArray<S, P[1]>, DeepTypeOfArray<S, P[2]>, DeepTypeOfArray<S, P[3]>, DeepTypeOfArray<S, P[4]>, DeepTypeOfArray<S, P[5]>, DeepTypeOfArray<S, P[6]>, DeepTypeOfArray<S, P[7]>, DeepTypeOfArray<S, P[8]>, DeepTypeOfArray<S, P[9]>, DeepTypeOfArray<S, P[10]>]
-{
+): [
+  DeepTypeOfArray<S, P[0]>,
+  DeepTypeOfArray<S, P[1]>,
+  DeepTypeOfArray<S, P[2]>,
+  DeepTypeOfArray<S, P[3]>,
+  DeepTypeOfArray<S, P[4]>,
+  DeepTypeOfArray<S, P[5]>,
+  DeepTypeOfArray<S, P[6]>,
+  DeepTypeOfArray<S, P[7]>,
+  DeepTypeOfArray<S, P[8]>,
+  DeepTypeOfArray<S, P[9]>,
+  DeepTypeOfArray<S, P[10]>
+] {
   const [subState, setSubState] = useState<any>(() => getSubStateFromPaths(store, paths));
 
   const updateRef = useRef<Partial<IUpdateRef & { ordKey: string }>>({
@@ -50,14 +57,14 @@ function useStoreStateOpt<
         setSubState(getSubStateFromPaths(store, paths));
       }
     };
-    store._addUpdateListenerOpt(updateRef.current.onStoreUpdate, updateRef.current.ordKey, paths);
+    store._addUpdateListenerOpt(updateRef.current.onStoreUpdate, updateRef.current.ordKey!, paths);
   }
 
   useEffect(
     () => () => {
       // console.log(`removing opt listener ord:"${updateRef.current.ordKey}"`);
       updateRef.current.shouldUpdate = false;
-      store._removeUpdateListenerOpt(updateRef.current.ordKey);
+      store._removeUpdateListenerOpt(updateRef.current.ordKey!);
     },
     []
   );

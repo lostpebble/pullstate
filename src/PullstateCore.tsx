@@ -48,7 +48,7 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
   }
 
   instantiate({
-    hydrateSnapshot = null,
+    hydrateSnapshot,
     ssr = false,
   }: { hydrateSnapshot?: IPullstateSnapshot; ssr?: boolean } = {}): PullstateInstance<S> {
     if (!ssr) {
@@ -86,7 +86,7 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
   }
 
   useStores(): S {
-    return useContext(PullstateContext).stores as S;
+    return useContext(PullstateContext)!.stores as S;
   }
 
   createAsyncAction<A = any, R = any, T extends string = string>(
@@ -201,5 +201,5 @@ export function createPullstateCore<T extends IPullstateAllStores = IPullstateAl
 }
 
 export function useStores<T extends IPullstateAllStores = {}>() {
-  return useContext(PullstateContext).stores as T;
+  return useContext(PullstateContext)!.stores as T;
 }

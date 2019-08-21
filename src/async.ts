@@ -1,12 +1,12 @@
 import { IPullstateAllStores, PullstateContext } from "./PullstateCore";
-import { useContext, useEffect, useMemo, useRef, useState } from "react";
+import { MutableRefObject, useContext, useEffect, useMemo, useRef, useState } from "react";
 import {
   EAsyncEndTags,
   EPostActionContext,
   IAsyncActionBeckonOptions,
   IAsyncActionResultNegative,
   IAsyncActionResultPositive,
-  IAsyncActionRunOptions,
+  IAsyncActionRunOptions, IAsyncActionUpdateCachedOptions,
   IAsyncActionWatchOptions,
   ICreateAsyncActionOptions,
   IOCreateAsyncActionOutput,
@@ -96,7 +96,7 @@ function actionOrdUpdate(cache: IPullstateAsyncCache, key: string): number {
 }
 
 export function successResult<R, T extends string = string>(
-  payload: R = null,
+  payload: R = null as unknown as R,
   tags: (EAsyncEndTags | T)[] = [],
   message: string = ""
 ): IAsyncActionResultPositive<R, T> {
@@ -330,15 +330,15 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     }: IAsyncActionWatchOptions = {}
   ) => {
     // Where we store the current response that will be returned from our hook
-    const responseRef = useRef<TPullstateAsyncWatchResponse<R, T>>(null);
+    const responseRef = useRef<TPullstateAsyncWatchResponse<R, T>>();
 
     // For comparisons to our previous "fingerprint" / key from args
-    const prevKeyRef = useRef(null);
+    const prevKeyRef = useRef<string>();
 
     const key = _createKey(ordinal, args);
 
-    let watchId = useRef<number>(null);
-    if (watchId.current === null) {
+    let watchId: MutableRefObject<number> = useRef(-1);
+    if (watchId.current === -1) {
       watchId.current = watchIdOrd++;
     }
 
@@ -353,9 +353,9 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     // console.log(`[${key}][${watchId.current}] Starting useWatch()`);
 
     const cache: IPullstateAsyncCache = onServer
-      ? useContext(PullstateContext)._asyncCache
+      ? useContext(PullstateContext)!._asyncCache
       : clientAsyncCache;
-    const stores = onServer ? (useContext(PullstateContext).stores as S) : clientStores;
+    const stores = onServer ? (useContext(PullstateContext)!.stores as S) : clientStores;
 
     // only listen for updates when on client
     if (!onServer) {
@@ -428,9 +428,9 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
     if (prevKeyRef.current !== key) {
       // console.log(`[${key}][${watchId}] KEYS MISMATCH old !== new [${prevKeyRef.current} !== ${key}]`);
-      if (prevKeyRef.current !== null && shouldUpdate.hasOwnProperty(prevKeyRef.current)) {
-        delete cache.listeners[prevKeyRef.current][watchId.current];
-        shouldUpdate[prevKeyRef.current][watchId.current] = false;
+      if (prevKeyRef.current !== null && shouldUpdate.hasOwnProperty(prevKeyRef.current!)) {
+        delete cache.listeners[prevKeyRef.current!][watchId.current];
+        shouldUpdate[prevKeyRef.current!][watchId.current] = false;
       }
 
       prevKeyRef.current = key;
@@ -448,7 +448,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     }
 
     // console.log(`[${key}][${watchId}] Returning from watch() [update no. ${_}] with response: ${JSON.stringify(responseRef.current)}`);
-    return responseRef.current;
+    return responseRef.current!;
   };
 
   // Same as watch - just initiated, so no need for "started" return value
@@ -595,11 +595,12 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     }
   };
 
-  const setCached: TAsyncActionSetCached<A, R, T> = (args, result, { notify = true } = {}) => {
+  const setCached: TAsyncActionSetCached<A, R, T> = (args, result, options) => {
+    const { notify = true } = options || {};
     const key = _createKey(ordinal, args);
 
     const cache: IPullstateAsyncCache = onServer
-      ? useContext(PullstateContext)._asyncCache
+      ? useContext(PullstateContext)!._asyncCache
       : clientAsyncCache;
 
     cache.results[key] = [true, true, result, false, Date.now()];
@@ -611,12 +612,14 @@ further looping. Fix in your cacheBreakHook() is needed.`);
   const updateCached: TAsyncActionUpdateCached<A, R, T> = (
     args,
     updater,
-    { notify = true, resetTimeCached = true } = {}
+    options,
   ) => {
+    const { notify = true, resetTimeCached = true } = options || {};
+
     const key = _createKey(ordinal, args);
 
     const cache: IPullstateAsyncCache = onServer
-      ? useContext(PullstateContext)._asyncCache
+      ? useContext(PullstateContext)!._asyncCache
       : clientAsyncCache;
 
     if (cache.results.hasOwnProperty(key) && !cache.results[key][2].error) {
@@ -640,18 +643,19 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     }
   };
 
-  const getCached: TAsyncActionGetCached<A, R, T> = (args = {} as A, { checkCacheBreak = false } = {}) => {
+  const getCached: TAsyncActionGetCached<A, R, T> = (args = {} as A, options) => {
+    const { checkCacheBreak = false } = options || {};
     const key = _createKey(ordinal, args);
 
     let cacheBreakable = false;
 
     const cache: IPullstateAsyncCache = onServer
-      ? useContext(PullstateContext)._asyncCache
+      ? useContext(PullstateContext)!._asyncCache
       : clientAsyncCache;
 
     if (cache.results.hasOwnProperty(key)) {
       if (checkCacheBreak && cacheBreakHook !== undefined) {
-        const stores = onServer ? (useContext(PullstateContext).stores as S) : clientStores;
+        const stores = onServer ? (useContext(PullstateContext)!.stores as S) : clientStores;
 
         if (
           cacheBreakHook({

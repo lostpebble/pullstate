@@ -262,7 +262,7 @@ export class Store<S = any> {
   useState<S = any>(): S;
   useState<S = any, SS = any>(getSubState: (state: S) => SS): SS;
   useState(getSubState?: (state) => any): any {
-    return useStoreState(this, getSubState);
+    return useStoreState(this, getSubState!);
   }
 
   update(updater: TUpdateFunction<S>, patchesCallback?: (patches: Patch[], inversePatches: Patch[]) => void) {

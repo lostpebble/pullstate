@@ -7,7 +7,7 @@ import { Store } from "./Store";
 
 export interface IUpdateRef {
   shouldUpdate: boolean;
-  onStoreUpdate: () => void;
+  onStoreUpdate: (() => void) | null;
   getSubState: any;
   currentSubState: any;
 }
@@ -49,7 +49,7 @@ function useStoreState(store: Store, getSubState?: (state) => any): any {
 
   useEffect(() => () => {
       updateRef.current.shouldUpdate = false;
-      store._removeUpdateListener(updateRef.current.onStoreUpdate);
+      store._removeUpdateListener(updateRef.current.onStoreUpdate!);
   }, []);
 
   return subState;

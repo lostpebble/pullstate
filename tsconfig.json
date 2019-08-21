@@ -10,7 +10,8 @@
     "outDir": "./dist",
     "inlineSourceMap": false,
     "declaration": true,
-    "removeComments": true
+    "removeComments": true,
+    "strictNullChecks": true
   },
   "exclude": [
     "node_modules",

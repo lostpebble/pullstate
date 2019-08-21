@@ -29,7 +29,7 @@ export type TAllPathsParameter<S> = [DeepKeyOfArray<S>]
 
 export type ArrayHasIndex<MinLength extends string> = { [K in MinLength]: any };
 
-export type DeepTypeOfArray<T, L extends DeepKeyOfArray<T>> = L extends ArrayHasIndex<
+export type DeepTypeOfArray<T, L extends DeepKeyOfArray<T> | undefined> = L extends ArrayHasIndex<
   "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7"
 >
   ? any
