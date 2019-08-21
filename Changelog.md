@@ -1,3 +1,9 @@
+## 1.5.0
+
+Allow selecting a subset of passed arguments too an async function to create the fingerprint. This is purely for performance reasons when you want to pass in large data sets.
+
+Pass an extra option when creating the Async Action: `subsetKey: (args) => subset` - basically it takes the arguments given, and allows you to return subset of those arguments which pullstate will use internally to create cache fingerprints.
+
 ### 1.4.1
 
 * Added `immer` as direct dependency. Was `peerDependency` before - but this is not sufficient when requiring certain versions of `immer` for new functionality. Also `peerDependency` gives errors to users whose projects don't use `immer` outside of `pullstate`.
