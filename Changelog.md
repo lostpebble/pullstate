@@ -1,3 +1,12 @@
+## 1.6.0
+
+Added the ability to hold onto previously resolved action results (if they were successful) until the new action resolves, when using a `useWatch()` or `useBeckon()`:
+
+* Pass `holdPrevious: true` as an option to either `useWatch()` or `useBeckon()` to enable this.
+* When a new action is running on top of an old result, the returned value from your action hooks will now have `started = true`, `finished = true`, `result = sameResult` and a final value to check called `updating = true`:
+  * `[true, true, result, true]` (for `useWatch()`)
+  * `[true, result, true]` for (`useBeckon()`)
+
 ### 1.5.1
 
 Added `--strictNullChecks` in TypeScript and fixed loads of types which had undefined / null options. Should let Pullstate play nicely with the other children now.
