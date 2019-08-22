@@ -1,3 +1,8 @@
+### 1.6.1
+
+* **[async] [bugfix]** fixed problem with multiple beckoned actions infinite looping for same arguments
+* Allow for passing a non-object as an argument to an async action (`string` / `boolean` etc.)
+
 ## 1.6.0
 
 Added the ability to hold onto previously resolved action results (if they were successful) until the new action resolves, when using a `useWatch()` or `useBeckon()`:

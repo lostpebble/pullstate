@@ -44,6 +44,10 @@ export function keyFromObject(json: any): string {
     return `${json}`;
   }
 
+  if (typeof json !== "object") {
+    return `${json}`;
+  }
+
   let prefix = "{";
   // const keys = Object.keys(json);
 
@@ -227,10 +231,11 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     }
 
     // console.log(`[${key}] Pullstate Async: has no results yet`);
-    let currentActionOrd = actionOrdUpdate(cache, key);
 
     // check if it is already pending as an action
     if (!cache.actions.hasOwnProperty(key)) {
+      const currentActionOrd = actionOrdUpdate(cache, key);
+
       if (initiate) {
         // if it is not pending, check if for any short circuiting before initiating
         if (shortCircuitHook !== undefined) {
@@ -382,7 +387,8 @@ further looping. Fix in your cacheBreakHook() is needed.`);
           )} - ${responseRef.current} !== ${cache.results[key]}`
         );
         console.log(responseRef.current);
-        console.log(cache.results[key]);*/
+        console.log(cache.results[key]);
+        console.log(cache);*/
         if (shouldUpdate[key][watchId.current] && !isEqual(responseRef.current, cache.results[key])) {
           responseRef.current = checkKeyAndReturnResponse(
             key,
