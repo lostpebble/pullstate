@@ -5,6 +5,7 @@ import { InjectStoreState } from "./InjectStoreState";
 import {
   createPullstateCore,
   IPullstateInstanceConsumable,
+  PullstateContext,
   PullstateProvider,
   useStores,
 } from "./PullstateCore";
@@ -20,6 +21,7 @@ export {
   Store,
   InjectStoreState,
   InjectStoreStateOpt,
+  PullstateContext,
   PullstateProvider,
   useStores,
   createPullstateCore,
