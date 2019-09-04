@@ -1,3 +1,7 @@
+### 1.6.2
+
+* Added export for `PullstateContext` for more customized usage of Pullstate.
+
 ### 1.6.1
 
 * **[async] [bugfix]** fixed problem with multiple beckoned actions infinite looping for same arguments

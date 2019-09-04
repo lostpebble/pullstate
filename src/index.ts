@@ -7,6 +7,7 @@ import {
   IPullstateInstanceConsumable,
   PullstateProvider,
   useStores,
+  PullstateContext,
 } from "./PullstateCore";
 import { createAsyncAction, errorResult, successResult } from "./async";
 import { EAsyncActionInjectType, InjectAsyncAction, TInjectAsyncActionProps } from "./InjectAsyncAction";
@@ -33,4 +34,5 @@ export {
   TInjectAsyncActionProps,
   TPullstateAsyncAction,
   TAsyncActionResult,
+  PullstateContext,
 };
