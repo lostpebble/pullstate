@@ -86,7 +86,12 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
   }
 
   useStores(): S {
-    return useContext(PullstateContext)!.stores as S;
+    // return useContext(PullstateContext)!.stores as S;
+    return useStores<S>();
+  }
+
+  useInstance(): PullstateInstance<S> {
+    return useInstance<S>();
   }
 
   createAsyncAction<A = any, R = any, T extends string = string>(
@@ -202,4 +207,8 @@ export function createPullstateCore<T extends IPullstateAllStores = IPullstateAl
 
 export function useStores<T extends IPullstateAllStores = {}>() {
   return useContext(PullstateContext)!.stores as T;
+}
+
+export function useInstance<T extends IPullstateAllStores = IPullstateAllStores>(): PullstateInstance<T> {
+  return useContext(PullstateContext)! as PullstateInstance<T>;
 }

@@ -1,3 +1,7 @@
+### 1.6.3
+
+* Added convenience method `useInstance` or `PullstateCore.useInstance` (for better typing on your stores) - which gives direct access to your Pullstate instance which was passed in to `PullstateProvider`.
+
 ### 1.6.2
 
 * Added export for `PullstateContext` for more customized usage of Pullstate.
