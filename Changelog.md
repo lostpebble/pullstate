@@ -1,3 +1,7 @@
+### 1.6.4
+
+* Exported `TUpdateFunction` so that we can more easily create update functions corresponding to pullstate.
+
 ### 1.6.3
 
 * Added convenience method `useInstance` or `PullstateCore.useInstance` (for better typing on your stores) - which gives direct access to your Pullstate instance which was passed in to `PullstateProvider`.
