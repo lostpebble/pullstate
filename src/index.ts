@@ -1,6 +1,6 @@
 import { useStoreState } from "./useStoreState";
 import { useStoreStateOpt } from "./useStoreStateOpt";
-import { Store, update } from "./Store";
+import { Store, update, TUpdateFunction } from "./Store";
 import { InjectStoreState } from "./InjectStoreState";
 import {
   createPullstateCore,
@@ -36,5 +36,6 @@ export {
   TInjectAsyncActionProps,
   TPullstateAsyncAction,
   TAsyncActionResult,
+  TUpdateFunction,
   PullstateContext,
 };
