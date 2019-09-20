@@ -226,10 +226,7 @@ export class Store<S = any> {
     };
   }
 
-  subscribe<T>(
-    watch: (state: S) => T,
-    listener: (watched: T, allState: S, previousWatched: T) => void
-  ): () => void {
+  subscribe<T>(watch: (state: S) => T, listener: (watched: T, allState: S, previousWatched: T) => void): () => void {
     if (!this.ssr) {
       const func = makeSubscriptionFunction(this, watch, listener);
       this.clientSubscriptions.push(func);
@@ -265,7 +262,10 @@ export class Store<S = any> {
     return useStoreState(this, getSubState!);
   }
 
-  update(updater: TUpdateFunction<S>, patchesCallback?: (patches: Patch[], inversePatches: Patch[]) => void) {
+  update(
+    updater: TUpdateFunction<S> | TUpdateFunction<S>[],
+    patchesCallback?: (patches: Patch[], inversePatches: Patch[]) => void
+  ) {
     update(this, updater, patchesCallback);
   }
 
@@ -304,14 +304,17 @@ function getChangedPathsFromPatches(changePatches: Patch[]): string[] {
 
 export function update<S = any>(
   store: Store<S>,
-  updater: TUpdateFunction<S>,
+  updater: TUpdateFunction<S> | TUpdateFunction<S>[],
   patchesCallback?: (patches: Patch[], inversePatches: Patch[]) => void
 ) {
   const currentState: S = store.getRawState();
+  const func = typeof updater === "function";
 
   if (store._optListenerCount > 0) {
     const [nextState, patches, inversePatches] = produceWithPatches(currentState as any, s =>
-      updater(s, currentState)
+      func
+        ? (updater as TUpdateFunction<S>)(s, currentState)
+        : (updater as TUpdateFunction<S>[]).forEach(up => up(s, currentState))
     );
 
     if (patches.length > 0) {
@@ -327,9 +330,9 @@ export function update<S = any>(
     let nextState: S;
 
     if (store._patchListeners.length > 0 || patchesCallback) {
-      const [ns, patches, inversePatches] = produceWithPatches(currentState as any, s =>
-        updater(s, currentState)
-      );
+      const [ns, patches, inversePatches] = produceWithPatches(currentState as any, s => func
+        ? (updater as TUpdateFunction<S>)(s, currentState)
+        : (updater as TUpdateFunction<S>[]).forEach(up => up(s, currentState)));
 
       if (patches.length > 0) {
         if (patchesCallback) {
@@ -341,7 +344,9 @@ export function update<S = any>(
 
       nextState = ns;
     } else {
-      nextState = produce(currentState as any, s => updater(s, currentState));
+      nextState = produce(currentState as any, s => func
+        ? (updater as TUpdateFunction<S>)(s, currentState)
+        : (updater as TUpdateFunction<S>[]).forEach(up => up(s, currentState)));
     }
 
     if (nextState !== currentState) {
