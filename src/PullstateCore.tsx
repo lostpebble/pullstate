@@ -201,7 +201,7 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores>
   }
 }
 
-export function createPullstateCore<T extends IPullstateAllStores = IPullstateAllStores>(allStores: T) {
+export function createPullstateCore<T extends IPullstateAllStores = IPullstateAllStores>(allStores: T = {} as T) {
   return new PullstateSingleton<T>(allStores);
 }
 
