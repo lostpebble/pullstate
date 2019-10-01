@@ -6,7 +6,5 @@
     "react-dom": "^16.8.6",
     "@testing-library/react": "^8.0.5"
   },
-  "jest": {
-    "rootDir": "../"
-  }
+  "jest": {}
 }

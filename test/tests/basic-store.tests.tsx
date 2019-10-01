@@ -24,6 +24,10 @@ describe("Store operations", () => {
       s.touched = true;
     });
 
+    store.update(s => {
+      s.touched = false;
+    });
+
     expect(mockSubscribe.mock.calls.length).toBe(2);
     expect(mockSubscribe.mock.calls[0][0]).toBe(true);
   });

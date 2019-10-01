@@ -17,5 +17,5 @@ module.exports = {
     "^.+\\.tsx?$": "ts-jest"
   },
   "verbose": true,
-  setupFilesAfterEnv: ["./test/rtl.setup.ts"],
+  setupFilesAfterEnv: ["./rtl.setup.ts"],
 };
