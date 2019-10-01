@@ -302,6 +302,24 @@ function getChangedPathsFromPatches(changePatches: Patch[]): string[] {
   return Object.keys(updateKeyedPathsMap);
 }
 
+function runUpdates<S>(
+  currentState,
+  updater: TUpdateFunction<S> | TUpdateFunction<S>[],
+  func: boolean
+): [S, Patch[], Patch[]] {
+  return func
+    ? produceWithPatches(currentState as any, s => (updater as TUpdateFunction<S>)(s, currentState))
+    : ((updater as TUpdateFunction<S>[]).reduce(
+        ([nextState, patches, inversePatches], currentValue) => {
+          const resp = produceWithPatches(nextState, s => currentValue(s, nextState));
+          patches.push(...resp[1]);
+          inversePatches.push(...resp[2]);
+          return [resp[0], patches, inversePatches];
+        },
+        [currentState, [], []] as [S, Patch[], Patch[]]
+      ) as [S, Patch[], Patch[]]);
+}
+
 export function update<S = any>(
   store: Store<S>,
   updater: TUpdateFunction<S> | TUpdateFunction<S>[],
@@ -311,11 +329,7 @@ export function update<S = any>(
   const func = typeof updater === "function";
 
   if (store._optListenerCount > 0) {
-    const [nextState, patches, inversePatches] = produceWithPatches(currentState as any, s =>
-      func
-        ? (updater as TUpdateFunction<S>)(s, currentState)
-        : (updater as TUpdateFunction<S>[]).forEach(up => up(s, currentState))
-    );
+    const [nextState, patches, inversePatches] = runUpdates(currentState, updater, func);
 
     if (patches.length > 0) {
       if (patchesCallback) {
@@ -330,9 +344,7 @@ export function update<S = any>(
     let nextState: S;
 
     if (store._patchListeners.length > 0 || patchesCallback) {
-      const [ns, patches, inversePatches] = produceWithPatches(currentState as any, s => func
-        ? (updater as TUpdateFunction<S>)(s, currentState)
-        : (updater as TUpdateFunction<S>[]).forEach(up => up(s, currentState)));
+      const [ns, patches, inversePatches] = runUpdates(currentState, updater, func);
 
       if (patches.length > 0) {
         if (patchesCallback) {
@@ -344,10 +356,18 @@ export function update<S = any>(
 
       nextState = ns;
     } else {
-      nextState = produce(currentState as any, s => func
-        ? (updater as TUpdateFunction<S>)(s, currentState)
-        : (updater as TUpdateFunction<S>[]).forEach(up => up(s, currentState)));
+      nextState = produce(currentState as any, s =>
+        func
+          ? (updater as TUpdateFunction<S>)(s, currentState)
+          : (updater as TUpdateFunction<S>[]).reduce((previousValue, currentUpdater) => {
+            return produce(previousValue, s => {
+              currentUpdater(s, previousValue);
+            })
+          }, currentState)
+      );
     }
+
+    // .forEach(up => up(s, currentState))
 
     if (nextState !== currentState) {
       store._updateState(nextState);

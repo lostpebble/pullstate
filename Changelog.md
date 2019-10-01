@@ -1,3 +1,9 @@
+## 1.7.1
+
+Slight change to how `Store.update()` runs when accepting an array of updaters. It now runs each update separately on the state, allowing for updates further down the line to act on previous updates (still triggers re-renders of your React components as if it were a single update).
+
+Thanks to @bitttttten for a fix which allows passing no arguments when using `createPullstateCore()`.
+
 ## 1.7.0
 
 Allow optional passing of multiple update functions to `Store.update()` in the format of an array.
