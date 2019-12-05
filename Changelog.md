@@ -1,3 +1,13 @@
+## 1.7.2
+
+Minor quality of life update, able to now set successful cached payloads directly in the cache using
+
+```
+setCachedPayload(args, payload, options)
+```
+
+Much thanks again to @bitttttten for the pull request.
+
 ## 1.7.1
 
 Slight change to how `Store.update()` runs when accepting an array of updaters. It now runs each update separately on the state, allowing for updates further down the line to act on previous updates (still triggers re-renders of your React components as if it were a single update).

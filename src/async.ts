@@ -20,11 +20,11 @@ import {
   TAsyncActionResult,
   TAsyncActionRun,
   TAsyncActionSetCached,
+  TAsyncActionSetCachedPayload,
   TAsyncActionUpdateCached,
   TAsyncActionWatch,
   TPullstateAsyncAction,
   TPullstateAsyncWatchResponse,
-  TAsyncActionSetCachedPayload,
 } from "./async-types";
 // @ts-ignore
 import produce from "immer";
@@ -637,7 +637,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     return setCached(args, successResult(payload), options)
   };
 
-  const updateCached: TAsyncActionUpdateCached<A, R, T> = (
+  const updateCached: TAsyncActionUpdateCached<A, R> = (
     args,
     updater,
     options,
