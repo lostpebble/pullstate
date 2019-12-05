@@ -24,6 +24,7 @@ import {
   TAsyncActionWatch,
   TPullstateAsyncAction,
   TPullstateAsyncWatchResponse,
+  TAsyncActionSetCachedPayload,
 } from "./async-types";
 // @ts-ignore
 import produce from "immer";
@@ -632,6 +633,10 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     }
   };
 
+  const setCachedPayload: TAsyncActionSetCachedPayload<A, R> = (args, payload, options) => {
+    return setCached(args, successResult(payload), options)
+  };
+
   const updateCached: TAsyncActionUpdateCached<A, R, T> = (
     args,
     updater,
@@ -762,6 +767,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     clearAllUnwatchedCache,
     getCached,
     setCached,
+    setCachedPayload,
     updateCached,
   };
 }
