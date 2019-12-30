@@ -256,9 +256,9 @@ export class Store<S = any> {
     return this.currentState;
   }
 
-  useState<S = any>(): S;
-  useState<S = any, SS = any>(getSubState: (state: S) => SS): SS;
-  useState(getSubState?: (state) => any): any {
+  useState(): S;
+  useState<SS = any>(getSubState: (state: S) => SS): SS;
+  useState<SS = any>(getSubState?: (state: S) => SS): SS {
     return useStoreState(this, getSubState!);
   }
 
