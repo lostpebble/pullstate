@@ -1,3 +1,7 @@
+## 1.7.3
+
+[TypeScript] Minor type updates for calling `useStore()` directly on one of your stores, so that the "sub-state" function gets the store's state interface correctly.
+
 ## 1.7.2
 
 Minor quality of life update, able to now set successful cached payloads directly in the cache using
