@@ -113,6 +113,7 @@ export interface IAsyncActionBeckonOptions {
   postActionEnabled?: boolean;
   cacheBreakEnabled?: boolean;
   holdPrevious?: boolean;
+  dormant?: boolean;
 }
 
 export interface IAsyncActionWatchOptions extends IAsyncActionBeckonOptions {
@@ -208,6 +209,7 @@ export type TPullstateAsyncAction<A, R, T extends string, S extends IPullstateAl
 ) => Promise<TAsyncActionResult<R, T>>;
 
 export interface ICreateAsyncActionOptions<A, R, T extends string, S extends IPullstateAllStores> {
+  forceContext?: boolean;
   clientStores?: S;
   shortCircuitHook?: TPullstateAsyncShortCircuitHook<A, R, T, S>;
   cacheBreakHook?: TPullstateAsyncCacheBreakHook<A, R, T, S>;

@@ -1,8 +1,12 @@
-## 1.7.3
+## 1.8.0
+
+* Added the passable option `{ dormant: true }` to Async Function's `useBeckon()` or `useWatch()`, which will basically just make the action completely dormant - no execution or hitting of cache or anything, but will still respect the option `{ holdPrevious: true }`, returning the last completed result for this action if it exists.
+
+### 1.7.3
 
 [TypeScript] Minor type updates for calling `useStore()` directly on one of your stores, so that the "sub-state" function gets the store's state interface correctly.
 
-## 1.7.2
+### 1.7.2
 
 Minor quality of life update, able to now set successful cached payloads directly in the cache using
 
@@ -12,7 +16,7 @@ setCachedPayload(args, payload, options)
 
 Much thanks again to @bitttttten for the pull request.
 
-## 1.7.1
+### 1.7.1
 
 Slight change to how `Store.update()` runs when accepting an array of updaters. It now runs each update separately on the state, allowing for updates further down the line to act on previous updates (still triggers re-renders of your React components as if it were a single update).
 
