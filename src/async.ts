@@ -17,6 +17,7 @@ import {
   TAsyncActionClearCache,
   TAsyncActionDelayedRun,
   TAsyncActionGetCached,
+  TAsyncActionRead,
   TAsyncActionResult,
   TAsyncActionRun,
   TAsyncActionSetCached,
@@ -320,6 +321,14 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       -1,
     ];
   }
+
+  const read: TAsyncActionRead<A, R> = (args = {} as A) => {
+    const key = _createKey(ordinal, args);
+
+    const cache: IPullstateAsyncCache = onServer ? useContext(PullstateContext)!._asyncCache : clientAsyncCache;
+    const stores = onServer || forceContext ? (useContext(PullstateContext)!.stores as S) : clientStores;
+
+  };
 
   const useWatch: TAsyncActionWatch<A, R, T> = (
     args = {} as A,
