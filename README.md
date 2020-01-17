@@ -7,11 +7,10 @@
 > Ridiculously simple state stores with performant retrieval anywhere
 > in your React tree using the wonderful concept of React hooks!
 
-* ~4KB minified and gzipped! (excluding Immer and React)
+* ~5KB minified and gzipped! (excluding Immer and React)
 * Built with Typescript, providing a great dev experience if you're using it too
-* Provides `<InjectStoreState>` component
 * Uses [immer](https://github.com/mweststrate/immer) for state updates - easily and safely mutate your state directly!
-* **NEW** - [Create async actions](https://lostpebble.github.io/pullstate/docs/async-actions-introduction) and use React hooks to watch their state, or use `<InjectAsyncAction>`. Pullstate's version of React suspense!
+* **NEW** - [Create async actions](https://lostpebble.github.io/pullstate/docs/async-actions-introduction) and use React hooks or `<Suspense/>` to have complete control over their UI states!
 
 _Originally inspired by the now seemingly abandoned library - [bey](https://github.com/jamiebuilds/bey). Although substantially
 different now- with Server-side rendering and Async Actions built in! Bey was in turn inspired by
