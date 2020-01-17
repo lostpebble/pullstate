@@ -42,6 +42,33 @@ export const clientAsyncCache: IPullstateAsyncCache = {
 
 let asyncCreationOrdinal = 0;
 
+export function keyFromObject(json) {
+  if (json === null) {
+    return "(n)";
+  }
+
+  const typeOf = typeof json;
+
+  if (typeOf !== "object") {
+    if (typeOf === "undefined") {
+      return "(u)";
+    } else if (typeOf === "string") {
+      return ":" + json + ";";
+    } else if (typeOf === "boolean" || typeOf === "number") {
+      return "(" + json + ")";
+    }
+  }
+
+  let prefix = "{";
+
+  for (const key of Object.keys(json).sort()) {
+    prefix += key + keyFromObject(json[key]);
+  }
+
+  return prefix + "}";
+}
+
+/*
 export function keyFromObject(json: any): string {
   if (json == null) {
     return `${json}`;
@@ -70,6 +97,7 @@ export function keyFromObject(json: any): string {
 
   return (prefix += "}");
 }
+*/
 
 function notifyListeners(key: string) {
   if (clientAsyncCache.listeners.hasOwnProperty(key)) {
