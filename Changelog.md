@@ -1,3 +1,12 @@
+## 1.9.0
+
+* Added the ability to pass a third option to `useStoreState()` - this allows the our listener to be dynamically updated to listen to a different sub-state of our store. Similar to how the last argument in `useEffect()` and such work.
+  * see https://github.com/lostpebble/pullstate/issues/22
+
+#### React Suspense!
+
+* You can now use Async Actions with React Suspense. Simply use them with the format: `myAction.read(args)` inside a component which is inside of `<Suspend/>`.
+
 ## 1.8.0
 
 * Added the passable option `{ dormant: true }` to Async Function's `useBeckon()` or `useWatch()`, which will basically just make the action completely dormant - no execution or hitting of cache or anything, but will still respect the option `{ holdPrevious: true }`, returning the last completed result for this action if it exists.

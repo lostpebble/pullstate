@@ -257,9 +257,9 @@ export class Store<S = any> {
   }
 
   useState(): S;
-  useState<SS = any>(getSubState: (state: S) => SS): SS;
-  useState<SS = any>(getSubState?: (state: S) => SS): SS {
-    return useStoreState(this, getSubState!);
+  useState<SS = any>(getSubState: (state: S) => SS, deps?: ReadonlyArray<any>): SS;
+  useState<SS = any>(getSubState?: (state: S) => SS, deps?: ReadonlyArray<any>): SS {
+    return useStoreState(this, getSubState!, deps);
   }
 
   update(
