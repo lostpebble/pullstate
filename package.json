@@ -1,6 +1,6 @@
 {
   "name": "pullstate",
-  "version": "1.8.0",
+  "version": "1.8.0-dev-20200113-1809",
   "description": "Simple state stores using immer and React hooks",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
@@ -41,8 +41,8 @@
     "@types/benchmark": "^1.0.31",
     "@types/jest": "23.3.10",
     "@types/lodash": "^4.14.121",
-    "@types/react": "^16.8.4",
-    "@types/react-dom": "^16.8.2",
+    "@types/react": "^16.9.17",
+    "@types/react-dom": "^16.9.4",
     "benchmark": "^2.1.4",
     "cross-env": "^5.2.0",
     "in-publish": "^2.0.0",
@@ -67,6 +67,6 @@
   },
   "peerDependencies": {
     "immer": "^3.2.0",
-    "react": "^16.8.2"
+    "react": "^16.12.0"
   }
 }

@@ -1,5 +1,6 @@
 import Benchmark from "benchmark";
-import { createRandomArgs, IRandomArgObject } from "./BenchmarkUtils";
+import { createRandomArgs } from "./BenchmarkUtils";
+import { keyFromObjectImplementations } from "./keyFromObjectImplementations";
 
 const testArgs = {
   limit: 300,
@@ -22,6 +23,12 @@ console.log(`\nJSON.stringify()`);
 console.log(JSON.stringify(testArgs));
 console.log(`\nJSON stringify replace quotes:`);
 console.log(jsonStringifyReplaceQuotes(testArgs));
+console.log(`\nNew key to object (concat):`);
+console.log(keyFromObjectImplementations.keyFromObjectConcat(testArgs));
+console.log(`\nNew key to object (template strings):`);
+console.log(keyFromObjectImplementations.keyFromObjectTemplate(testArgs));
+console.log(`\nNew key to object (concat newer):`);
+console.log(keyFromObjectImplementations.keyFromObjectConcatNew(testArgs));
 
 function keyFromObjectOld(jsonObject: any): string {
   if (typeof jsonObject !== "object" || Array.isArray(jsonObject) || jsonObject === null || jsonObject === undefined) {
@@ -88,14 +95,23 @@ new Benchmark.Suite(suiteName)
   .add(`JSON.stringify()`, function() {
     runKeyCreator(JSON.stringify, args);
   })
-  .add(`JSON.stringify()-replace-quotes`, function() {
-    runKeyCreator(jsonStringifyReplaceQuotes, args);
-  })
-  .add(`keyFromObjectOld()`, function() {
-    runKeyCreator(keyFromObjectOld, args);
-  })
+  // .add(`JSON.stringify()-replace-quotes`, function() {
+  //   runKeyCreator(jsonStringifyReplaceQuotes, args);
+  // })
+  // .add(`keyFromObjectOld()`, function() {
+  //   runKeyCreator(keyFromObjectOld, args);
+  // })
   .add(`pullstateCustomKeyCreator()`, function() {
     runKeyCreator(pullstateCustomKeyCreator, args);
+  })
+  .add(`keyFromObjectConcat()`, function() {
+    runKeyCreator(keyFromObjectImplementations.keyFromObjectConcat, args);
+  })
+  .add(`keyFromObjectTemplate()`, function() {
+    runKeyCreator(keyFromObjectImplementations.keyFromObjectTemplate, args);
+  })
+  .add(`keyFromObjectConcatNew()`, function() {
+    runKeyCreator(keyFromObjectImplementations.keyFromObjectConcatNew, args);
   })
   .on("cycle", function(event) {
     // console.log(event);
