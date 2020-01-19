@@ -6,7 +6,7 @@
 
               ga('create', 'UA-141547545-1', 'auto');
               ga('send', 'pageview');
-            </script><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script src="/pullstate/js/scrollSpy.js"></script><link rel="stylesheet" href="/pullstate/css/prism.css"/><link rel="stylesheet" href="/pullstate/css/main.css"/><script src="/pullstate/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/pullstate/"><img class="logo" src="/pullstate/img/icon-transparent-ondark-new.png" alt="Pullstate"/><h2 class="headerTitleWithLogo">Pullstate</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="/pullstate/docs/quick-example" target="_self">Docs</a></li><li class=""><a href="https://github.com/lostpebble/pullstate" target="_self">GitHub</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 class="postHeaderTitle">_removed</h1></header><article><div><span><!--Server-rendered app (TypeScript)-->
+            </script><script type="text/javascript" src="https://buttons.github.io/buttons.js"></script><script src="/pullstate/js/scrollSpy.js"></script><link rel="stylesheet" href="/pullstate/css/prism.css"/><link rel="stylesheet" href="/pullstate/css/main.css"/><script src="/pullstate/js/codetabs.js"></script></head><body class="sideNavVisible separateOnPageNav"><div class="fixedHeaderContainer"><div class="headerWrapper wrapper"><header><a href="/pullstate/"><img class="logo" src="/pullstate/img/icon-transparent-ondark-new.png" alt="Pullstate"/><h2 class="headerTitleWithLogo">Pullstate</h2></a><div class="navigationWrapper navigationSlider"><nav class="slidingNav"><ul class="nav-site nav-site-internal"><li class=""><a href="/pullstate/docs/quick-example" target="_self">Docs</a></li><li class=""><a href="https://github.com/lostpebble/pullstate" target="_self">GitHub</a></li></ul></nav></div></header></div></div><div class="navPusher"><div class="docMainWrapper wrapper"><div class="container mainContainer docsContainer"><div class="wrapper"><div class="post"><header class="postHeader"><h1 id="__docusaurus" class="postHeaderTitle">_removed</h1></header><article><div><span><!--Server-rendered app (TypeScript)-->
 ```tsx
 // UIStore.ts
 import { Store } from "pullstate";
@@ -17,14 +17,14 @@ isDarkMode: boolean;
 isDarkMode: true,
 });</p>
 <pre><code class="hljs">
-<span class="hljs-keyword">Server</span>-rendering requires that we <span class="hljs-keyword">create</span> a central place <span class="hljs-keyword">to</span> reference <span class="hljs-keyword">all</span> our stores, <span class="hljs-keyword">and</span> we <span class="hljs-keyword">do</span> this <span class="hljs-keyword">using</span> `createPullstateCore()`:
+<span class="hljs-built_in">Server</span>-rendering <span class="hljs-keyword">requires</span> that we create a central place to reference all our stores, <span class="hljs-keyword">and</span> we <span class="hljs-keyword">do</span> <span class="hljs-keyword">this</span> <span class="hljs-keyword">using</span> `createPullstateCore()`:
 
 ```tsx
-// PullstateCore.ts
-<span class="hljs-keyword">import</span> { UIStore } <span class="hljs-keyword">from</span> "./stores/UIStore";
-<span class="hljs-keyword">import</span> { createPullstateCore } <span class="hljs-keyword">from</span> "pullstate";
+<span class="hljs-comment">// PullstateCore.ts</span>
+<span class="hljs-keyword">import</span> { UIStore } from <span class="hljs-string">"./stores/UIStore"</span>;
+<span class="hljs-keyword">import</span> { createPullstateCore } from <span class="hljs-string">"pullstate"</span>;
 
-export const PullstateCore = createPullstateCore({
+<span class="hljs-keyword">export</span> <span class="hljs-keyword">const</span> PullstateCore = createPullstateCore({
   UIStore
 });
 
@@ -35,8 +35,8 @@ export const PullstateCore = createPullstateCore({
 
 <span class="token function">useEffect</span><span class="token punctuation">(</span><span class="token punctuation">(</span><span class="token punctuation">)</span> <span class="token operator">=></span> <span class="token punctuation">{</span>
   <span class="token keyword">const</span> tileLayer <span class="token operator">=</span> <span class="token constant">L</span><span class="token punctuation">.</span><span class="token function">tileLayer</span><span class="token punctuation">(</span>tileTemplate<span class="token punctuation">.</span>url<span class="token punctuation">,</span> <span class="token punctuation">{</span>
-    minZoom<span class="token punctuation">:</span> <span class="token number">3</span><span class="token punctuation">,</span>
-    maxZoom<span class="token punctuation">:</span> <span class="token number">18</span><span class="token punctuation">,</span>
+    minZoom<span class="token operator">:</span> <span class="token number">3</span><span class="token punctuation">,</span>
+    maxZoom<span class="token operator">:</span> <span class="token number">18</span><span class="token punctuation">,</span>
   <span class="token punctuation">}</span><span class="token punctuation">)</span><span class="token punctuation">.</span><span class="token function">addTo</span><span class="token punctuation">(</span>mapRef<span class="token punctuation">.</span>current<span class="token punctuation">)</span><span class="token punctuation">;</span>
 
   <span class="token keyword">const</span> unsubscribeFromTileTemplate <span class="token operator">=</span> GISStore<span class="token punctuation">.</span><span class="token function">createReaction</span><span class="token punctuation">(</span>
