@@ -9,20 +9,35 @@ sidebar_label: Use Async Actions
 ## Watch an Async Action (React hook)
 
 ```tsx
-const [started, finished, result, updating] = GetUserAction.useWatch({ userId });
+const [started, finished, result, updating] = GetUserAction.useWatch({ userId }, options);
 ```
 
 * This **React hook** "watches" the action. By watching we mean that we are not initiating this action, but only listening for when this action actually starts through some other means (tracked with `started` here), and then all its states after.
 * Possible action states (if `true`):
   * `started` : This action has begun its execution.
   * `finished`: This action has finished
-  * `updating`: This is a special action state which can be instigated through `run()`, which we will see further down.
+  * `updating`: This is a special action state which can be instigated through `run()`, or when an update triggers and we had passed the option `holdPrevious: true`, which we will see further down.
 * `result` is the structured result object you return from your action ([see more in action creation](async-actions-creating.md#what-to-return-from-an-action)).
+
+`watch()` also takes an options object as the second argument.
+
+#### Options
+
+```ts
+{
+  postActionEnabled?: boolean;
+  cacheBreakEnabled?: boolean;
+  holdPrevious?: boolean;
+  dormant?: boolean;
+}
+```
+
+_(Explained in next paragraph)_
 
 ## Beckon an Async Action (React hook)
 
 ```tsx
-const [finished, result, updating] = GetUserAction.useBeckon({ userId });
+const [finished, result, updating] = GetUserAction.useBeckon({ userId }, options);
 ```
 
 * Exactly the same as `useWatch()` above, except this time we instigate this action when this hook is first called.
@@ -31,7 +46,53 @@ const [finished, result, updating] = GetUserAction.useBeckon({ userId });
 
 `beckon()` also takes an options object as the second argument.
 
-If you are server rendering and you would _not_ like a certain Async Action to be instigated on the server (i.e. you are fine with the action resolving itself client-side only), you can pass as an option to beckon `{ ssr: false }`.
+#### Options
+
+```ts
+{
+  postActionEnabled?: boolean;
+  cacheBreakEnabled?: boolean;
+  holdPrevious?: boolean;
+  dormant?: boolean;
+  ssr?: boolean;
+}
+```
+
+* You can disable the `postActionHook` and / or `cacheBreakHook` for this interaction with this action by using the options here. See more about [`hooks`](async-hooks-overview.md).
+
+* `holdPrevious` is a special option that allows the result value from this calling of the Async Action to remain in place while we are currently executing the next set of arguments. (e.g. still displaying the previous search results while the system is querying for the next set)
+
+* `dormant` is a way by which you can basically make Async Actions conditional. If `dormant = true`, then this action will not listen / execute at all.
+
+### Ignore `beckon()` for server-rendering
+
+* If you are server rendering and you would _not_ like a certain Async Action to be instigated on the server (i.e. you are fine with the action resolving itself client-side only), you can pass as an option to beckon `{ ssr: false }`.
+
+## (React Suspense) Read an Async Action
+
+```tsx
+const RenderPosts = () => {
+  const posts = getPostsAction.read({ userId: "lostpebble" });
+
+  // render the posts here
+}
+
+
+return (
+  <Suspense fallback={<div>Loading Posts....</div>}>
+    <RenderPosts/>
+  </Suspense>
+);
+```
+
+You can pass the following options to `read(args, options)`:
+
+```ts
+{
+  postActionEnabled?: boolean;
+  cacheBreakEnabled?: boolean;
+}
+```
 
 ## Run an Async Action directly
 
@@ -216,7 +277,13 @@ You pass the arguments you'd like to set the cached value for as the first param
 
 (Hint: You can use convenience functions [`successResult()`](async-actions-creating.md#convenience-function-for-success) and [`errorResult()`](async-actions-creating.md#convenience-function-for-error) to help with this )
 
-Optionally, you can provide an `options` object:
+A convenience method also exists for the majority of circumstances when you are just setting a success payload:
+
+```tsx
+setCachedPayload(args, payload, options)
+```
+
+You can provide an `options` object to either of these methods:
 
 ```tsx
 {

@@ -11,12 +11,14 @@ The `useStoreState()` hook to be used in your functional components has the foll
 ```jsx
 function useStoreState(store);
 function useStoreState(store, getSubState);
+function useStoreState(store, getSubState, dependencies);
 ```
 
 <!--TypeScript-->
 ```tsx
 function useStoreState<S = any>(store: Store<S>): S;
 function useStoreState<S = any, SS = any>(store: Store<S>, getSubState: (state: S) => SS): SS;
+function useStoreState<S = any, SS = any>(store: Store<S>, getSubState: (state: S) => SS, deps?: ReadonlyArray<any>): SS;
 ```
 
 * `S` here is an interface that represents your entire store's state
@@ -66,3 +68,20 @@ const { isDarkMode, isMobile } = useStoreState(UIStore, s => ({
   isMobile: s.isMobile
 }));
 ```
+
+## Use a sub-state of a store, dynamically
+
+If you ever need to grab the sub-state of the store, using some kind of dynamic value inside your `getSubState()` selector function - then you need to provide the 3rd option to `useStoreState()` - an array of dependencies.
+
+This acts pretty much exactly the same as the `useEffect()` React hook, in that it will reassess our selection if the dependency array ever changes.
+
+You can make use of it like so:
+
+```tsx
+const MyComponent = ({ type }) => {
+  const data = useStoreState(MyStore, (s) => s[type], [type]);
+  // do stuff with data
+}
+```
+
+Now whenever the value of `type` changes, Pullstate will reassess our selection and we will pull the new value from our store correctly.

@@ -14,7 +14,7 @@ Create an Async Action like so:
 ```tsx
 import { createAsyncAction } from "pullstate";
 
-const myAsyncAction = createAsyncAction(action, hooks);
+const myAsyncAction = createAsyncAction(action, hooksAndOptions);
 ```
 
 <!--Server-rendered app-->
@@ -22,7 +22,7 @@ const myAsyncAction = createAsyncAction(action, hooks);
 ```tsx
 import { PullstateCore } from "./PullstateCore";
 
-const myAsyncAction = PullstateCore.createAsyncAction(action, hooks);
+const myAsyncAction = PullstateCore.createAsyncAction(action, hooksAndOptions);
 ```
 
 Server-rendered apps need to make use of your "core" Pullstate object to create Async Actions which can pre-fetch on the server.

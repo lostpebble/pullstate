@@ -12,6 +12,7 @@
         "label": "Async Action Hooks",
         "ids": ["async-hooks-overview", "async-post-action-hook", "async-short-circuit-hook", "async-cache-break-hook"]
       },
+      "async-actions-other-options",
       "async-cache-clearing",
       "async-server-rendering"
     ]

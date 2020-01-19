@@ -20,6 +20,10 @@
         "title": "Introduction to Async Actions",
         "sidebar_label": "Introduction"
       },
+      "async-actions-other-options": {
+        "title": "Other Async Action Options",
+        "sidebar_label": "Other Async Action Options"
+      },
       "async-cache-break-hook": {
         "title": "Cache break hook",
         "sidebar_label": "Cache break hook"
