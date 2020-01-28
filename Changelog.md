@@ -1,3 +1,9 @@
+### 1.10.0
+
+Updated `immer` to `^5.0.0` which has better support for `Map` and `Set`.
+
+Updated `fast-deep-equal` to use `^3.0.0`, which has support for `Map` and `Set` types, allowing you to use these without worry in your stores.
+
 ## 1.9.0
 
 * Added the ability to pass a third option to `useStoreState()` - this allows the our listener to be dynamically updated to listen to a different sub-state of our store. Similar to how the last argument in `useEffect()` and such work.

@@ -3,7 +3,7 @@ import { Patch, PatchListener } from "immer";
 import { useStoreState } from "./useStoreState";
 import { DeepKeyOfArray } from "./useStoreStateOpt-types";
 
-const isEqual = require("fast-deep-equal");
+const isEqual = require("fast-deep-equal/es6");
 
 const Immer = require("immer");
 

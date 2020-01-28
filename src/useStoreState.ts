@@ -1,4 +1,4 @@
-const isEqual = require("fast-deep-equal");
+const isEqual = require("fast-deep-equal/es6");
 
 // S = State
 // SS = Sub-state

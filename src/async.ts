@@ -31,7 +31,7 @@ import {
 // @ts-ignore
 import produce from "immer";
 
-const isEqual = require("fast-deep-equal");
+const isEqual = require("fast-deep-equal/es6");
 
 export const clientAsyncCache: IPullstateAsyncCache = {
   listeners: {},
@@ -669,6 +669,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
   ): Promise<TAsyncActionResult<R, T>> => {
     const key = _createKey(ordinal, args);
     // console.log(`[${key}] Running action`);
+    // console.log(_asyncCache);
 
     if (respectCache) {
       const cached = getCachedResult(
