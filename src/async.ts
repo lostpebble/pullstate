@@ -836,7 +836,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
   };
 
   const updateCached: TAsyncActionUpdateCached<A, R> = (args, updater, options) => {
-    const { notify = true, resetTimeCached = true } = options || {};
+    const { notify = true, resetTimeCached = true, runPostActionHook: postAction = false } = options || {};
 
     const key = _createKey(ordinal, args);
 
@@ -844,17 +844,24 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
     if (cache.results.hasOwnProperty(key) && !cache.results[key][2].error) {
       const currentCached: R = cache.results[key][2].payload;
+
+      const newResult = {
+        payload: produce(currentCached, s => updater(s, currentCached)) as R,
+        error: false,
+        message: cache.results[key][2].message,
+        tags: cache.results[key][2].tags,
+      } as IAsyncActionResultPositive<R, T>;
+
+      if (postAction) {
+        runPostActionHook(newResult, args, clientStores, EPostActionContext.CACHE_UPDATE);
+      }
+
       cache.results[key] = [
         true,
         true,
-        {
-          payload: produce(currentCached as any, s => updater(s, currentCached)),
-          error: false,
-          message: cache.results[key][2].message,
-          tags: cache.results[key][2].tags,
-        },
+        newResult,
         cache.results[key][3],
-        cache.results[key][4],
+        resetTimeCached ? Date.now() : cache.results[key][4],
       ];
       // cache.results[key][2].payload = produce(currentCached as any, s => updater(s, currentCached));
       if (notify) {

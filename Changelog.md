@@ -1,3 +1,9 @@
+#### 1.10.1
+
+Minor changes for https://github.com/lostpebble/pullstate/issues/25
+
+Added the ability to run `postActionHook` after doing a cache update with `AsyncAction.updateCache()`
+
 ### 1.10.0
 
 Updated `immer` to `^5.0.0` which has better support for `Map` and `Set`.

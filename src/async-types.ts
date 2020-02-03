@@ -3,7 +3,7 @@ import { TUpdateFunction } from "./Store";
 
 type TPullstateAsyncUpdateListener = () => void;
 
-// [ started, finished, result, updating ]
+// [ started, finished, result, updating, timeCached ]
 export type TPullstateAsyncWatchResponse<R = any, T extends string = string> = [
   boolean,
   boolean,
@@ -91,6 +91,7 @@ export enum EPostActionContext {
   SHORT_CIRCUIT = "SHORT_CIRCUIT",
   DIRECT_RUN = "DIRECT_RUN",
   BECKON_RUN = "BECKON_RUN",
+  CACHE_UPDATE = "CACHE_UPDATE",
 }
 
 export type TPullstateAsyncPostActionHook<A, R, T extends string, S extends IPullstateAllStores> = (inputs: {
@@ -143,6 +144,7 @@ export interface IAsyncActionSetCachedOptions {
 
 export interface IAsyncActionUpdateCachedOptions extends IAsyncActionSetCachedOptions {
   resetTimeCached?: boolean;
+  runPostActionHook?: boolean;
 }
 
 export type TAsyncActionBeckon<A, R, T extends string> = (

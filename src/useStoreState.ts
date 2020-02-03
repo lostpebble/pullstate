@@ -30,11 +30,13 @@ function useStoreState(store: Store, getSubState?: (state) => any, deps?: Readon
   updateRef.current.getSubState = getSubState;
 
   if (updateRef.current.onStoreUpdate === null) {
-    // updateRef.current.onStoreUpdate = onStoreUpdate;
     updateRef.current.onStoreUpdate = function onStoreUpdate() {
       const nextSubState = updateRef.current.getSubState ? updateRef.current.getSubState(store.getRawState()) : store.getRawState();
       if (updateRef.current.shouldUpdate && !isEqual(updateRef.current.currentSubState, nextSubState)) {
-        setSubState(nextSubState);
+        // final check again before actually running state update (might prevent no-op errors with React)
+        if (updateRef.current.shouldUpdate) {
+          setSubState(nextSubState);
+        }
       }
     };
     store._addUpdateListener(updateRef.current.onStoreUpdate);
