@@ -44,6 +44,7 @@ export enum EAsyncEndTags {
   THREW_ERROR = "THREW_ERROR",
   RETURNED_ERROR = "RETURNED_ERROR",
   UNFINISHED = "UNFINISHED",
+  DORMANT = "DORMANT",
 }
 
 interface IAsyncActionResultBase<T extends string> {

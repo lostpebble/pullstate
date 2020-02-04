@@ -1,3 +1,7 @@
+#### 1.10.2
+
+Bugfix for `dormant` setting which wasn't re-triggering cached results when switching between dormant and an old cached value.
+
 #### 1.10.1
 
 Minor changes for https://github.com/lostpebble/pullstate/issues/25

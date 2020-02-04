@@ -68,37 +68,6 @@ export function keyFromObject(json) {
   return prefix + "}";
 }
 
-/*
-export function keyFromObject(json: any): string {
-  if (json == null) {
-    return `${json}`;
-  }
-
-  if (typeof json !== "object") {
-    return `${json}`;
-  }
-
-  let prefix = "{";
-  // const keys = Object.keys(json);
-
-  for (const key of Object.keys(json).sort()) {
-    prefix += key;
-
-    if (typeof json[key] == null) {
-      prefix += JSON.stringify(json[key]);
-    } else if (typeof json[key] === "string") {
-      prefix += `~${json[key]}~`;
-    } else if (typeof json[key] === "boolean" || typeof json[key] === "number") {
-      prefix += json[key];
-    } else {
-      prefix += `{${keyFromObject(json[key])}}`;
-    }
-  }
-
-  return (prefix += "}");
-}
-*/
-
 function notifyListeners(key: string) {
   if (clientAsyncCache.listeners.hasOwnProperty(key)) {
     // console.log(`[${key}] Notifying (${Object.keys(clientAsyncCache.listeners[key]).length}) listeners`);
@@ -523,7 +492,6 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         shouldUpdate[key][watchId.current] = true;
       }
     }
-
     // console.log(`[${key}][${watchId.current}] Starting useWatch()`);
 
     const cache: IPullstateAsyncCache = onServer ? useContext(PullstateContext)!._asyncCache : clientAsyncCache;
@@ -598,6 +566,8 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     if (prevKeyRef.current !== null && prevKeyRef.current === key) {
       return responseRef.current;
     }*/
+    // console.log(`[${key}][${watchId}] Is dormamt?: ${dormant}`);
+    // console.log(`[${key}][${watchId}] CHECKING KEYS [${prevKeyRef.current} <---> ${key}]`);
     if (dormant) {
       responseRef.current =
         holdPrevious && responseRef.current && responseRef.current[1]
@@ -607,13 +577,14 @@ further looping. Fix in your cacheBreakHook() is needed.`);
               false,
               {
                 message: "",
-                tags: [EAsyncEndTags.UNFINISHED],
+                tags: [EAsyncEndTags.DORMANT],
                 error: true,
                 payload: null,
               },
               false,
               -1,
             ] as TPullstateAsyncWatchResponse<R, T>);
+      prevKeyRef.current = ".";
     } else if (prevKeyRef.current !== key) {
       // console.log(`[${key}][${watchId}] KEYS MISMATCH old !== new [${prevKeyRef.current} !== ${key}]`);
       if (prevKeyRef.current !== null && shouldUpdate.hasOwnProperty(prevKeyRef.current!)) {
