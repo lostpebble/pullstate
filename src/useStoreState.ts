@@ -2,7 +2,7 @@ const isEqual = require("fast-deep-equal/es6");
 
 // S = State
 // SS = Sub-state
-import { useEffect, useRef, useState } from "react";
+import { useEffect, useState } from "react";
 import { Store } from "./Store";
 
 export interface IUpdateRef {
@@ -13,49 +13,34 @@ export interface IUpdateRef {
 }
 
 function useStoreState<S = any>(store: Store<S>): S;
-function useStoreState<S = any, SS = any>(store: Store<S>, getSubState: (state: S) => SS, deps?: ReadonlyArray<any>): SS;
-function useStoreState(store: Store, getSubState?: (state) => any, deps?: ReadonlyArray<any>): any {
-  const [subState, setSubState] = useState<any>(() =>
-    getSubState ? getSubState(store.getRawState()) : store.getRawState()
-  );
+function useStoreState<S = any, SS = any>(
+  store: Store<S>,
+  getSubState: (state: S) => SS,
+  deps?: ReadonlyArray<any>
+): SS;
+function useStoreState(
+  store: Store,
+  getSubState: (state: any) => any = state => state,
+  deps: ReadonlyArray<any> = []
+): any {
+  const [subState, setSubState] = useState<any>(() => getSubState(store.getRawState()));
 
-  const updateRef = useRef<IUpdateRef>({
-    shouldUpdate: true,
-    onStoreUpdate: null,
-    getSubState,
-    currentSubState: null,
-  });
+  useEffect(() => {
+    let currentSubState = subState;
 
-  updateRef.current.currentSubState = subState;
-  updateRef.current.getSubState = getSubState;
-
-  if (updateRef.current.onStoreUpdate === null) {
-    updateRef.current.onStoreUpdate = function onStoreUpdate() {
-      const nextSubState = updateRef.current.getSubState ? updateRef.current.getSubState(store.getRawState()) : store.getRawState();
-      if (updateRef.current.shouldUpdate && !isEqual(updateRef.current.currentSubState, nextSubState)) {
-        // final check again before actually running state update (might prevent no-op errors with React)
-        if (updateRef.current.shouldUpdate) {
-          setSubState(nextSubState);
-        }
+    function onStoreUpdate() {
+      const nextSubState = getSubState(store.getRawState());
+      if (!isEqual(currentSubState, nextSubState)) {
+        setSubState(nextSubState);
+        currentSubState = nextSubState;
       }
-    };
-    store._addUpdateListener(updateRef.current.onStoreUpdate);
-  }
-
-  useEffect(() => () => {
-      updateRef.current.shouldUpdate = false;
-      store._removeUpdateListener(updateRef.current.onStoreUpdate!);
-  }, []);
-
-  if (deps !== undefined) {
-    const prevDeps = useRef<ReadonlyArray<any>>(deps);
-    if (!isEqual(deps, prevDeps)) {
-      updateRef.current.getSubState = getSubState;
-      updateRef.current.currentSubState = getSubState!(store.getRawState());
     }
-  }
 
-  return updateRef.current.currentSubState;
+    store._addUpdateListener(onStoreUpdate);
+    return () => store._removeUpdateListener(onStoreUpdate);
+  }, [store, ...deps]);
+
+  return subState;
 }
 
 export { useStoreState };
