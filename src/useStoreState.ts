@@ -50,16 +50,17 @@ function useStoreState(store: Store, getSubState?: (state) => any, deps?: Readon
         }
       }
     };
-    store._addUpdateListener(updateRef.current.onStoreUpdate);
   }
 
-  useEffect(
-    () => () => {
+  useEffect(() => {
+    updateRef.current.shouldUpdate = true;
+    store._addUpdateListener(updateRef.current.onStoreUpdate!);
+
+    return () => {
       updateRef.current.shouldUpdate = false;
       store._removeUpdateListener(updateRef.current.onStoreUpdate!);
-    },
-    []
-  );
+    };
+  }, []);
 
   if (deps !== undefined) {
     const prevDeps = useRef<ReadonlyArray<any>>(deps);
