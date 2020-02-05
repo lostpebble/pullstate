@@ -38,7 +38,7 @@ function useStoreState(
 
     store._addUpdateListener(onStoreUpdate);
     return () => store._removeUpdateListener(onStoreUpdate);
-  }, [store, ...deps]);
+  }, deps);
 
   return subState;
 }
