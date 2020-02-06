@@ -1,3 +1,9 @@
+#### 1.10.3
+
+Bugfix for when passing dependencies to `useStoreState` as a third argument. Should never re-vert to the previously set state now.
+
+Fixed Hot Reloading while using `useStoreState` by ensuring that registering of the listener is done within the `useEffect()` hook.
+
 #### 1.10.2
 
 Bugfix for `dormant` setting which wasn't re-triggering cached results when switching between dormant and an old cached value.
