@@ -1,3 +1,7 @@
+#### 1.10.4
+
+Exported a bunch of TypeScript types (mostly Async stuff) for easier extending of library.
+
 #### 1.10.3
 
 Bugfix for when passing dependencies to `useStoreState` as a third argument. Should never re-vert to the previously set state now.

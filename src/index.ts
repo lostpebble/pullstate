@@ -4,6 +4,7 @@ import { Store, TUpdateFunction, update } from "./Store";
 import { InjectStoreState } from "./InjectStoreState";
 import {
   createPullstateCore,
+  IPullstateAllStores,
   IPullstateInstanceConsumable,
   PullstateContext,
   PullstateProvider,
@@ -12,9 +13,9 @@ import {
 } from "./PullstateCore";
 import { createAsyncAction, errorResult, successResult } from "./async";
 import { EAsyncActionInjectType, InjectAsyncAction, TInjectAsyncActionProps } from "./InjectAsyncAction";
-import { EAsyncEndTags, TAsyncActionResult, TPullstateAsyncAction } from "./async-types";
 import { InjectStoreStateOpt } from "./InjectStoreStateOpt";
-// import { PSuspense } from "./PSuspense";
+
+export * from "./async-types";
 
 export {
   useStoreState,
@@ -30,13 +31,14 @@ export {
   createAsyncAction,
   successResult,
   errorResult,
-  EAsyncEndTags,
+  // EAsyncEndTags,
   IPullstateInstanceConsumable,
+  IPullstateAllStores,
   InjectAsyncAction,
   EAsyncActionInjectType,
   TInjectAsyncActionProps,
-  TPullstateAsyncAction,
-  TAsyncActionResult,
+  // TPullstateAsyncAction,
+  // TAsyncActionResult,
   TUpdateFunction,
   PullstateContext,
   // PSuspense,
