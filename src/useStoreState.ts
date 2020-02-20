@@ -1,9 +1,10 @@
-const isEqual = require("fast-deep-equal/es6");
-
+import isEqual from "fast-deep-equal/es6";
 // S = State
 // SS = Sub-state
 import { useEffect, useRef, useState } from "react";
 import { Store } from "./Store";
+
+// const isEqual = require("fast-deep-equal/es6");
 
 export interface IUpdateRef {
   shouldUpdate: boolean;

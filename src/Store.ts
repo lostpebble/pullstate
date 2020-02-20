@@ -1,15 +1,18 @@
 // @ts-ignore
-import { Patch, PatchListener } from "immer";
+import { applyPatches, Patch, PatchListener, produce, produceWithPatches } from "immer";
 import { useStoreState } from "./useStoreState";
 import { DeepKeyOfArray } from "./useStoreStateOpt-types";
 
-const isEqual = require("fast-deep-equal/es6");
+import isEqual from "fast-deep-equal/es6";
 
-const Immer = require("immer");
+// const isEqual = require("fast-deep-equal/es6");
+// import produce, { applyPatches, produceWithPatches } from "immer";
 
-const produce = Immer.produce;
-const produceWithPatches = Immer.produceWithPatches;
-const applyPatches = Immer.applyPatches;
+// const Immer = require("immer");
+
+// const produce = Immer.produce;
+// const produceWithPatches = Immer.produceWithPatches;
+// const applyPatches = Immer.applyPatches;
 
 export type TPullstateUpdateListener = () => void;
 
@@ -57,7 +60,7 @@ function makeReactionFunctionCreator<S, T>(
         if (store._optListenerCount > 0) {
           const [nextState, patches, inversePatches] = produceWithPatches(currentState as any, s =>
             reaction(nextWatchState, s, currentState, lastWatchState)
-          );
+          ) as any;
 
           store._updateStateWithoutReaction(nextState);
           lastWatchState = nextWatchState;
@@ -70,7 +73,7 @@ function makeReactionFunctionCreator<S, T>(
           if (store._patchListeners.length > 0) {
             const [nextState, patches, inversePatches] = produceWithPatches(currentState as any, s =>
               reaction(nextWatchState, s, currentState, lastWatchState)
-            );
+            ) as any;
 
             if (patches.length > 0) {
               store._patchListeners.forEach(listener => listener(patches, inversePatches));
@@ -78,7 +81,7 @@ function makeReactionFunctionCreator<S, T>(
             store._updateStateWithoutReaction(nextState);
           } else {
             store._updateStateWithoutReaction(
-              produce(currentState as any, s => reaction(nextWatchState, s, currentState, lastWatchState))
+              produce(currentState as any, s => reaction(nextWatchState, s, currentState, lastWatchState)) as any
             );
           }
           lastWatchState = nextWatchState;
@@ -308,10 +311,10 @@ function runUpdates<S>(
   func: boolean
 ): [S, Patch[], Patch[]] {
   return func
-    ? produceWithPatches(currentState as any, s => (updater as TUpdateFunction<S>)(s, currentState))
+    ? produceWithPatches(currentState as any, s => (updater as TUpdateFunction<S>)(s, currentState)) as any
     : ((updater as TUpdateFunction<S>[]).reduce(
         ([nextState, patches, inversePatches], currentValue) => {
-          const resp = produceWithPatches(nextState, s => currentValue(s, nextState));
+          const resp = produceWithPatches(nextState as any, s => currentValue(s, nextState)) as any;
           patches.push(...resp[1]);
           inversePatches.push(...resp[2]);
           return [resp[0], patches, inversePatches];
@@ -360,11 +363,11 @@ export function update<S = any>(
         func
           ? (updater as TUpdateFunction<S>)(s, currentState)
           : (updater as TUpdateFunction<S>[]).reduce((previousValue, currentUpdater) => {
-            return produce(previousValue, s => {
-              currentUpdater(s, previousValue);
-            })
-          }, currentState)
-      );
+              return produce(previousValue as any, s => {
+                currentUpdater(s, previousValue);
+              }) as any;
+            }, currentState)
+      ) as any;
     }
 
     // .forEach(up => up(s, currentState))

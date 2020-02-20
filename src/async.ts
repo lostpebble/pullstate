@@ -31,7 +31,8 @@ import {
 // @ts-ignore
 import produce from "immer";
 
-const isEqual = require("fast-deep-equal/es6");
+import isEqual from "fast-deep-equal/es6";
+// const isEqual = require("fast-deep-equal/es6");
 
 export const clientAsyncCache: IPullstateAsyncCache = {
   listeners: {},
@@ -70,9 +71,9 @@ export function keyFromObject(json) {
 
 function notifyListeners(key: string) {
   if (clientAsyncCache.listeners.hasOwnProperty(key)) {
-    // console.log(`[${key}] Notifying (${Object.keys(clientAsyncCache.listeners[key]).length}) listeners`);
+    console.log(`[${key}] Notifying (${Object.keys(clientAsyncCache.listeners[key]).length}) listeners`);
     for (const watchId of Object.keys(clientAsyncCache.listeners[key])) {
-      // console.log(`[${key}] Notifying listener with watch id: [${watchId}]`);
+      console.log(`[${key}] Notifying listener with watch id: [${watchId}]`);
       clientAsyncCache.listeners[key][watchId]();
     }
   }
@@ -814,10 +815,10 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     const cache: IPullstateAsyncCache = onServer ? useContext(PullstateContext)!._asyncCache : clientAsyncCache;
 
     if (cache.results.hasOwnProperty(key) && !cache.results[key][2].error) {
-      const currentCached: R = cache.results[key][2].payload;
+      const currentCached: any = cache.results[key][2].payload;
 
       const newResult = {
-        payload: produce(currentCached, s => updater(s, currentCached)) as R,
+        payload: produce(currentCached, s => updater(s, currentCached)) as unknown as R,
         error: false,
         message: cache.results[key][2].message,
         tags: cache.results[key][2].tags,

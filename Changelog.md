@@ -1,3 +1,7 @@
+#### 1.10.5
+
+Imported modules `immer` and `fast-deep-equal` using ES6 Modules which might help with tree-shaking and bundling in consumer projects.
+
 #### 1.10.4
 
 Exported a bunch of TypeScript types (mostly Async stuff) for easier extending of library.
