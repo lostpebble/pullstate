@@ -1,8 +1,7 @@
 import React, { useContext } from "react";
 import { Store } from "./Store";
-import { clientAsyncCache, createAsyncAction } from "./async";
+import { clientAsyncCache, clientAsyncStores, createAsyncAction } from "./async";
 import {
-  EAsyncEndTags,
   IAsyncActionRunOptions,
   ICreateAsyncActionOptions,
   IOCreateAsyncActionOutput,
@@ -99,7 +98,7 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
     // options: Omit<ICreateAsyncActionOptions<A, R, T, S>, "clientStores"> = {}
     options: ICreateAsyncActionOptions<A, R, T, S> = {}
   ): IOCreateAsyncActionOutput<A, R, T> {
-    options.clientStores = this.originStores;
+    // options.clientStores = this.originStores;
     return createAsyncAction<A, R, T, S>(action, options);
   }
 }
@@ -137,6 +136,12 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores>
   constructor(allStores: T, ssr: boolean) {
     this._stores = allStores;
     this._ssr = ssr;
+
+    if (!ssr) {
+      // console.log(`Instantiating Stores`, allStores);
+      clientAsyncStores.stores = allStores;
+      clientAsyncStores.loaded = true;
+    }
   }
 
   private getAllUnresolvedAsyncActions(): Array<Promise<any>> {
