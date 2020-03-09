@@ -43,7 +43,7 @@ To illustrate these considerations, lets use an example Async Action (fetching p
 <!--JavaScript-->
 
 ```tsx
-import { createAsyncAction, errorResult, successResult, useStoreState } from "pullstate";
+import { createAsyncAction, errorResult, successResult } from "pullstate";
 
 const searchPicturesForTag = createAsyncAction(async ({ tag }) => {
   const result = await PictureApi.searchWithTag(tag);
@@ -73,7 +73,7 @@ export const PictureExample = props => {
 <!--TypeScript-->
 
 ```tsx
-import { createAsyncAction, errorResult, successResult, useStoreState } from "pullstate";
+import { createAsyncAction, errorResult, successResult } from "pullstate";
 
 interface IOSearchPicturesForTagInput {
   tag: string;
@@ -177,6 +177,7 @@ A naive way to do this might be like so:
 <!--Client-side only app-->
 
 ```tsx
+import { createAsyncAction, errorResult, successResult } from "pullstate";
 import { GalleryStore } from "./stores/GalleryStore";
 
 const searchPicturesForTag = createAsyncAction(async ({ tag }) => {

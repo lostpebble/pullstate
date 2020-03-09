@@ -6,10 +6,12 @@ sidebar_label: Use Async Actions
 
 *For the sake of being complete in our examples, all possible return states are shown - in real application usage, you might only use a subset of these values.*
 
+**All examples make use of the previously created Async Action `searchPicturesForTag()`, you can [see more in action creation](async-actions-creating.md).**
+
 ## Watch an Async Action (React hook)
 
 ```tsx
-const [started, finished, result, updating] = GetUserAction.useWatch({ userId }, options);
+const [started, finished, result, updating] = searchPicturesForTag.useWatch({ tag }, options);
 ```
 
 * This **React hook** "watches" the action. By watching we mean that we are not initiating this action, but only listening for when this action actually starts through some other means (tracked with `started` here), and then all its states after.
@@ -37,7 +39,7 @@ _(Explained in next paragraph)_
 ## Beckon an Async Action (React hook)
 
 ```tsx
-const [finished, result, updating] = GetUserAction.useBeckon({ userId }, options);
+const [finished, result, updating] = searchPicturesForTag.useBeckon({ tag }, options);
 ```
 
 * Exactly the same as `useWatch()` above, except this time we instigate this action when this hook is first called.
@@ -70,19 +72,22 @@ const [finished, result, updating] = GetUserAction.useBeckon({ userId }, options
 
 ## (React Suspense) Read an Async Action
 
-```tsx
-const RenderPosts = () => {
-  const posts = getPostsAction.read({ userId: "lostpebble" });
+*You can read more about React Suspense on the [React website](https://reactjs.org/docs/concurrent-mode-suspense.html)*
 
-  // render the posts here
+```tsx
+const PicturesDisplay = ({ tag }) => {
+  const pictures = searchPicturesForTag.read({ tag });
+
+  // make use of the pictures data here as if it was regular, loaded state
 }
 
-
-return (
-  <Suspense fallback={<div>Loading Posts....</div>}>
-    <RenderPosts/>
-  </Suspense>
-);
+const PicturesPage = () => {
+  return (
+    <Suspense fallback={<div>Loading Pictures....</div>}>
+      <PicturesDisplay tag="funny"/>
+    </Suspense>
+  );
+}
 ```
 
 You can pass the following options to `read(args, options)`:
@@ -97,7 +102,7 @@ You can pass the following options to `read(args, options)`:
 ## Run an Async Action directly
 
 ```tsx
-const result = await GetUserAction.run({ userId });
+const result = await searchPicturesForTag.run({ tag });
 ```
 
 * Run's the async action directly, just like a regular promise. Any actions that are currently being watched by means of `useWatch()`  will have `started = true` at this moment.
@@ -107,7 +112,7 @@ The return value of `run()` is the action's result object. Generally it is unimp
 `run()` also takes an optional options object:
 
 ```jsx
-const result = await GetUserAction.run({ userId }, options);
+const result = await searchPicturesForTag.run({ tag }, options);
 ```
 
 The structure of the options:
@@ -190,7 +195,7 @@ You can make use of the exported `EAsyncActionInjectType` which provides you wit
 ## Clear an Async Action's cache
 
 ```tsx
-GetUserAction.clearCache({ userId });
+searchPicturesForTag.clearCache({ tag });
 ```
 
 Clears all known state about this action (specific to the passed arguments).
@@ -204,7 +209,7 @@ Clears all known state about this action (specific to the passed arguments).
 ## Clear the Async Action cache for *all* argument combinations
 
 ```tsx
-GetUserAction.clearAllCache();
+searchPicturesForTag.clearAllCache();
 ```
 
 This is the same as `clearCache()`, except it will clear the cache for every single argument combination (the "fingerprints" we spoke of before) that this action has seen.
@@ -212,7 +217,7 @@ This is the same as `clearCache()`, except it will clear the cache for every sin
 ## Clear the Async Action cache for unwatched argument combinations
 
 ```tsx
-GetUserAction.clearAllUnwatchedCache();
+searchPicturesForTag.clearAllUnwatchedCache();
 ```
 
 This will check which argument combinations are not being "watched' in your React app anymore (i.e. usages of `useWatch()` , `useBeckon()` or `<InjectAsyncAction/>`), and will clear the cache for those argument combinations. Pending actions for these arguments are not cleared.
@@ -224,9 +229,9 @@ This is useful for simple garbage collection in Apps which tend to show lots of 
 Pullstate provides three extra methods which allow you to introspect and even change the current value stored in the cache. they are as follows:
 
 ```tsx
-GetUserAction.getCached(args, options);
-GetUserAction.setCached(args, result, options);
-GetUserAction.updateCached(args, updater, options);
+searchPicturesForTag.getCached(args, options);
+searchPicturesForTag.setCached(args, result, options);
+searchPicturesForTag.updateCached(args, updater, options);
 ```
 
 ### `getCached(args, options)`

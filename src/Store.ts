@@ -363,9 +363,7 @@ export function update<S = any>(
         func
           ? (updater as TUpdateFunction<S>)(s, currentState)
           : (updater as TUpdateFunction<S>[]).reduce((previousValue, currentUpdater) => {
-              return produce(previousValue as any, s => {
-                currentUpdater(s, previousValue);
-              }) as any;
+              return produce(previousValue as any, s => currentUpdater(s, previousValue)) as any;
             }, currentState)
       ) as any;
     }

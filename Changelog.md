@@ -1,3 +1,44 @@
+### 1.11.0
+
+Added `AsyncActionName.use(args, options)` - a new way to make use of your Async Actions. By default it acts just like `useBeckon()`, except it returns an object instead of an array.
+
+The object now includes more helpful flags, and is shaped like so:
+
+```ts
+{
+    isLoading: boolean;
+    isFinished: boolean;
+    isUpdating: boolean;
+    isStarted: boolean;
+    endTags: string[];
+    renderPayload: ((payload) => any) => any;
+    message: string;
+    raw: TPullstateAsyncWatchResponse<R, T>;
+    payload: R;
+    error: boolean;
+}
+```
+
+If you want `use()` to act like `useWatch()` (i.e. not initiating the action when the hook is first called), then pass in an options object as the second argument, containing `initiate: false`.
+
+`raw` is the same as you would expect to receive from `useWatch()`. The first array property will be `true` if you have not set `initiate: false`, since that represents if this action has been started - and this method acts like `useBeckon()` by default.
+
+`renderPayload` is a very useful function. You can use this in your React tree to conditionally render stuff only when your action payload has returned successfully. You can use it like so:
+
+```typescript jsx
+const userAction = LoadUserAction.use({ id: userId });
+
+return (
+  <div>
+    {userAction.renderPayload(user => (
+      <span>User Name: {user.name}</span>
+    ))}
+  </div>
+);
+```
+
+The inner `<span>` there will not render if our action hasn't resolved successfully.
+
 #### 1.10.5
 
 Imported modules `immer` and `fast-deep-equal` using ES6 Modules which might help with tree-shaking and bundling in consumer projects.
@@ -30,16 +71,16 @@ Updated `fast-deep-equal` to use `^3.0.0`, which has support for `Map` and `Set`
 
 ## 1.9.0
 
-* Added the ability to pass a third option to `useStoreState()` - this allows the our listener to be dynamically updated to listen to a different sub-state of our store. Similar to how the last argument in `useEffect()` and such work.
-  * see https://github.com/lostpebble/pullstate/issues/22
+- Added the ability to pass a third option to `useStoreState()` - this allows the our listener to be dynamically updated to listen to a different sub-state of our store. Similar to how the last argument in `useEffect()` and such work.
+  - see https://github.com/lostpebble/pullstate/issues/22
 
 #### React Suspense!
 
-* You can now use Async Actions with React Suspense. Simply use them with the format: `myAction.read(args)` inside a component which is inside of `<Suspend/>`.
+- You can now use Async Actions with React Suspense. Simply use them with the format: `myAction.read(args)` inside a component which is inside of `<Suspend/>`.
 
 ## 1.8.0
 
-* Added the passable option `{ dormant: true }` to Async Function's `useBeckon()` or `useWatch()`, which will basically just make the action completely dormant - no execution or hitting of cache or anything, but will still respect the option `{ holdPrevious: true }`, returning the last completed result for this action if it exists.
+- Added the passable option `{ dormant: true }` to Async Function's `useBeckon()` or `useWatch()`, which will basically just make the action completely dormant - no execution or hitting of cache or anything, but will still respect the option `{ holdPrevious: true }`, returning the last completed result for this action if it exists.
 
 ### 1.7.3
 

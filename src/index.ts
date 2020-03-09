@@ -14,6 +14,7 @@ import {
 import { createAsyncAction, errorResult, successResult } from "./async";
 import { EAsyncActionInjectType, InjectAsyncAction, TInjectAsyncActionProps } from "./InjectAsyncAction";
 import { InjectStoreStateOpt } from "./InjectStoreStateOpt";
+import { TUseResponse } from "./async-types";
 
 export * from "./async-types";
 
@@ -41,5 +42,5 @@ export {
   // TAsyncActionResult,
   TUpdateFunction,
   PullstateContext,
-  // PSuspense,
+  TUseResponse,
 };

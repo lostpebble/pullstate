@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { Store } from "./Store";
-import { clientAsyncCache, clientAsyncStores, createAsyncAction } from "./async";
+import { clientAsyncCache, createAsyncAction } from "./async";
 import {
   IAsyncActionRunOptions,
   ICreateAsyncActionOptions,
@@ -32,8 +32,18 @@ export const PullstateProvider = <T extends IPullstateAllStores = IPullstateAllS
 
 let singleton: PullstateSingleton | null = null;
 
+export const clientStores: {
+  internalClientStores: true;
+  stores: IPullstateAllStores;
+  loaded: boolean;
+} = {
+  internalClientStores: true,
+  loaded: false,
+  stores: {},
+};
+
 export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllStores> {
-  private readonly originStores: S = {} as S;
+  // private readonly originStores: S = {} as S;
 
   constructor(allStores: S) {
     if (singleton !== null) {
@@ -43,7 +53,9 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
     }
 
     singleton = this;
-    this.originStores = allStores;
+    // this.originStores = allStores;
+    clientStores.stores = allStores;
+    clientStores.loaded = true;
   }
 
   instantiate({
@@ -51,25 +63,25 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
     ssr = false,
   }: { hydrateSnapshot?: IPullstateSnapshot; ssr?: boolean } = {}): PullstateInstance<S> {
     if (!ssr) {
-      const instantiated = new PullstateInstance(this.originStores, false);
+      const instantiated = new PullstateInstance(clientStores.stores, false);
 
       if (hydrateSnapshot != null) {
         instantiated.hydrateFromSnapshot(hydrateSnapshot);
       }
 
       instantiated.instantiateReactions();
-      return instantiated;
+      return instantiated as PullstateInstance<S>;
     }
 
     const newStores: IPullstateAllStores = {};
 
-    for (const storeName of Object.keys(this.originStores)) {
+    for (const storeName of Object.keys(clientStores.stores)) {
       if (hydrateSnapshot == null) {
-        newStores[storeName] = new Store(this.originStores[storeName]._getInitialState());
+        newStores[storeName] = new Store(clientStores.stores[storeName]._getInitialState());
       } else if (hydrateSnapshot.hasOwnProperty(storeName)) {
         newStores[storeName] = new Store(hydrateSnapshot.allState[storeName]);
       } else {
-        newStores[storeName] = new Store(this.originStores[storeName]._getInitialState());
+        newStores[storeName] = new Store(clientStores.stores[storeName]._getInitialState());
         console.warn(
           `Pullstate (instantiate): store [${storeName}] didn't hydrate any state (data was non-existent on hydration object)`
         );
@@ -77,7 +89,7 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
 
       newStores[storeName]._setInternalOptions({
         ssr,
-        reactionCreators: this.originStores[storeName]._getReactionCreators(),
+        reactionCreators: clientStores.stores[storeName]._getReactionCreators(),
       });
     }
 
@@ -136,12 +148,11 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores>
   constructor(allStores: T, ssr: boolean) {
     this._stores = allStores;
     this._ssr = ssr;
-
-    if (!ssr) {
+    /*if (!ssr) {
       // console.log(`Instantiating Stores`, allStores);
-      clientAsyncStores.stores = allStores;
-      clientAsyncStores.loaded = true;
-    }
+      clientStores.stores = allStores;
+      clientStores.loaded = true;
+    }*/
   }
 
   private getAllUnresolvedAsyncActions(): Array<Promise<any>> {
