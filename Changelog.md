@@ -1,8 +1,8 @@
-### 1.11.0
+## 1.11.0
 
 Added `AsyncActionName.use(args, options)` - a new way to make use of your Async Actions. By default it acts just like `useBeckon()`, except it returns an object instead of an array.
 
-The object now includes more helpful flags, and is shaped like so:
+This returned object now includes more helpful flags, and is shaped like so:
 
 ```ts
 {
@@ -10,20 +10,17 @@ The object now includes more helpful flags, and is shaped like so:
     isFinished: boolean;
     isUpdating: boolean;
     isStarted: boolean;
-    endTags: string[];
-    renderPayload: ((payload) => any) => any;
-    message: string;
-    raw: TPullstateAsyncWatchResponse<R, T>;
-    payload: R;
     error: boolean;
+    endTags: string[];
+    message: string;
+    payload: R;
+    renderPayload: ((payload: R) => any) => any;
 }
 ```
 
 If you want `use()` to act like `useWatch()` (i.e. not initiating the action when the hook is first called), then pass in an options object as the second argument, containing `initiate: false`.
 
-`raw` is the same as you would expect to receive from `useWatch()`. The first array property will be `true` if you have not set `initiate: false`, since that represents if this action has been started - and this method acts like `useBeckon()` by default.
-
-`renderPayload` is a very useful function. You can use this in your React tree to conditionally render stuff only when your action payload has returned successfully. You can use it like so:
+`renderPayload` is a very useful function. You can use this in your React component to conditionally render stuff only when your action payload has returned successfully. You can use it like so:
 
 ```typescript jsx
 const userAction = LoadUserAction.use({ id: userId });
