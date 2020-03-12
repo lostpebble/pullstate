@@ -53,7 +53,7 @@ In this example we only have a single store, but a regular app should have at le
 
 ## Read our store's state
 
-Then, in React, we can start using the state of that store using a simple hook `useStoreState()`.
+Then, in React, we can start using the state of that store using a simple hook `useState()` on the store.
 
 For server-rendering we also need to make use of `useStores()` on`PullstateCore`, which we defined above.
 
@@ -61,12 +61,11 @@ For server-rendering we also need to make use of `useStores()` on`PullstateCore`
 
 ```tsx
 import * as React from "react";
-import { useStoreState } from "pullstate";
 import { PullstateCore } from "./PullstateCore";
 
 export const App = () => {
   const { UIStore } = PullstateCore.useStores();
-  const isDarkMode = useStoreState(UIStore, s => s.isDarkMode);
+  const isDarkMode = UIStore.useState(s => s.isDarkMode);
 
   return (
     <div
@@ -80,16 +79,16 @@ export const App = () => {
 };
 ```
 
-The second argument to `useStoreState()` over here (`s => s.isDarkMode`), is a selection function that ensures we select only the state that we actually need for this component. This is a big performance booster, as we only listen for changes (and if changed, re-render the component) on the exact returned values - in this case, simply the value of `isDarkMode`.
+The second argument to `useState()` over here (`s => s.isDarkMode`), is a selection function that ensures we select only the state that we actually need for this component. This is a big performance booster, as we only listen for changes (and if changed, re-render the component) on the exact returned values - in this case, simply the value of `isDarkMode`.
 
 If you are not using TypeScript, or want to forgo nice types, you could also pull in your store's using `useStores()` imported directly from `pullstate`:
 
 ```tsx
-import { useStoreState, useStores } from "pullstate";
+import { useStores } from "pullstate";
 
-  // in app
+  // in app component
   const { UIStore } = useStores();
-  const isDarkMode = useStoreState(UIStore, s => s.isDarkMode);
+  const isDarkMode = UIStore.useState(s => s.isDarkMode);
 ```
 
 ---
@@ -100,7 +99,7 @@ Great, so we are able to pull our state from `UIStore` into our App. Now lets ad
 
 ```tsx
   const { UIStore } = PullstateCore.useStores();
-  const isDarkMode = useStoreState(UIStore, s => s.isDarkMode);
+  const isDarkMode = UIStore.useState(s => s.isDarkMode);
 
   return (
     <div

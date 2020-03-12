@@ -38,15 +38,14 @@ export const UIStore = new Store<IUIStore>({
 
 ## Read our store's state
 
-Then, in React, we can start using the state of that store using a simple hook `useStoreState()`:
+Then, in React, we can start using the state of that store using a simple hook `useState()` on the store iteself:
 
 ```tsx
 import * as React from "react";
-import { useStoreState } from "pullstate";
 import { UIStore } from "./UIStore";
 
 export const App = () => {
-  const isDarkMode = useStoreState(UIStore, s => s.isDarkMode);
+  const isDarkMode = UIStore.useState(s => s.isDarkMode);
 
   return (
     <div
@@ -60,7 +59,7 @@ export const App = () => {
 };
 ```
 
-The second argument to `useStoreState()` over here (`s => s.isDarkMode`), is a selection function that ensures we select only the state that we actually need for this component. This is a big performance booster, as we only listen for changes (and if changed, re-render the component) on the exact returned values - in this case, simply the value of `isDarkMode`.
+The argument to `useState()` over here (`s => s.isDarkMode`), is a selection function that ensures we select only the state that we actually need for this component. This is a big performance booster, as we only listen for changes (and if changed, re-render the component) on the exact returned values - in this case, simply the value of `isDarkMode`.
 
 ---
 
@@ -128,4 +127,4 @@ import { UIStore } from "./UIStore";
 <button onClick={() => UIStore.update(toggleMode)}>Toggle Dark Mode</button>
 ```
 
-And our components are being updated accordingly. We have freed our app's state from the confines of the component! This is one of the main advantages of Pullstate - allowing us to separate our state concerns from being locked in at the component level and manage things easily at a more global level from which our components listen and react (through our `useStoreState()` hooks).
+And our components are being updated accordingly. We have freed our app's state from the confines of the component! This is one of the main advantages of Pullstate - allowing us to separate our state concerns from being locked in at the component level and manage things easily at a more global level from which our components listen and react (through our `useState()` hooks).
