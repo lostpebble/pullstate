@@ -67,7 +67,7 @@ function makeReactionFunctionCreator<S, T>(
 
           if (patches.length > 0) {
             store._patchListeners.forEach(listener => listener(patches, inversePatches));
-            return getChangedPathsFromPatches(patches);
+            return Object.keys(getChangedPathsFromPatches(patches));
           }
         } else {
           if (store._patchListeners.length > 0) {
@@ -80,9 +80,9 @@ function makeReactionFunctionCreator<S, T>(
             }
             store._updateStateWithoutReaction(nextState);
           } else {
-            store._updateStateWithoutReaction(
-              produce(currentState as any, s => reaction(nextWatchState, s, currentState, lastWatchState)) as any
-            );
+            store._updateStateWithoutReaction(produce(currentState as any, s =>
+              reaction(nextWatchState, s, currentState, lastWatchState)
+            ) as any);
           }
           lastWatchState = nextWatchState;
         }
@@ -101,6 +101,7 @@ const optPathDivider = "~._.~";
 export class Store<S = any> {
   private updateListeners: TPullstateUpdateListener[] = [];
   private currentState: S;
+  private batchState: S | undefined;
   private readonly initialState: S;
   private ssr: boolean = false;
   private reactions: TRunReactionFunction[] = [];
@@ -149,6 +150,7 @@ export class Store<S = any> {
 
   _updateState(nextState: S, updateKeyedPaths: string[] = []) {
     this.currentState = nextState;
+    this.batchState = undefined;
 
     for (const runReaction of this.reactions) {
       updateKeyedPaths.push(...runReaction());
@@ -256,13 +258,61 @@ export class Store<S = any> {
   }
 
   getRawState(): S {
-    return this.currentState;
+    if (this.batchState !== undefined) {
+      return this.batchState;
+    } else {
+      return this.currentState;
+    }
   }
 
   useState(): S;
   useState<SS = any>(getSubState: (state: S) => SS, deps?: ReadonlyArray<any>): SS;
   useState<SS = any>(getSubState?: (state: S) => SS, deps?: ReadonlyArray<any>): SS {
     return useStoreState(this, getSubState!, deps);
+  }
+
+  act(
+    action: (
+      update: (
+        updater: TUpdateFunction<S> | TUpdateFunction<S>[],
+        patchesCallback?: (patches: Patch[], inversePatches: Patch[]) => void
+      ) => void
+    ) => void
+  ): void {
+    action((u, p) => this.batch(u, p));
+    this.flushBatch(true);
+  }
+
+  batch(
+    updater: TUpdateFunction<S> | TUpdateFunction<S>[],
+    patchesCallback?: (patches: Patch[], inversePatches: Patch[]) => void
+  ): void {
+    if (this.batchState === undefined) {
+      this.batchState = this.currentState;
+    }
+
+    const func = typeof updater === "function";
+    const [nextState, patches, inversePatches] = runUpdates(this.batchState, updater, func);
+
+    if (patches.length > 0 && (this._patchListeners.length > 0 || patchesCallback)) {
+      if (patchesCallback) {
+        patchesCallback(patches, inversePatches);
+      }
+
+      this._patchListeners.forEach(listener => listener(patches, inversePatches));
+    }
+
+    this.batchState = nextState;
+  }
+
+  flushBatch(ignoreError = false) {
+    if (this.batchState !== undefined) {
+      if (this.batchState !== this.currentState) {
+        this._updateState(this.batchState);
+      }
+    } else if (!ignoreError) {
+      console.error(`Pullstate: Trying to flush batch state which was never created or updated on`);
+    }
   }
 
   update(
@@ -281,12 +331,16 @@ export function applyPatchesToStore<S = any>(store: Store<S>, patches: Patch[]) 
   const currentState: S = store.getRawState();
   const nextState = applyPatches(currentState, patches);
   if (nextState !== currentState) {
-    store._updateState(nextState, getChangedPathsFromPatches(patches));
+    store._updateState(nextState, Object.keys(getChangedPathsFromPatches(patches)));
   }
 }
 
-function getChangedPathsFromPatches(changePatches: Patch[]): string[] {
-  const updateKeyedPathsMap: { [path: string]: 1 } = {};
+interface IChangedPaths {
+  [path: string]: 1;
+}
+
+function getChangedPathsFromPatches(changePatches: Patch[], prev: IChangedPaths = {}): IChangedPaths {
+  // const updateKeyedPathsMap: IChangedPaths = {};
 
   for (const patch of changePatches) {
     let curKey;
@@ -298,11 +352,12 @@ function getChangedPathsFromPatches(changePatches: Patch[]): string[] {
         curKey = p;
       }
 
-      updateKeyedPathsMap[curKey] = 1;
+      prev[curKey] = 1;
     }
   }
 
-  return Object.keys(updateKeyedPathsMap);
+  return prev;
+  // return Object.keys(updateKeyedPathsMap);
 }
 
 function runUpdates<S>(
@@ -311,7 +366,7 @@ function runUpdates<S>(
   func: boolean
 ): [S, Patch[], Patch[]] {
   return func
-    ? produceWithPatches(currentState as any, s => (updater as TUpdateFunction<S>)(s, currentState)) as any
+    ? (produceWithPatches(currentState as any, s => (updater as TUpdateFunction<S>)(s, currentState)) as any)
     : ((updater as TUpdateFunction<S>[]).reduce(
         ([nextState, patches, inversePatches], currentValue) => {
           const resp = produceWithPatches(nextState as any, s => currentValue(s, nextState)) as any;
@@ -341,7 +396,7 @@ export function update<S = any>(
 
       store._patchListeners.forEach(listener => listener(patches, inversePatches));
 
-      store._updateState(nextState, getChangedPathsFromPatches(patches));
+      store._updateState(nextState, Object.keys(getChangedPathsFromPatches(patches)));
     }
   } else {
     let nextState: S;

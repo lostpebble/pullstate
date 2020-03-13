@@ -1,4 +1,4 @@
-import { Store } from "../../src";
+import { createBatchAction, Store } from "../../src";
 
 interface ITestStore {
   eggs: string[];
@@ -30,6 +30,26 @@ describe("Store operations", () => {
 
     expect(mockSubscribe.mock.calls.length).toBe(2);
     expect(mockSubscribe.mock.calls[0][0]).toBe(true);
+  });
+
+  it("Should be able to create batched actions", () => {
+    const ItemStore = getNewStore();
+
+    /*const removeItem = createAction((update, args: { id: number }) => {
+      update.ItemStore((s, o) => {
+        s.eggs.filter(egg => egg);
+      })
+    }, {
+      ItemStore
+    });*/
+
+    // removeItem({ id: 123 });
+
+    const removeItem = createBatchAction(({ id }: { id: number }) => {
+
+    });
+
+    removeItem({ id: 321 });
   });
 
   it("Should give the previous value when subscription gets a new value", () => {
