@@ -88,7 +88,7 @@ function clearActionCache(key: string, clearPending: boolean = true) {
   }
 
   // console.log(`Set ordinal for action [${key}] to ${clientAsyncCache.actionOrd[key] || "DIDNT EXIST"}`);
-  console.log(`Clearing cache for [${key}]`);
+  // console.log(`Clearing cache for [${key}]`);
   delete clientAsyncCache.results[key];
   notifyListeners(key);
 }
