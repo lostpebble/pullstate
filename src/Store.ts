@@ -1,7 +1,7 @@
 // @ts-ignore
 import { applyPatches, Patch, PatchListener, produce, produceWithPatches } from "immer";
 import { useStoreState } from "./useStoreState";
-import { DeepKeyOfArray } from "./useStoreStateOpt-types";
+import { DeepKeyOfArray, TAllPathsParameter } from "./useStoreStateOpt-types";
 
 import isEqual from "fast-deep-equal/es6";
 
@@ -22,6 +22,7 @@ export interface IStoreInternalOptions<S> {
 }
 
 export type TUpdateFunction<S> = (draft: S, original: S) => void;
+type TPathReactionFunction<S> = (paths: TAllPathsParameter<S>, draft: S, original: S) => void;
 type TReactionFunction<S, T> = (watched: T, draft: S, original: S, previousWatched: T) => void;
 type TRunReactionFunction = () => string[];
 type TRunSubscriptionFunction = () => void;
@@ -96,6 +97,15 @@ function makeReactionFunctionCreator<S, T>(
 const optPathDivider = "~._.~";
 
 // type TPatchListener = Immer.
+
+export type TStoreActionUpdate<S> = (
+  updater: TUpdateFunction<S> | TUpdateFunction<S>[],
+  patchesCallback?: (patches: Patch[], inversePatches: Patch[]) => void
+) => void
+
+export type TStoreAction<S> = (
+  update: TStoreActionUpdate<S>
+) => void
 
 // S = State
 export class Store<S = any> {
@@ -257,6 +267,10 @@ export class Store<S = any> {
     };
   }
 
+  createPathReaction<T>(path: TAllPathsParameter<S>, reaction: TPathReactionFunction<S>) {
+    
+  }
+
   getRawState(): S {
     if (this.batchState !== undefined) {
       return this.batchState;
@@ -271,13 +285,14 @@ export class Store<S = any> {
     return useStoreState(this, getSubState!, deps);
   }
 
+  /*action<A extends Array<any>>(
+    action: (...args: A) => TStoreAction<S>
+  ): (...args: A) => TStoreAction<S> {
+    return action;
+  }*/
+
   act(
-    action: (
-      update: (
-        updater: TUpdateFunction<S> | TUpdateFunction<S>[],
-        patchesCallback?: (patches: Patch[], inversePatches: Patch[]) => void
-      ) => void
-    ) => void
+    action: TStoreAction<S>
   ): void {
     action((u, p) => this.batch(u, p));
     this.flushBatch(true);

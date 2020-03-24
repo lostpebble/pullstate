@@ -88,7 +88,7 @@ function clearActionCache(key: string, clearPending: boolean = true) {
   }
 
   // console.log(`Set ordinal for action [${key}] to ${clientAsyncCache.actionOrd[key] || "DIDNT EXIST"}`);
-  // console.log(`Clearing cache for [${key}]`);
+  console.log(`Clearing cache for [${key}]`);
   delete clientAsyncCache.results[key];
   notifyListeners(key);
 }
@@ -138,22 +138,27 @@ export class PullstateAsyncError extends Error {
   }
 }
 
-const storeErrorProxy = new Proxy(
-  {},
-  {
-    get: function(obj, prop) {
-      throw new Error(
-        `Pullstate: Trying to access store (${String(prop)}) inside async actions without the correct usage or setup.
+let storeErrorProxy;
+try {
+  storeErrorProxy = new Proxy(
+    {},
+    {
+      get: function(obj, prop) {
+        throw new Error(
+          `Pullstate: Trying to access store (${String(prop)}) inside async actions without the correct usage or setup.
 If this error occurred on the server:
 * If using run(), make use of your created instance for this request: instance.runAsyncAction()
 * If using read(), useWatch(), useBeckon() etc. - make sure you have properly set up your <PullstateProvider/>
 
 If this error occurred on the client:
 * Make sure you have created your "pullstateCore" object with all your stores, using createPullstateCore(), and are making use of instantiate() before rendering.`
-      );
-    },
-  }
-);
+        );
+      },
+    }
+  );
+} catch {
+  storeErrorProxy = {};
+}
 
 export function createAsyncAction<
   A = any,
@@ -173,15 +178,15 @@ export function createAsyncAction<
   const ordinal: number = asyncCreationOrdinal++;
   const onServer: boolean = typeof window === "undefined";
 
-  function _createKey(keyOrdinal, args: any, customKey: string | undefined) {
+  function _createKey(args: A, customKey: string | undefined) {
     if (customKey) {
-      return `${keyOrdinal}-c-${customKey}`;
+      return `${ordinal}-c-${customKey}`;
     }
 
     if (subsetKey !== undefined) {
-      return `${keyOrdinal}-${keyFromObject(subsetKey(args))}`;
+      return `${ordinal}-${keyFromObject(subsetKey(args))}`;
     }
-    return `${keyOrdinal}-${keyFromObject(args)}`;
+    return `${ordinal}-${keyFromObject(args)}`;
   }
 
   let cacheBreakWatcher: { [actionKey: string]: number } = {};
@@ -411,7 +416,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     args = {} as A,
     { cacheBreakEnabled = true, postActionEnabled = true, key: customKey }: IAsyncActionReadOptions = {}
   ): R => {
-    const key = _createKey(ordinal, args, customKey);
+    const key = _createKey(args, customKey);
 
     const cache: IPullstateAsyncCache = onServer ? useContext(PullstateContext)!._asyncCache : clientAsyncCache;
     const stores =
@@ -506,7 +511,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     // For comparisons to our previous "fingerprint" / key from args
     const prevKeyRef = useRef<string>(".");
 
-    const key = dormant ? "." : _createKey(ordinal, args, customKey);
+    const key = dormant ? "." : _createKey(args, customKey);
 
     let watchId: MutableRefObject<number> = useRef(-1);
     if (watchId.current === -1) {
@@ -674,7 +679,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       _stores = clientStores.loaded ? clientStores.stores : (storeErrorProxy as S),
     }: IAsyncActionRunOptions = {}
   ): Promise<TAsyncActionResult<R, T>> => {
-    const key = _createKey(ordinal, args, customKey);
+    const key = _createKey(args, customKey);
     // console.log(`[${key}] Running action`);
     // console.log(_asyncCache);
 
@@ -751,7 +756,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
   };
 
   const clearCache: TAsyncActionClearCache<A> = (args = {} as A, customKey?: string) => {
-    const key = _createKey(ordinal, args, customKey);
+    const key = _createKey(args, customKey);
     clearActionCache(key);
   };
 
@@ -774,7 +779,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
   const setCached: TAsyncActionSetCached<A, R, T> = (args, result, options) => {
     const { notify = true, key: customKey } = options || {};
-    const key = _createKey(ordinal, args, customKey);
+    const key = _createKey(args, customKey);
 
     const cache: IPullstateAsyncCache = onServer ? useContext(PullstateContext)!._asyncCache : clientAsyncCache;
 
@@ -789,9 +794,10 @@ further looping. Fix in your cacheBreakHook() is needed.`);
   };
 
   const updateCached: TAsyncActionUpdateCached<A, R> = (args, updater, options) => {
-    const { notify = true, resetTimeCached = true, runPostActionHook: postAction = false, key: customKey } = options || {};
+    const { notify = true, resetTimeCached = true, runPostActionHook: postAction = false, key: customKey } =
+      options || {};
 
-    const key = _createKey(ordinal, args, customKey);
+    const key = _createKey(args, customKey);
 
     const cache: IPullstateAsyncCache = onServer ? useContext(PullstateContext)!._asyncCache : clientAsyncCache;
 
@@ -830,7 +836,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
   const getCached: TAsyncActionGetCached<A, R, T> = (args = {} as A, options) => {
     const { checkCacheBreak = false, key: customKey } = options || {};
-    const key = _createKey(ordinal, args, customKey);
+    const key = _createKey(args, customKey);
 
     let cacheBreakable = false;
 
@@ -925,7 +931,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       cacheBreakEnabled,
       holdPrevious = false,
       dormant = false,
-      key
+      key,
     }: IAsyncActionWatchOptions = {}
   ): TUseResponse<R, T> => {
     // Set default options if initiate is true (beckon) or false (watch)

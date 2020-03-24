@@ -42,6 +42,11 @@ export const clientStores: {
   stores: {},
 };
 
+export type TMultiStoreAction<
+  P extends PullstateSingleton,
+  S extends IPullstateAllStores = P extends PullstateSingleton<infer ST> ? ST : any
+> = (update: TMultiStoreUpdateMap<S>) => void;
+
 export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllStores> {
   // private readonly originStores: S = {} as S;
   // private updatedStoresInAct = new Set<string>();
@@ -108,8 +113,9 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
   }
 
   actionSetup(): {
-    action: (action: (update: TMultiStoreUpdateMap<S>) => void) => (update: TMultiStoreUpdateMap<S>) => void;
-    act: (action: (update: TMultiStoreUpdateMap<S>) => void) => void;
+    action: (update: TMultiStoreAction<PullstateSingleton<S>, S>) => TMultiStoreAction<PullstateSingleton<S>, S>;
+    act: (action: TMultiStoreAction<PullstateSingleton<S>, S>) => void;
+    // act: (action: (update: TMultiStoreUpdateMap<S>) => void) => void;
   } {
     const actUpdateMap = {} as TMultiStoreUpdateMap<S>;
     const updatedStores = new Set<string>();
@@ -121,44 +127,20 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
       };
     }
 
-    const action = action => action;
-    const act = (action: (update: TMultiStoreUpdateMap<S>) => void): void => {
+    const action: (update: TMultiStoreAction<PullstateSingleton<S>, S>) => TMultiStoreAction<PullstateSingleton<S>, S> = action => action;
+    const act = (action: TMultiStoreAction<PullstateSingleton<S>, S>): void => {
       updatedStores.clear();
       action(actUpdateMap);
-
       for (const store of updatedStores) {
         clientStores.stores[store].flushBatch(true);
       }
-    }
+    };
 
     return {
       action,
       act,
     };
   }
-  /*multi(action: (update: TMultiStoreUpdateMap<S>) => void): (update: TMultiStoreUpdateMap<S>) => void {
-    return action;
-  }*/
-
-  /*multiAct(action: (update: TMultiStoreUpdateMap<S>) => void): void {
-    this.updatedStoresInAct.clear();
-
-    if (this.actUpdateMap === undefined) {
-      this.actUpdateMap = {} as TMultiStoreUpdateMap<S>;
-      for (const store of Object.keys(clientStores.stores)) {
-        this.actUpdateMap[store as keyof S] = updater => {
-          this.updatedStoresInAct.add(store);
-          clientStores.stores[store].batch(updater);
-        };
-      }
-    }
-
-    action(this.actUpdateMap);
-
-    for (const store of this.updatedStoresInAct) {
-      clientStores.stores[store].flushBatch(true);
-    }
-  }*/
 
   createAsyncAction<A = any, R = any, T extends string = string>(
     action: TPullstateAsyncAction<A, R, T, S>,
