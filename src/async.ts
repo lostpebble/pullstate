@@ -129,12 +129,10 @@ export function errorResult<R = any, T extends string = string>(
 }
 
 export class PullstateAsyncError extends Error {
-  message: string;
   tags: string[];
 
   constructor(message: string, tags: string[]) {
     super(message);
-    this.message = message;
     this.tags = tags;
   }
 }
