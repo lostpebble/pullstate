@@ -59,7 +59,7 @@ function makeReactionFunctionCreator<S, T>(
 
       if (!isEqual(nextWatchState, lastWatchState)) {
         if (store._optListenerCount > 0) {
-          const [nextState, patches, inversePatches] = produceWithPatches(currentState as any, s =>
+          const [nextState, patches, inversePatches] = produceWithPatches(currentState as any, (s: S) =>
             reaction(nextWatchState, s, currentState, lastWatchState)
           ) as any;
 
@@ -72,7 +72,7 @@ function makeReactionFunctionCreator<S, T>(
           }
         } else {
           if (store._patchListeners.length > 0) {
-            const [nextState, patches, inversePatches] = produceWithPatches(currentState as any, s =>
+            const [nextState, patches, inversePatches] = produceWithPatches(currentState as any, (s: S) =>
               reaction(nextWatchState, s, currentState, lastWatchState)
             ) as any;
 
@@ -81,9 +81,9 @@ function makeReactionFunctionCreator<S, T>(
             }
             store._updateStateWithoutReaction(nextState);
           } else {
-            store._updateStateWithoutReaction(produce(currentState as any, s =>
-              reaction(nextWatchState, s, currentState, lastWatchState)
-            ) as any);
+            store._updateStateWithoutReaction(
+              produce(currentState as any, (s: S) => reaction(nextWatchState, s, currentState, lastWatchState)) as any
+            );
           }
           lastWatchState = nextWatchState;
         }
@@ -101,11 +101,9 @@ const optPathDivider = "~._.~";
 export type TStoreActionUpdate<S> = (
   updater: TUpdateFunction<S> | TUpdateFunction<S>[],
   patchesCallback?: (patches: Patch[], inversePatches: Patch[]) => void
-) => void
+) => void;
 
-export type TStoreAction<S> = (
-  update: TStoreActionUpdate<S>
-) => void
+export type TStoreAction<S> = (update: TStoreActionUpdate<S>) => void;
 
 // S = State
 export class Store<S = any> {
@@ -267,9 +265,7 @@ export class Store<S = any> {
     };
   }
 
-  createPathReaction<T>(path: TAllPathsParameter<S>, reaction: TPathReactionFunction<S>) {
-    
-  }
+  createPathReaction<T>(path: TAllPathsParameter<S>, reaction: TPathReactionFunction<S>) {}
 
   getRawState(): S {
     if (this.batchState !== undefined) {
@@ -291,9 +287,7 @@ export class Store<S = any> {
     return action;
   }*/
 
-  act(
-    action: TStoreAction<S>
-  ): void {
+  act(action: TStoreAction<S>): void {
     action((u, p) => this.batch(u, p));
     this.flushBatch(true);
   }
@@ -376,15 +370,15 @@ function getChangedPathsFromPatches(changePatches: Patch[], prev: IChangedPaths 
 }
 
 function runUpdates<S>(
-  currentState,
+  currentState: S,
   updater: TUpdateFunction<S> | TUpdateFunction<S>[],
   func: boolean
 ): [S, Patch[], Patch[]] {
   return func
-    ? (produceWithPatches(currentState as any, s => (updater as TUpdateFunction<S>)(s, currentState)) as any)
+    ? (produceWithPatches(currentState, (s: S) => (updater as TUpdateFunction<S>)(s, currentState)) as any)
     : ((updater as TUpdateFunction<S>[]).reduce(
         ([nextState, patches, inversePatches], currentValue) => {
-          const resp = produceWithPatches(nextState as any, s => currentValue(s, nextState)) as any;
+          const resp = produceWithPatches(nextState as any, (s: S) => currentValue(s, nextState)) as any;
           patches.push(...resp[1]);
           inversePatches.push(...resp[2]);
           return [resp[0], patches, inversePatches];
@@ -429,11 +423,11 @@ export function update<S = any>(
 
       nextState = ns;
     } else {
-      nextState = produce(currentState as any, s =>
+      nextState = produce(currentState as any, (s: S) =>
         func
           ? (updater as TUpdateFunction<S>)(s, currentState)
           : (updater as TUpdateFunction<S>[]).reduce((previousValue, currentUpdater) => {
-              return produce(previousValue as any, s => currentUpdater(s, previousValue)) as any;
+              return produce(previousValue as any, (s: S) => currentUpdater(s, previousValue)) as any;
             }, currentState)
       ) as any;
     }
