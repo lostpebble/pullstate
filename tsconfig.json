@@ -3,7 +3,7 @@
     "jsx": "react",
     "module": "esnext",
     "esModuleInterop": true,
-    "target": "esnext",
+    "target": "ESNext",
     "sourceMap": true,
     "sourceRoot": "src",
     "rootDir": "./src",

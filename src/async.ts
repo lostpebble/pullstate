@@ -302,9 +302,11 @@ further looping. Fix in your cacheBreakHook() is needed.`);
           return result;
         })
         .then(resp => {
-          delete cache.actions[key];
-          if (!onServer) {
-            notifyListeners(key);
+          if (currentActionOrd === cache.actionOrd[key]) {
+            delete cache.actions[key];
+            if (!onServer) {
+              notifyListeners(key);
+            }
           }
           return resp;
         });
@@ -740,9 +742,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       ];
     }
 
-    notifyListeners(key);
     let currentActionOrd = actionOrdUpdate(_asyncCache, key);
-
     _asyncCache.actions[key] = createInternalAction(
       key,
       _asyncCache,
@@ -752,6 +752,9 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       true,
       EPostActionContext.DIRECT_RUN
     );
+
+    notifyListeners(key);
+
     return _asyncCache.actions[key]() as Promise<TAsyncActionResult<R, T>>;
   };
 

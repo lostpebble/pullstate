@@ -1,3 +1,7 @@
+### 1.11.3
+
+Patch fix for `run()` and `beckon()` with an action making use of cache hook in the same component causing infinite loops.
+
 ## 1.11.0
 
 Added `AsyncActionName.use(args, options)` - a new way to make use of your Async Actions. By default it acts just like `useBeckon()`, except it returns an object instead of an array.

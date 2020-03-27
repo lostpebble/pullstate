@@ -1,9 +1,10 @@
 {
   "name": "pullstate",
-  "version": "1.11.1",
+  "version": "1.11.3",
   "description": "Simple state stores using immer and React hooks",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
+  "esnext": "dist/index.es.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist"
@@ -15,6 +16,7 @@
     "build": "npm run clean && rollup -c",
     "uglify": "terser ./dist/index.js -o ./dist/index.js",
     "check-size": "minified-size ./dist/index.es.js",
+    "check-size-cjs": "minified-size ./dist/index.js",
     "benchmark-all": "cross-env TS_NODE_PROJECT=./test/tsconfig.json node -r ts-node/register --max-old-space-size=4096  test/benchmark/all.ts",
     "benchmark-async-argument": "cross-env TS_NODE_PROJECT=./test/tsconfig.json node -r ts-node/register --max-old-space-size=4096  test/benchmark/benchmark-async-argument.ts",
     "benchmark-destructuring": "cross-env TS_NODE_PROJECT=./test/tsconfig.json node -r ts-node/register --max-old-space-size=4096  test/benchmark/benchmark-destructuring.ts",
