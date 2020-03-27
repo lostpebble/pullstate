@@ -11,7 +11,7 @@
     "inlineSourceMap": false,
     "declaration": true,
     "removeComments": true,
-    "strictNullChecks": true
+    "strict": true
   },
   "exclude": [
     "./test"

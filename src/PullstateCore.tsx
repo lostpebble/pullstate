@@ -30,7 +30,7 @@ export const PullstateProvider = <T extends IPullstateAllStores = IPullstateAllS
   return <PullstateContext.Provider value={instance}>{children}</PullstateContext.Provider>;
 };
 
-let singleton: PullstateSingleton | null = null;
+let singleton: PullstateSingleton<any> | null = null;
 
 export const clientStores: {
   internalClientStores: true;
@@ -43,7 +43,7 @@ export const clientStores: {
 };
 
 export type TMultiStoreAction<
-  P extends PullstateSingleton,
+  P extends PullstateSingleton<S>,
   S extends IPullstateAllStores = P extends PullstateSingleton<infer ST> ? ST : any
 > = (update: TMultiStoreUpdateMap<S>) => void;
 
@@ -127,7 +127,9 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
       };
     }
 
-    const action: (update: TMultiStoreAction<PullstateSingleton<S>, S>) => TMultiStoreAction<PullstateSingleton<S>, S> = action => action;
+    const action: (
+      update: TMultiStoreAction<PullstateSingleton<S>, S>
+    ) => TMultiStoreAction<PullstateSingleton<S>, S> = action => action;
     const act = (action: TMultiStoreAction<PullstateSingleton<S>, S>): void => {
       updatedStores.clear();
       action(actUpdateMap);
@@ -153,7 +155,7 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
 }
 
 type TMultiStoreUpdateMap<S extends IPullstateAllStores> = {
-  [K in keyof S]: (updater: TUpdateFunction<S[K] extends Store<infer T> ? T : any>) => void
+  [K in keyof S]: (updater: TUpdateFunction<S[K] extends Store<infer T> ? T : any>) => void;
 };
 
 interface IPullstateSnapshot {
@@ -207,7 +209,7 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores>
   }
 
   getPullstateSnapshot(): IPullstateSnapshot {
-    const allState = {};
+    const allState = {} as IPullstateSnapshot["allState"];
 
     for (const storeName of Object.keys(this._stores)) {
       allState[storeName] = this._stores[storeName].getRawState();

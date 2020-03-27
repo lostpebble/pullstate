@@ -46,7 +46,7 @@ export const clientAsyncCache: IPullstateAsyncCache = {
 
 let asyncCreationOrdinal = 0;
 
-export function keyFromObject(json) {
+export function keyFromObject(json: any) {
   if (json === null) {
     return "(n)";
   }
@@ -134,11 +134,12 @@ export class PullstateAsyncError extends Error {
 
   constructor(message: string, tags: string[]) {
     super(message);
+    this.message = message;
     this.tags = tags;
   }
 }
 
-let storeErrorProxy;
+let storeErrorProxy: any;
 try {
   storeErrorProxy = new Proxy(
     {},
@@ -802,10 +803,10 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     const cache: IPullstateAsyncCache = onServer ? useContext(PullstateContext)!._asyncCache : clientAsyncCache;
 
     if (cache.results.hasOwnProperty(key) && !cache.results[key][2].error) {
-      const currentCached: any = cache.results[key][2].payload;
+      const currentCached: R = cache.results[key][2].payload;
 
       const newResult = {
-        payload: (produce(currentCached, s => updater(s, currentCached)) as unknown) as R,
+        payload: (produce(currentCached, (s: R) => updater(s, currentCached)) as unknown) as R,
         error: false,
         message: cache.results[key][2].message,
         tags: cache.results[key][2].tags,
@@ -890,7 +891,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     }
   };
 
-  let delayedRunActionTimeout;
+  let delayedRunActionTimeout: NodeJS.Timeout;
 
   const delayedRun: TAsyncActionDelayedRun<A> = (
     args = {} as A,
@@ -923,7 +924,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
   };
 
   const use: TAsyncActionUse<A, R, T> = (
-    args: A,
+    args?: A,
     {
       initiate = true,
       ssr = true,

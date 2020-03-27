@@ -9,7 +9,7 @@ import { Store } from "./Store";
 export interface IUpdateRef {
   shouldUpdate: boolean;
   onStoreUpdate: (() => void) | null;
-  getSubState?: (state) => any;
+  getSubState?: (state: any) => any;
   currentSubState: any;
   setInitial: boolean;
 }
@@ -20,7 +20,7 @@ function useStoreState<S = any, SS = any>(
   getSubState: (state: S) => SS,
   deps?: ReadonlyArray<any>
 ): SS;
-function useStoreState(store: Store, getSubState?: (state) => any, deps?: ReadonlyArray<any>): any {
+function useStoreState(store: Store, getSubState?: (state: any) => any, deps?: ReadonlyArray<any>): any {
   const updateRef = useRef<IUpdateRef>({
     shouldUpdate: true,
     onStoreUpdate: null,
