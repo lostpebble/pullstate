@@ -1,6 +1,6 @@
 import React, { useContext } from "react";
 import { Store, TUpdateFunction } from "./Store";
-import { clientAsyncCache, createAsyncAction } from "./async";
+import { clientAsyncCache, createAsyncAction, createAsyncActionDirect } from "./async";
 import {
   IAsyncActionRunOptions,
   ICreateAsyncActionOptions,
@@ -144,6 +144,16 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
     };
   }
 
+  createAsyncActionDirect<A = any, R = any>(
+    action: (args: A) => Promise<R>,
+    options: ICreateAsyncActionOptions<A, R, string, S> = {}
+  ): IOCreateAsyncActionOutput<A, R> {
+    return createAsyncActionDirect(action, options);
+    // return createAsyncAction<A, R, string, S>(async (args: A) => {
+    //   return successResult(await action(args));
+    // }, options);
+  }
+
   createAsyncAction<A = any, R = any, T extends string = string>(
     action: TPullstateAsyncAction<A, R, T, S>,
     // options: Omit<ICreateAsyncActionOptions<A, R, T, S>, "clientStores"> = {}
@@ -155,7 +165,7 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
 }
 
 type TMultiStoreUpdateMap<S extends IPullstateAllStores> = {
-  [K in keyof S]: (updater: TUpdateFunction<S[K] extends Store<infer T> ? T : any>) => void;
+  [K in keyof S]: (updater: TUpdateFunction<S[K] extends Store<infer T> ? T : any>) => void
 };
 
 interface IPullstateSnapshot {

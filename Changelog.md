@@ -1,3 +1,13 @@
+## 1.13.0
+
+Added in `createAsyncActionDirect()` - which allows you to simply directly wrap promises instead of using `successResult()` or `errorResult()` methods implicitly. Useful for scenarios that don't require such verbosity. It will directly return a `successResult()` - or otherwise, if an error is thrown, an `errorResult()`.
+
+Allow `use()` of an async action to be executed on the same arguments later on in the component, with the returned method `execute()`.
+
+## 1.12.0
+
+Some TypeScript type updates - hopefully fixing some `strict: true` issues people were having.
+
 ### 1.11.3
 
 Patch fix for `run()` and `beckon()` with an action making use of cache hook in the same component causing infinite loops.

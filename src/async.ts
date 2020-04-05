@@ -159,6 +159,15 @@ If this error occurred on the client:
   storeErrorProxy = {};
 }
 
+export function createAsyncActionDirect<A = any, R = any, S extends IPullstateAllStores = IPullstateAllStores>(
+  action: (args: A) => Promise<R>,
+  options: ICreateAsyncActionOptions<A, R, string, S> = {}
+): IOCreateAsyncActionOutput<A, R> {
+  return createAsyncAction<A, R, string, S>(async (args: A) => {
+    return successResult(await action(args));
+  }, options);
+}
+
 export function createAsyncAction<
   A = any,
   R = any,
@@ -967,6 +976,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       renderPayload,
       message: result.message,
       raw,
+      execute: (runOptions => run(args, runOptions)),
     } as TUseResponse<R, T>;
   };
 

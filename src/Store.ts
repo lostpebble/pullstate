@@ -331,6 +331,10 @@ export class Store<S = any> {
     update(this, updater, patchesCallback);
   }
 
+  replace(newState: S) {
+    this._updateState(newState);
+  }
+
   applyPatches(patches: Patch[]) {
     applyPatchesToStore(this, patches);
   }

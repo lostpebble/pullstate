@@ -12,7 +12,7 @@ import {
   useInstance,
   useStores,
 } from "./PullstateCore";
-import { createAsyncAction, errorResult, successResult } from "./async";
+import { createAsyncAction, createAsyncActionDirect, errorResult, successResult } from "./async";
 import { EAsyncActionInjectType, InjectAsyncAction, TInjectAsyncActionProps } from "./InjectAsyncAction";
 import { InjectStoreStateOpt } from "./InjectStoreStateOpt";
 import { TUseResponse } from "./async-types";
@@ -31,6 +31,7 @@ export {
   useInstance,
   createPullstateCore,
   createAsyncAction,
+  createAsyncActionDirect,
   successResult,
   errorResult,
   // EAsyncEndTags,

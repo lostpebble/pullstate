@@ -259,6 +259,7 @@ export interface IBaseObjResponse<R, T extends string> {
   renderPayload: TRunWithPayload<R>;
   message: string;
   raw: TPullstateAsyncWatchResponse<R, T>;
+  execute: (runOptions?: IAsyncActionRunOptions) => TPullstateAsyncRunResponse<R, T>;
 }
 
 export interface IBaseObjSuccessResponse<R, T extends string> extends IBaseObjResponse<R, T> {
