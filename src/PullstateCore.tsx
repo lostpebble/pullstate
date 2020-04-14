@@ -144,7 +144,7 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
     };
   }
 
-  createAsyncActionDirect<A = any, R = any>(
+  createAsyncActionDirect<A extends any = any, R extends any = any>(
     action: (args: A) => Promise<R>,
     options: ICreateAsyncActionOptions<A, R, string, S> = {}
   ): IOCreateAsyncActionOutput<A, R> {

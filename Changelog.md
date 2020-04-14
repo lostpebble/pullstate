@@ -1,3 +1,11 @@
+### 1.13.1
+
+Some fixes for run() when using `respectCache: true` that makes a second run wait for the result to any currently running action.
+
+A minor leak fix for `read()`.
+
+Much thanks to https://github.com/schummar for the fixes!
+
 ## 1.13.0
 
 Added in `createAsyncActionDirect()` - which allows you to simply directly wrap promises instead of using `successResult()` or `errorResult()` methods implicitly. Useful for scenarios that don't require such verbosity. It will directly return a `successResult()` - or otherwise, if an error is thrown, an `errorResult()`.
