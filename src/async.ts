@@ -499,7 +499,10 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     const watchOrd = watchIdOrd++;
 
     throw new Promise(resolve => {
-      cache.listeners[key][watchOrd] = resolve;
+      cache.listeners[key][watchOrd] = () => {
+        delete cache.listeners[key][watchOrd];
+        resolve();
+      };
     });
   };
 
