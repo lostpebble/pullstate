@@ -706,6 +706,24 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       );
 
       if (cached) {
+        // If cached result is unfinished, wait for completion
+        if (!cached[1]) {
+          const watchOrd = watchIdOrd++;
+          if (!_asyncCache.listeners.hasOwnProperty(key)) {
+            _asyncCache.listeners[key] = {};
+          }
+
+          return new Promise<TAsyncActionResult<R, T>>(resolve => {
+            _asyncCache.listeners[key][watchOrd] = () => {
+              const [, finished, resp] = _asyncCache.results[key];
+              if (finished) {
+                delete _asyncCache.listeners[key][watchOrd];
+                resolve(resp as TAsyncActionResult<R, T>);
+              }
+            };
+          });
+        }
+
         return cached[2];
       }
     }
