@@ -24,7 +24,7 @@ export interface IStoreInternalOptions<S> {
 export type TUpdateFunction<S> = (draft: S, original: S) => void;
 type TPathReactionFunction<S> = (paths: TAllPathsParameter<S>, draft: S, original: S) => void;
 type TReactionFunction<S, T> = (watched: T, draft: S, original: S, previousWatched: T) => void;
-type TRunReactionFunction = () => string[];
+type TRunReactionFunction = (forceRun?: boolean) => string[];
 type TRunSubscriptionFunction = () => void;
 type TReactionCreator<S> = (store: Store<S>) => TRunReactionFunction;
 
@@ -53,11 +53,11 @@ function makeReactionFunctionCreator<S, T>(
   return store => {
     let lastWatchState: T = watch(store.getRawState());
 
-    return () => {
+    return (forceRun: boolean = false) => {
       const currentState = store.getRawState();
       const nextWatchState = watch(currentState);
 
-      if (!isEqual(nextWatchState, lastWatchState)) {
+      if (forceRun || !isEqual(nextWatchState, lastWatchState)) {
         if (store._optListenerCount > 0) {
           const [nextState, patches, inversePatches] = produceWithPatches(currentState as any, (s: S) =>
             reaction(nextWatchState, s, currentState, lastWatchState)
@@ -92,6 +92,11 @@ function makeReactionFunctionCreator<S, T>(
       return [];
     };
   };
+}
+
+interface ICreateReactionOptions {
+  runNow?: boolean;
+  runNowWithSideEffects?: boolean;
 }
 
 const optPathDivider = "~._.~";
@@ -255,17 +260,26 @@ export class Store<S = any> {
     };
   }
 
-  createReaction<T>(watch: (state: S) => T, reaction: TReactionFunction<S, T>): () => void {
+  createReaction<T>(watch: (state: S) => T, reaction: TReactionFunction<S, T>, { runNow = false, runNowWithSideEffects = false }: ICreateReactionOptions = {}): () => void {
     const creator = makeReactionFunctionCreator(watch, reaction);
     this.reactionCreators.push(creator);
     const func = creator(this);
     this.reactions.push(func);
+
+    if (runNow || runNowWithSideEffects) {
+      func(true);
+
+      if (runNowWithSideEffects && !this.ssr) {
+        this._updateState(this.currentState);
+      }
+    }
+
     return () => {
       this.reactions = this.reactions.filter(f => f !== func);
     };
   }
 
-  createPathReaction<T>(path: TAllPathsParameter<S>, reaction: TPathReactionFunction<S>) {}
+  // createPathReaction<T>(path: TAllPathsParameter<S>, reaction: TPathReactionFunction<S>) {}
 
   getRawState(): S {
     if (this.batchState !== undefined) {

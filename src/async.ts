@@ -230,8 +230,9 @@ export function createAsyncAction<
       const cacheBreakLoop = cacheBreakWatcher.hasOwnProperty(key) && cacheBreakWatcher[key] > 2;
       // console.log(`[${key}] Pullstate Async: Already finished - returning cached result`);
 
-      // Only beckon() can cache break - because watch() will not initiate the re-caching mechanism
+      // Only beckon() or run() can cache break - because watch() will not initiate the re-caching mechanism
       if (
+        cache.results[key][1] &&          // isFinished?
         cacheBreakEnabled &&
         cacheBreakHook !== undefined &&
         cacheBreakHook({
@@ -698,7 +699,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
   ): Promise<TAsyncActionResult<R, T>> => {
     const key = _createKey(args, customKey);
     // console.log(`[${key}] Running action`);
-    // console.log(_asyncCache);
+    // console.log(JSON.parse(JSON.stringify(_asyncCache)));
 
     if (respectCache) {
       const cached = getCachedResult(

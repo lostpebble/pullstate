@@ -1,3 +1,7 @@
+### 1.13.2
+
+More fixes for run() when using `respectCache: true`. Prevents the cacheBreakHook from clearing the current async state, even if the action hasn't finished yet.
+
 ### 1.13.1
 
 Some fixes for run() when using `respectCache: true` that makes a second run wait for the result to any currently running action.
