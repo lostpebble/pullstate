@@ -8,6 +8,7 @@ import {
   IAsyncActionResultNegative,
   IAsyncActionResultPositive,
   IAsyncActionRunOptions,
+  IAsyncActionUseOptions,
   IAsyncActionWatchOptions,
   ICreateAsyncActionOptions,
   IOCreateAsyncActionOutput,
@@ -232,7 +233,7 @@ export function createAsyncAction<
 
       // Only beckon() or run() can cache break - because watch() will not initiate the re-caching mechanism
       if (
-        cache.results[key][1] &&          // isFinished?
+        cache.results[key][1] && // isFinished?
         cacheBreakEnabled &&
         cacheBreakHook !== undefined &&
         cacheBreakHook({
@@ -560,10 +561,9 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       const onAsyncStateChanged = () => {
         /*console.log(`[${key}][${watchId.current}] should update: ${shouldUpdate[key][watchId.current]}`);
         console.log(
-          `[${key}][${watchId.current}] will update?: ${!isEqual(
-            responseRef.current,
-            cache.results[key]
-          )} - ${responseRef.current} !== ${cache.results[key]}`
+          `[${key}][${watchId.current}] will update?: ${!isEqual(responseRef.current, cache.results[key])} - ${
+            responseRef.current
+          } !== ${cache.results[key]}`
         );
         console.log(responseRef.current);
         console.log(cache.results[key]);
@@ -969,7 +969,8 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       holdPrevious = false,
       dormant = false,
       key,
-    }: IAsyncActionWatchOptions = {}
+      onSuccess,
+    }: IAsyncActionUseOptions = {}
   ): TUseResponse<R, T> => {
     // Set default options if initiate is true (beckon) or false (watch)
     if (postActionEnabled == null) {
@@ -983,6 +984,16 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     const raw = useWatch(args, { initiate, ssr, postActionEnabled, cacheBreakEnabled, holdPrevious, dormant, key });
     const [isStarted, isFinished, result, isUpdating] = raw;
 
+    const isSuccess = isFinished && !result.error;
+
+    useEffect(() => {
+      if (isSuccess) {
+        if (onSuccess) {
+          onSuccess();
+        }
+      }
+    }, [isSuccess]);
+
     const renderPayload: TRunWithPayload<R> = func => {
       if (!result.error) {
         return func(result.payload);
@@ -995,6 +1006,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       isStarted,
       isFinished,
       isUpdating,
+      isSuccess,
       isLoading: isStarted && (!isFinished || isUpdating),
       endTags: result.tags,
       error: result.error,

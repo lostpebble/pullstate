@@ -118,6 +118,10 @@ export interface IAsyncActionWatchOptions extends IAsyncActionBeckonOptions {
   initiate?: boolean;
 }
 
+export interface IAsyncActionUseOptions extends IAsyncActionWatchOptions {
+  onSuccess?: () => void;
+}
+
 export interface IAsyncActionRunOptions<S extends IPullstateAllStores = any> {
   treatAsUpdate?: boolean;
   ignoreShortCircuit?: boolean;
@@ -154,7 +158,7 @@ export interface IAsyncActionUpdateCachedOptions extends IAsyncActionSetCachedOp
 
 export type TAsyncActionUse<A, R, T extends string> = (
   args?: A,
-  options?: IAsyncActionWatchOptions
+  options?: IAsyncActionUseOptions,
 ) => TUseResponse<R, T>;
 
 export type TAsyncActionBeckon<A, R, T extends string> = (
@@ -255,6 +259,7 @@ export interface IBaseObjResponse<R, T extends string> {
   isFinished: boolean;
   isUpdating: boolean;
   isStarted: boolean;
+  isSuccess: boolean;
   endTags: (T | EAsyncEndTags)[];
   renderPayload: TRunWithPayload<R>;
   message: string;
