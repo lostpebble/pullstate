@@ -986,13 +986,13 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
     const isSuccess = isFinished && !result.error;
 
-    useEffect(() => {
-      if (isSuccess && !dormant) {
-        if (onSuccess) {
+    if (onSuccess) {
+      useEffect(() => {
+        if (isSuccess && !dormant) {
           onSuccess();
         }
-      }
-    }, [isSuccess]);
+      }, [isSuccess]);
+    }
 
     const renderPayload: TRunWithPayload<R> = func => {
       if (!result.error) {
