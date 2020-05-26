@@ -987,7 +987,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     const isSuccess = isFinished && !result.error;
 
     useEffect(() => {
-      if (isSuccess) {
+      if (isSuccess && !dormant) {
         if (onSuccess) {
           onSuccess();
         }
@@ -1015,6 +1015,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       message: result.message,
       raw,
       execute: runOptions => run(args, runOptions),
+      clear: () => clearCache(args),
     } as TUseResponse<R, T>;
   };
 
