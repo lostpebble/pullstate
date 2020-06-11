@@ -143,7 +143,7 @@ try {
   storeErrorProxy = new Proxy(
     {},
     {
-      get: function(obj, prop) {
+      get: function (obj, prop) {
         throw new Error(
           `Pullstate: Trying to access store (${String(prop)}) inside async actions without the correct usage or setup.
 If this error occurred on the server:
@@ -282,11 +282,12 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     stores: S,
     currentActionOrd: number,
     postActionEnabled: boolean,
-    context: EPostActionContext
+    context: EPostActionContext,
+    throwError: boolean
   ): () => Promise<TAsyncActionResult<R, T>> {
     return () =>
       action(args, stores)
-        .then(resp => {
+        .then((resp) => {
           if (currentActionOrd === cache.actionOrd[key]) {
             if (postActionEnabled) {
               runPostActionHook(resp as TAsyncActionResult<R, T>, args, stores, context);
@@ -296,7 +297,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
           return resp;
         })
-        .catch(e => {
+        .catch((e) => {
           // console.log(`Pullstate async action threw error`);
           console.error(e);
           const result: TAsyncActionResult<R, T> = {
@@ -313,9 +314,20 @@ further looping. Fix in your cacheBreakHook() is needed.`);
             cache.results[key] = [true, true, result, false, Date.now()] as TPullstateAsyncWatchResponse<R, T>;
           }
 
+          if (throwError) {
+            if (currentActionOrd === cache.actionOrd[key]) {
+              delete cache.actions[key];
+              if (!onServer) {
+                notifyListeners(key);
+              }
+            }
+
+            throw e;
+          }
+
           return result;
         })
-        .then(resp => {
+        .then((resp) => {
           if (currentActionOrd === cache.actionOrd[key]) {
             delete cache.actions[key];
             if (!onServer) {
@@ -379,7 +391,8 @@ further looping. Fix in your cacheBreakHook() is needed.`);
             stores,
             currentActionOrd,
             postActionEnabled,
-            EPostActionContext.BECKON_RUN
+            EPostActionContext.BECKON_RUN,
+            false
           );
         }
 
@@ -484,7 +497,8 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         stores,
         currentActionOrd,
         postActionEnabled,
-        EPostActionContext.READ_RUN
+        EPostActionContext.READ_RUN,
+        false
       );
 
       if (onServer) {
@@ -504,7 +518,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
     const watchOrd = watchIdOrd++;
 
-    throw new Promise(resolve => {
+    throw new Promise((resolve) => {
       cache.listeners[key][watchOrd] = () => {
         delete cache.listeners[key][watchOrd];
         resolve();
@@ -581,7 +595,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
             cacheBreakEnabled
           );
 
-          setWatchUpdate(prev => {
+          setWatchUpdate((prev) => {
             return prev + 1;
           });
         } /*else {
@@ -695,6 +709,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       key: customKey,
       _asyncCache = clientAsyncCache,
       _stores = clientStores.loaded ? clientStores.stores : (storeErrorProxy as S),
+      _throwError = false,
     }: IAsyncActionRunOptions = {}
   ): Promise<TAsyncActionResult<R, T>> => {
     const key = _createKey(args, customKey);
@@ -721,7 +736,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
             _asyncCache.listeners[key] = {};
           }
 
-          return new Promise<TAsyncActionResult<R, T>>(resolve => {
+          return new Promise<TAsyncActionResult<R, T>>((resolve) => {
             _asyncCache.listeners[key][watchOrd] = () => {
               const [, finished, resp] = _asyncCache.results[key];
               if (finished) {
@@ -784,7 +799,8 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       _stores,
       currentActionOrd,
       true,
-      EPostActionContext.DIRECT_RUN
+      EPostActionContext.DIRECT_RUN,
+      _throwError
     );
 
     notifyListeners(key);
@@ -807,7 +823,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
   const clearAllUnwatchedCache: TAsyncActionClearAllUnwatchedCache = () => {
     for (const key of Object.keys(shouldUpdate)) {
-      if (!Object.values(shouldUpdate[key]).some(su => su)) {
+      if (!Object.values(shouldUpdate[key]).some((su) => su)) {
         delete shouldUpdate[key];
         clearActionCache(key, false);
       }
@@ -994,7 +1010,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       }, [isSuccess]);
     }
 
-    const renderPayload: TRunWithPayload<R> = func => {
+    const renderPayload: TRunWithPayload<R> = (func) => {
       if (!result.error) {
         return func(result.payload);
       }
@@ -1014,7 +1030,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       renderPayload,
       message: result.message,
       raw,
-      execute: runOptions => run(args, runOptions),
+      execute: (runOptions) => run(args, runOptions),
       clear: () => clearCache(args),
     } as TUseResponse<R, T>;
   };

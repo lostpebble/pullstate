@@ -14,11 +14,13 @@ export default {
       file: pkg.main,
       format: "cjs",
       compact: true,
+      // dir: "dist"
     },
     {
       file: pkg.module,
       format: "es",
       compact: true,
+      // dist: "dist"
     },
   ],
   external: [...Object.keys(pkg.dependencies || {}), ...Object.keys(pkg.peerDependencies || {})],

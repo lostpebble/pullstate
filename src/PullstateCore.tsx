@@ -47,12 +47,19 @@ export type TMultiStoreAction<
   S extends IPullstateAllStores = P extends PullstateSingleton<infer ST> ? ST : any
 > = (update: TMultiStoreUpdateMap<S>) => void;
 
+interface IPullstateSingletonOptions {
+  asyncActions?: {
+    defaultCachingSeconds?: number;
+  };
+}
+
 export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllStores> {
   // private readonly originStores: S = {} as S;
   // private updatedStoresInAct = new Set<string>();
   // private actUpdateMap: TMultiStoreUpdateMap<S> | undefined;
+  options: IPullstateSingletonOptions = {};
 
-  constructor(allStores: S) {
+  constructor(allStores: S, options: IPullstateSingletonOptions = {}) {
     if (singleton !== null) {
       console.error(
         `Pullstate: createPullstate() - Should not be creating the core Pullstate class more than once! In order to re-use pull state, you need to call instantiate() on your already created object.`
@@ -63,6 +70,7 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
     // this.originStores = allStores;
     clientStores.stores = allStores;
     clientStores.loaded = true;
+    this.options = options;
   }
 
   instantiate({
@@ -121,7 +129,7 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
     const updatedStores = new Set<string>();
 
     for (const store of Object.keys(clientStores.stores)) {
-      actUpdateMap[store as keyof S] = updater => {
+      actUpdateMap[store as keyof S] = (updater) => {
         updatedStores.add(store);
         clientStores.stores[store].batch(updater);
       };
@@ -129,7 +137,7 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
 
     const action: (
       update: TMultiStoreAction<PullstateSingleton<S>, S>
-    ) => TMultiStoreAction<PullstateSingleton<S>, S> = action => action;
+    ) => TMultiStoreAction<PullstateSingleton<S>, S> = (action) => action;
     const act = (action: TMultiStoreAction<PullstateSingleton<S>, S>): void => {
       updatedStores.clear();
       action(actUpdateMap);
@@ -160,12 +168,17 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
     options: ICreateAsyncActionOptions<A, R, T, S> = {}
   ): IOCreateAsyncActionOutput<A, R, T> {
     // options.clientStores = this.originStores;
+    if (this.options.asyncActions?.defaultCachingSeconds && !options.cacheBreakHook) {
+      options.cacheBreakHook = (inputs) =>
+        inputs.timeCached < Date.now() - this.options.asyncActions!.defaultCachingSeconds! * 1000;
+    }
+
     return createAsyncAction<A, R, T, S>(action, options);
   }
 }
 
 type TMultiStoreUpdateMap<S extends IPullstateAllStores> = {
-  [K in keyof S]: (updater: TUpdateFunction<S[K] extends Store<infer T> ? T : any>) => void
+  [K in keyof S]: (updater: TUpdateFunction<S[K] extends Store<infer T> ? T : any>) => void;
 };
 
 interface IPullstateSnapshot {
@@ -176,14 +189,19 @@ interface IPullstateSnapshot {
 
 export interface IPullstateInstanceConsumable<T extends IPullstateAllStores = IPullstateAllStores> {
   stores: T;
+
   hasAsyncStateToResolve(): boolean;
+
   resolveAsyncState(): Promise<void>;
+
   getPullstateSnapshot(): IPullstateSnapshot;
+
   hydrateFromSnapshot(snapshot: IPullstateSnapshot): void;
+
   runAsyncAction<A, R, X extends string>(
     asyncAction: IOCreateAsyncActionOutput<A, R, X>,
     args?: A,
-    runOptions?: Pick<IAsyncActionRunOptions, "ignoreShortCircuit" | "respectCache">
+    runOptions?: { throwError?: boolean } & Pick<IAsyncActionRunOptions, "ignoreShortCircuit" | "respectCache">
   ): TPullstateAsyncRunResponse<R, X>;
 }
 
@@ -209,7 +227,7 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores>
   }
 
   private getAllUnresolvedAsyncActions(): Array<Promise<any>> {
-    return Object.keys(this._asyncCache.actions).map(key => this._asyncCache.actions[key]());
+    return Object.keys(this._asyncCache.actions).map((key) => this._asyncCache.actions[key]());
   }
 
   instantiateReactions() {
@@ -244,14 +262,14 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores>
   async runAsyncAction<A, R, X extends string>(
     asyncAction: IOCreateAsyncActionOutput<A, R, X>,
     args: A = {} as A,
-    runOptions: Pick<IAsyncActionRunOptions, "ignoreShortCircuit" | "respectCache"> = {}
+    runOptions: { throwError?: boolean } & Pick<IAsyncActionRunOptions, "ignoreShortCircuit" | "respectCache"> = {}
   ): TPullstateAsyncRunResponse<R, X> {
     if (this._ssr) {
       (runOptions as IAsyncActionRunOptions)._asyncCache = this._asyncCache;
       (runOptions as IAsyncActionRunOptions)._stores = this._stores;
     }
 
-    return await asyncAction.run(args, runOptions);
+    return await asyncAction.run(args, { ...runOptions, _throwError: runOptions?.throwError ?? false });
   }
 
   hydrateFromSnapshot(snapshot: IPullstateSnapshot) {
@@ -268,8 +286,11 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores>
   }
 }
 
-export function createPullstateCore<T extends IPullstateAllStores = IPullstateAllStores>(allStores: T = {} as T) {
-  return new PullstateSingleton<T>(allStores);
+export function createPullstateCore<T extends IPullstateAllStores = IPullstateAllStores>(
+  allStores: T = {} as T,
+  options: IPullstateSingletonOptions = {}
+) {
+  return new PullstateSingleton<T>(allStores, options);
 }
 
 export function useStores<T extends IPullstateAllStores = {}>() {

@@ -129,6 +129,7 @@ export interface IAsyncActionRunOptions<S extends IPullstateAllStores = any> {
   key?: string;
   _asyncCache?: IPullstateAsyncCache;
   _stores?: S;
+  _throwError?: boolean;
 }
 
 export interface IAsyncActionGetCachedOptions {
