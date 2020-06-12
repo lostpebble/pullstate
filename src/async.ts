@@ -282,8 +282,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     stores: S,
     currentActionOrd: number,
     postActionEnabled: boolean,
-    context: EPostActionContext,
-    throwError: boolean
+    context: EPostActionContext
   ): () => Promise<TAsyncActionResult<R, T>> {
     return () =>
       action(args, stores)
@@ -312,17 +311,6 @@ further looping. Fix in your cacheBreakHook() is needed.`);
               runPostActionHook(result, args, stores, context);
             }
             cache.results[key] = [true, true, result, false, Date.now()] as TPullstateAsyncWatchResponse<R, T>;
-          }
-
-          if (throwError) {
-            if (currentActionOrd === cache.actionOrd[key]) {
-              delete cache.actions[key];
-              if (!onServer) {
-                notifyListeners(key);
-              }
-            }
-
-            throw e;
           }
 
           return result;
@@ -391,8 +379,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
             stores,
             currentActionOrd,
             postActionEnabled,
-            EPostActionContext.BECKON_RUN,
-            false
+            EPostActionContext.BECKON_RUN
           );
         }
 
@@ -497,8 +484,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         stores,
         currentActionOrd,
         postActionEnabled,
-        EPostActionContext.READ_RUN,
-        false
+        EPostActionContext.READ_RUN
       );
 
       if (onServer) {
@@ -709,7 +695,6 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       key: customKey,
       _asyncCache = clientAsyncCache,
       _stores = clientStores.loaded ? clientStores.stores : (storeErrorProxy as S),
-      _throwError = false,
     }: IAsyncActionRunOptions = {}
   ): Promise<TAsyncActionResult<R, T>> => {
     const key = _createKey(args, customKey);
@@ -799,8 +784,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       _stores,
       currentActionOrd,
       true,
-      EPostActionContext.DIRECT_RUN,
-      _throwError
+      EPostActionContext.DIRECT_RUN
     );
 
     notifyListeners(key);
@@ -1001,6 +985,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     const [isStarted, isFinished, result, isUpdating] = raw;
 
     const isSuccess = isFinished && !result.error;
+    const isFailure = isFinished && result.error;
 
     if (onSuccess) {
       useEffect(() => {
@@ -1023,6 +1008,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       isFinished,
       isUpdating,
       isSuccess,
+      isFailure,
       isLoading: isStarted && (!isFinished || isUpdating),
       endTags: result.tags,
       error: result.error,

@@ -201,7 +201,7 @@ export interface IPullstateInstanceConsumable<T extends IPullstateAllStores = IP
   runAsyncAction<A, R, X extends string>(
     asyncAction: IOCreateAsyncActionOutput<A, R, X>,
     args?: A,
-    runOptions?: { throwError?: boolean } & Pick<IAsyncActionRunOptions, "ignoreShortCircuit" | "respectCache">
+    runOptions?: Pick<IAsyncActionRunOptions, "ignoreShortCircuit" | "respectCache">
   ): TPullstateAsyncRunResponse<R, X>;
 }
 
@@ -262,14 +262,14 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores>
   async runAsyncAction<A, R, X extends string>(
     asyncAction: IOCreateAsyncActionOutput<A, R, X>,
     args: A = {} as A,
-    runOptions: { throwError?: boolean } & Pick<IAsyncActionRunOptions, "ignoreShortCircuit" | "respectCache"> = {}
+    runOptions: Pick<IAsyncActionRunOptions, "ignoreShortCircuit" | "respectCache"> = {}
   ): TPullstateAsyncRunResponse<R, X> {
     if (this._ssr) {
       (runOptions as IAsyncActionRunOptions)._asyncCache = this._asyncCache;
       (runOptions as IAsyncActionRunOptions)._stores = this._stores;
     }
 
-    return await asyncAction.run(args, { ...runOptions, _throwError: runOptions?.throwError ?? false });
+    return await asyncAction.run(args, runOptions);
   }
 
   hydrateFromSnapshot(snapshot: IPullstateSnapshot) {

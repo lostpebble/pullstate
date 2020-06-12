@@ -129,7 +129,6 @@ export interface IAsyncActionRunOptions<S extends IPullstateAllStores = any> {
   key?: string;
   _asyncCache?: IPullstateAsyncCache;
   _stores?: S;
-  _throwError?: boolean;
 }
 
 export interface IAsyncActionGetCachedOptions {
@@ -159,7 +158,7 @@ export interface IAsyncActionUpdateCachedOptions extends IAsyncActionSetCachedOp
 
 export type TAsyncActionUse<A, R, T extends string> = (
   args?: A,
-  options?: IAsyncActionUseOptions,
+  options?: IAsyncActionUseOptions
 ) => TUseResponse<R, T>;
 
 export type TAsyncActionBeckon<A, R, T extends string> = (
@@ -261,6 +260,7 @@ export interface IBaseObjResponse<R, T extends string> {
   isUpdating: boolean;
   isStarted: boolean;
   isSuccess: boolean;
+  isFailure: boolean;
   endTags: (T | EAsyncEndTags)[];
   renderPayload: TRunWithPayload<R>;
   message: string;
@@ -271,11 +271,17 @@ export interface IBaseObjResponse<R, T extends string> {
 export interface IBaseObjSuccessResponse<R, T extends string> extends IBaseObjResponse<R, T> {
   payload: R;
   error: false;
+  isSuccess: true;
+  isFailure: false;
 }
 
 export interface IBaseObjErrorResponse<R, T extends string> extends IBaseObjResponse<R, T> {
   payload: null;
   error: true;
+  isFailure: true;
+  isSuccess: false;
 }
 
-export type TUseResponse<R = any, T extends string = string> = IBaseObjSuccessResponse<R, T> | IBaseObjErrorResponse<R, T>;
+export type TUseResponse<R = any, T extends string = string> =
+  | IBaseObjSuccessResponse<R, T>
+  | IBaseObjErrorResponse<R, T>;
