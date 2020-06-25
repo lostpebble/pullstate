@@ -37,12 +37,12 @@ function makeSubscriptionFunction<S, T>(
 ): TRunSubscriptionFunction {
   let lastWatchState: T = watch(store.getRawState());
 
-  return (uid?: string) => {
+  return () => {
     const currentState = store.getRawState();
     const nextWatchState = watch(currentState);
 
     if (!isEqual(nextWatchState, lastWatchState)) {
-      listener(nextWatchState, currentState, lastWatchState, uid);
+      listener(nextWatchState, currentState, lastWatchState);
       lastWatchState = nextWatchState;
     }
   };
@@ -57,8 +57,6 @@ function makeReactionFunctionCreator<S, T>(
 
     return (forceRun: boolean = false) => {
       const currentState = store.getRawState();
-
-      console.log(currentState);
 
       const nextWatchState = watch(currentState);
 
@@ -87,9 +85,7 @@ function makeReactionFunctionCreator<S, T>(
             store._updateStateWithoutReaction(nextState);
           } else {
             store._updateStateWithoutReaction(
-              produce(currentState as any, (s: S) =>
-                reaction(nextWatchState, s, currentState, lastWatchState)
-              ) as any
+              produce(currentState as any, (s: S) => reaction(nextWatchState, s, currentState, lastWatchState)) as any
             );
           }
           lastWatchState = nextWatchState;

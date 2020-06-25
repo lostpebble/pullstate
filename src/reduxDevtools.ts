@@ -1,16 +1,20 @@
 import { IPullstateAllStores } from "./PullstateCore";
 
-export function registerInDevtools(stores: IPullstateAllStores) {
+interface IORegisterInDevtoolsOptions {
+  namespace?: string;
+}
+
+export function registerInDevtools(stores: IPullstateAllStores, { namespace = "" }: IORegisterInDevtoolsOptions = {}) {
   if (typeof document !== "undefined") {
     for (const key of Object.keys(stores)) {
       const store = stores[key];
 
       const devToolsExtension = (window as any).__REDUX_DEVTOOLS_EXTENSION__;
       if (devToolsExtension) {
-        const devTools = devToolsExtension.connect({ name: key });
+        const devTools = devToolsExtension.connect({ name: `${namespace}${key}` });
         devTools.init(store.getRawState());
-        let ignoreNext = true;
-        store.subscribe(
+        let ignoreNext = false;
+        /*store.subscribe(
           (state) => {
             if (ignoreNext) {
               ignoreNext = false;
@@ -19,6 +23,16 @@ export function registerInDevtools(stores: IPullstateAllStores) {
             devTools.send("Change", state);
           },
           () => {}
+        );*/
+        store.subscribe(
+          (s) => s,
+          (watched) => {
+            if (ignoreNext) {
+              ignoreNext = false;
+              return;
+            }
+            devTools.send("Change", watched);
+          }
         );
 
         devTools.subscribe((message: { type: string; state: any }) => {
