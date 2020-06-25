@@ -1,3 +1,7 @@
+## 1.15.0
+
+Added integration with Redux Devtools. Make use of `registerInDevtools(Stores)` to use it. Argument is an object of `{ [storeName: string]: Store }` - which will register your stores instanced according to the name provided.
+
 ### 1.13.2
 
 More fixes for run() when using `respectCache: true`. Prevents the cacheBreakHook from clearing the current async state, even if the action hasn't finished yet.
@@ -53,7 +57,7 @@ const userAction = LoadUserAction.use({ id: userId });
 
 return (
   <div>
-    {userAction.renderPayload(user => (
+    {userAction.renderPayload((user) => (
       <span>User Name: {user.name}</span>
     ))}
   </div>
@@ -263,7 +267,7 @@ const loadEntity = PullstateCore.createAsyncAction<{ id: string }>(
     const resp = await endpoints.getEntity({ id });
 
     if (resp.positive) {
-      EntityStore.update(s => {
+      EntityStore.update((s) => {
         s.viewingEntity = resp.payload;
       });
       return successResult();
@@ -294,7 +298,7 @@ It has the same form as the regular Async Action function, injecting the argumen
 
 ```typescript jsx
 UIStore.createReaction(
-  s => s.valueToListenForChanges,
+  (s) => s.valueToListenForChanges,
   (draft, original, watched) => {
     // do something here when s.valueToListenForChanges changes
     // alter draft as usual - like regular update()

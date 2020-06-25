@@ -33,16 +33,16 @@ type TReactionCreator<S> = (store: Store<S>) => TRunReactionFunction;
 function makeSubscriptionFunction<S, T>(
   store: Store<S>,
   watch: (state: S) => T,
-  listener: (watched: T, allState: S, previousWatched: T) => void
+  listener: (watched: T, allState: S, previousWatched: T, uid?: string) => void
 ): TRunSubscriptionFunction {
   let lastWatchState: T = watch(store.getRawState());
 
-  return () => {
+  return (uid?: string) => {
     const currentState = store.getRawState();
     const nextWatchState = watch(currentState);
 
     if (!isEqual(nextWatchState, lastWatchState)) {
-      listener(nextWatchState, currentState, lastWatchState);
+      listener(nextWatchState, currentState, lastWatchState, uid);
       lastWatchState = nextWatchState;
     }
   };
@@ -57,6 +57,9 @@ function makeReactionFunctionCreator<S, T>(
 
     return (forceRun: boolean = false) => {
       const currentState = store.getRawState();
+
+      console.log(currentState);
+
       const nextWatchState = watch(currentState);
 
       if (forceRun || !isEqual(nextWatchState, lastWatchState)) {
@@ -84,7 +87,9 @@ function makeReactionFunctionCreator<S, T>(
             store._updateStateWithoutReaction(nextState);
           } else {
             store._updateStateWithoutReaction(
-              produce(currentState as any, (s: S) => reaction(nextWatchState, s, currentState, lastWatchState)) as any
+              produce(currentState as any, (s: S) =>
+                reaction(nextWatchState, s, currentState, lastWatchState)
+              ) as any
             );
           }
           lastWatchState = nextWatchState;
@@ -111,6 +116,10 @@ export type TStoreActionUpdate<S> = (
 ) => void;
 
 export type TStoreAction<S> = (update: TStoreActionUpdate<S>) => void;
+
+/*export interface IStoreOptions {
+  name?: string;
+}*/
 
 // S = State
 export class Store<S = any> {
@@ -139,6 +148,7 @@ export class Store<S = any> {
   constructor(initialState: S) {
     this.currentState = initialState;
     this.initialState = initialState;
+    // this._storeName = name;
   }
 
   _setInternalOptions({ ssr, reactionCreators = [] }: IStoreInternalOptions<S>) {

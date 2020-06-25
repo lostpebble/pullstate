@@ -16,6 +16,7 @@ import { createAsyncAction, createAsyncActionDirect, errorResult, successResult 
 import { EAsyncActionInjectType, InjectAsyncAction, TInjectAsyncActionProps } from "./InjectAsyncAction";
 import { InjectStoreStateOpt } from "./InjectStoreStateOpt";
 import { TUseResponse } from "./async-types";
+import { registerInDevtools } from "./reduxDevtools";
 
 export * from "./async-types";
 
@@ -47,4 +48,5 @@ export {
   TMultiStoreAction,
   PullstateContext,
   TUseResponse,
+  registerInDevtools,
 };
