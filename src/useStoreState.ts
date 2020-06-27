@@ -14,6 +14,8 @@ export interface IUpdateRef {
   setInitial: boolean;
 }
 
+const onServer = typeof window === "undefined";
+
 function useStoreState<S = any>(store: Store<S>): S;
 function useStoreState<S = any, SS = any>(
   store: Store<S>,
@@ -47,15 +49,18 @@ function useStoreState(store: Store, getSubState?: (state: any) => any, deps?: R
         // final check again before actually running state update (might prevent no-op errors with React)
         if (updateRef.current.shouldUpdate) {
           updateRef.current.currentSubState = nextSubState;
-          setUpdateTrigger(val => val + 1);
+          setUpdateTrigger((val) => val + 1);
         }
       }
     };
+
+    if (!onServer) {
+      store._addUpdateListener(updateRef.current.onStoreUpdate!);
+    }
   }
 
   useEffect(() => {
     updateRef.current.shouldUpdate = true;
-    store._addUpdateListener(updateRef.current.onStoreUpdate!);
 
     return () => {
       updateRef.current.shouldUpdate = false;
