@@ -25,7 +25,7 @@ export interface IStoreInternalOptions<S> {
 
 export type TUpdateFunction<S> = (draft: Draft<S>, original: S) => void;
 // type TPathReactionFunction<S> = (paths: TAllPathsParameter<S>, draft: S, original: S) => void;
-type TReactionFunction<S, T> = (watched: T, draft: S, original: S, previousWatched: T) => void;
+type TReactionFunction<S, T> = (watched: T, draft: Draft<S>, original: S, previousWatched: T) => void;
 type TRunReactionFunction = (forceRun?: boolean) => string[];
 type TRunSubscriptionFunction = () => void;
 type TReactionCreator<S> = (store: Store<S>) => TRunReactionFunction;
@@ -63,7 +63,7 @@ function makeReactionFunctionCreator<S, T>(
       if (forceRun || !isEqual(nextWatchState, lastWatchState)) {
         if (store._optListenerCount > 0) {
           const [nextState, patches, inversePatches] = produceWithPatches(currentState as any, (s: S) =>
-            reaction(nextWatchState, s, currentState, lastWatchState)
+            reaction(nextWatchState, s as Draft<S>, currentState, lastWatchState)
           ) as any;
 
           store._updateStateWithoutReaction(nextState);
@@ -76,7 +76,7 @@ function makeReactionFunctionCreator<S, T>(
         } else {
           if (store._patchListeners.length > 0) {
             const [nextState, patches, inversePatches] = produceWithPatches(currentState as any, (s: S) =>
-              reaction(nextWatchState, s, currentState, lastWatchState)
+              reaction(nextWatchState, s as Draft<S>, currentState, lastWatchState)
             ) as any;
 
             if (patches.length > 0) {
@@ -85,7 +85,9 @@ function makeReactionFunctionCreator<S, T>(
             store._updateStateWithoutReaction(nextState);
           } else {
             store._updateStateWithoutReaction(
-              produce(currentState as any, (s: S) => reaction(nextWatchState, s, currentState, lastWatchState)) as any
+              produce(currentState as any, (s: S) =>
+                reaction(nextWatchState, s as Draft<S>, currentState, lastWatchState)
+              ) as any
             );
           }
           lastWatchState = nextWatchState;
