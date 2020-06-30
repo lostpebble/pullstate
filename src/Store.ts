@@ -1,7 +1,7 @@
 // @ts-ignore
-import { applyPatches, enablePatches, Patch, PatchListener, produce, produceWithPatches } from "immer";
+import { applyPatches, Draft, enablePatches, Patch, PatchListener, produce, produceWithPatches } from "immer";
 import { useStoreState } from "./useStoreState";
-import { DeepKeyOfArray, TAllPathsParameter } from "./useStoreStateOpt-types";
+import { DeepKeyOfArray } from "./useStoreStateOpt-types";
 
 import isEqual from "fast-deep-equal/es6";
 
@@ -23,8 +23,8 @@ export interface IStoreInternalOptions<S> {
   reactionCreators?: TReactionCreator<S>[];
 }
 
-export type TUpdateFunction<S> = (draft: S, original: S) => void;
-type TPathReactionFunction<S> = (paths: TAllPathsParameter<S>, draft: S, original: S) => void;
+export type TUpdateFunction<S> = (draft: Draft<S>, original: S) => void;
+// type TPathReactionFunction<S> = (paths: TAllPathsParameter<S>, draft: S, original: S) => void;
 type TReactionFunction<S, T> = (watched: T, draft: S, original: S, previousWatched: T) => void;
 type TRunReactionFunction = (forceRun?: boolean) => string[];
 type TRunSubscriptionFunction = () => void;
@@ -405,10 +405,10 @@ function runUpdates<S>(
   func: boolean
 ): [S, Patch[], Patch[]] {
   return func
-    ? (produceWithPatches(currentState, (s: S) => (updater as TUpdateFunction<S>)(s, currentState)) as any)
+    ? (produceWithPatches(currentState, (s: S) => (updater as TUpdateFunction<S>)(s as Draft<S>, currentState)) as any)
     : ((updater as TUpdateFunction<S>[]).reduce(
         ([nextState, patches, inversePatches], currentValue) => {
-          const resp = produceWithPatches(nextState as any, (s: S) => currentValue(s, nextState)) as any;
+          const resp = produceWithPatches(nextState as any, (s: S) => currentValue(s as Draft<S>, nextState)) as any;
           patches.push(...resp[1]);
           inversePatches.push(...resp[2]);
           return [resp[0], patches, inversePatches];
@@ -455,9 +455,9 @@ export function update<S = any>(
     } else {
       nextState = produce(currentState as any, (s: S) =>
         func
-          ? (updater as TUpdateFunction<S>)(s, currentState)
+          ? (updater as TUpdateFunction<S>)(s as Draft<S>, currentState)
           : (updater as TUpdateFunction<S>[]).reduce((previousValue, currentUpdater) => {
-              return produce(previousValue as any, (s: S) => currentUpdater(s, previousValue)) as any;
+              return produce(previousValue as any, (s: S) => currentUpdater(s as Draft<S>, previousValue)) as any;
             }, currentState)
       ) as any;
     }
