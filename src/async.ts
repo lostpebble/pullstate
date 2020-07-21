@@ -33,7 +33,7 @@ import {
   TUseResponse,
 } from "./async-types";
 // @ts-ignore
-import produce from "immer";
+import produce, { Draft } from "immer";
 
 import isEqual from "fast-deep-equal/es6";
 // const isEqual = require("fast-deep-equal/es6");
@@ -159,6 +159,19 @@ If this error occurred on the client:
 } catch {
   storeErrorProxy = {};
 }
+
+const startedButUnfinishedResult: TPullstateAsyncWatchResponse = [
+  true,
+  false,
+  {
+    message: "",
+    tags: [EAsyncEndTags.UNFINISHED],
+    error: true,
+    payload: null,
+  },
+  false,
+  -1,
+];
 
 export function createAsyncActionDirect<
   A extends any = any,
@@ -385,15 +398,12 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
         if (!onServer) {
           cache.actions[key]();
+          cache.results[key] = startedButUnfinishedResult as TPullstateAsyncWatchResponse<R, T>;
+        } else {
+          return startedButUnfinishedResult as TPullstateAsyncWatchResponse<R, T>;
         }
       } else {
-        if (holdingResult) {
-          const response = [...holdingResult] as TPullstateAsyncWatchResponse<R, T>;
-          response[3] = true;
-          return response;
-        }
-
-        return [
+        const resp: TPullstateAsyncWatchResponse<R, T> = [
           false,
           false,
           {
@@ -404,7 +414,32 @@ further looping. Fix in your cacheBreakHook() is needed.`);
           },
           false,
           -1,
-        ] as TPullstateAsyncWatchResponse<R, T>;
+        ];
+
+        if (!onServer) {
+          cache.results[key] = resp;
+        }
+
+        if (holdingResult) {
+          const response = [...holdingResult] as TPullstateAsyncWatchResponse<R, T>;
+          response[3] = true;
+          return response;
+        }
+
+        return resp;
+        // return cache.results[key] as TPullstateAsyncWatchResponse<R, T>;
+        /*return [
+          false,
+          false,
+          {
+            message: "",
+            tags: [EAsyncEndTags.UNFINISHED],
+            error: true,
+            payload: null,
+          },
+          false,
+          -1,
+        ] as TPullstateAsyncWatchResponse<R, T>;*/
       }
     }
 
@@ -414,18 +449,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       return response;
     }
 
-    return [
-      true,
-      false,
-      {
-        message: "",
-        tags: [EAsyncEndTags.UNFINISHED],
-        error: true,
-        payload: null,
-      },
-      false,
-      -1,
-    ];
+    return startedButUnfinishedResult as TPullstateAsyncWatchResponse<R, T>;
   }
 
   const read: TAsyncActionRead<A, R> = (
@@ -651,6 +675,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       }
 
       prevKeyRef.current = key;
+
       responseRef.current = checkKeyAndReturnResponse(
         key,
         cache,
@@ -667,7 +692,11 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       );
     }
 
-    // console.log(`[${key}][${watchId}] Returning from watch() [update no. ${_}] with response: ${JSON.stringify(responseRef.current)}`);
+    /*console.log(
+      `[${key}][${watchId}] Returning from watch() [update no. ${_}] with response: ${JSON.stringify(
+        responseRef.current
+      )}`
+    );*/
     return responseRef.current!;
   };
 
@@ -712,6 +741,8 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         true,
         false
       );
+
+      // console.log(`Async RUN: Found cached`, cached);
 
       if (cached) {
         // If cached result is unfinished, wait for completion
@@ -842,7 +873,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       const currentCached: R = cache.results[key][2].payload;
 
       const newResult = {
-        payload: (produce(currentCached, (s: R) => updater(s, currentCached)) as unknown) as R,
+        payload: (produce(currentCached, (s: R) => updater(s as Draft<R>, currentCached)) as unknown) as R,
         error: false,
         message: cache.results[key][2].message,
         tags: cache.results[key][2].tags,
