@@ -1,6 +1,6 @@
 {
   "name": "pullstate",
-  "version": "1.15.4",
+  "version": "1.16.0",
   "description": "Simple state stores using immer and React hooks",
   "main": "dist/index.js",
   "module": "dist/index.es.js",

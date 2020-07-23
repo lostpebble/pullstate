@@ -1,3 +1,7 @@
+# See release tags for new changelog updates
+
+---
+
 ## 1.15.0
 
 Added integration with Redux Devtools. Make use of `registerInDevtools(Stores)` to use it. Argument is an object of `{ [storeName: string]: Store }` - which will register your stores instanced according to the name provided.
