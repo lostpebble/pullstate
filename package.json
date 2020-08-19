@@ -5,7 +5,7 @@
   "main": "dist/index.js",
   "module": "dist/index.es.js",
   "esnext": "dist/index.es.js",
-  "main:umd": "dist/index.umd.js",
+  "main:umd": "dist/pullstate.umd.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist"
