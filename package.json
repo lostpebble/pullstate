@@ -1,10 +1,11 @@
 {
   "name": "pullstate",
-  "version": "1.16.0",
+  "version": "1.16.1",
   "description": "Simple state stores using immer and React hooks",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
   "esnext": "dist/index.es.js",
+  "main:umd": "dist/index.umd.js",
   "types": "dist/index.d.ts",
   "files": [
     "dist"
@@ -59,6 +60,7 @@
     "react-test-renderer": "^16.8.3",
     "@rollup/plugin-commonjs": "^11.0.2",
     "@rollup/plugin-typescript": "^4.1.2",
+    "@rollup/plugin-node-resolve": "^9.0.0",
     "rollup-plugin-typescript2": "^0.27.1",
     "rollup": "^1.31.1",
     "terser": "^3.16.1",

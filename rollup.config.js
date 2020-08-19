@@ -1,8 +1,10 @@
 import typescript from "rollup-plugin-typescript2";
+import { nodeResolve } from "@rollup/plugin-node-resolve";
+import commonjs from "@rollup/plugin-commonjs";
 import pkg from "./package.json";
 // import typescript from "@rollup/plugin-typescript";
 
-export default {
+export default [{
   input: "./src/index.ts",
   plugins: [
     typescript({
@@ -24,4 +26,25 @@ export default {
     },
   ],
   external: [...Object.keys(pkg.dependencies || {}), ...Object.keys(pkg.peerDependencies || {})],
-};
+}, {
+  input: "./src/index.ts",
+  plugins: [
+    typescript({
+      typescript: require("typescript"),
+    }),
+    nodeResolve(),
+    commonjs(),
+  ],
+  output: [
+    {
+      file: pkg["main:umd"],
+      format: "umd",
+      name: "pullstate",
+      globals: {
+        "react": "React",
+        "immer": "immer",
+      },
+    },
+  ],
+  external: [...Object.keys(pkg.dependencies || {}), ...Object.keys(pkg.peerDependencies || {})].filter(dep => dep !== "fast-deep-equal"),
+}];
