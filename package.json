@@ -1,6 +1,6 @@
 {
   "name": "pullstate",
-  "version": "1.16.1",
+  "version": "1.16.2",
   "description": "Simple state stores using immer and React hooks",
   "main": "dist/index.js",
   "module": "dist/index.es.js",
@@ -69,7 +69,9 @@
     "ts-node": "^8.2.0",
     "typescript": "3.7.5",
     "webpack": "^4.36.1",
-    "webpack-cli": "^3.3.6"
+    "webpack-cli": "^3.3.6",
+    "react": "^16.13.1",
+    "immer": "^7.0.1"
   },
   "peerDependencies": {
     "immer": "^7.0.1",

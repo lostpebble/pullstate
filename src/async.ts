@@ -1001,7 +1001,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       dormant = false,
       key,
       onSuccess,
-    }: IAsyncActionUseOptions = {}
+    }: IAsyncActionUseOptions<R> = {}
   ): TUseResponse<R, T> => {
     // Set default options if initiate is true (beckon) or false (watch)
     if (postActionEnabled == null) {
@@ -1021,7 +1021,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     if (onSuccess) {
       useEffect(() => {
         if (isSuccess && !dormant) {
-          onSuccess();
+          onSuccess(result.payload!);
         }
       }, [isSuccess]);
     }

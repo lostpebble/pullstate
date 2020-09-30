@@ -4,6 +4,7 @@ import { useStoreState } from "./useStoreState";
 import { DeepKeyOfArray } from "./useStoreStateOpt-types";
 
 import isEqual from "fast-deep-equal/es6";
+import { useLocalStore } from "./useLocalStore";
 
 enablePatches();
 
@@ -33,7 +34,7 @@ type TReactionCreator<S> = (store: Store<S>) => TRunReactionFunction;
 function makeSubscriptionFunction<S, T>(
   store: Store<S>,
   watch: (state: S) => T,
-  listener: (watched: T, allState: S, previousWatched: T, uid?: string) => void
+  listener: (watched: T, allState: S, previousWatched: T, uid?: string) => void,
 ): TRunSubscriptionFunction {
   let lastWatchState: T = watch(store.getRawState());
 
@@ -50,7 +51,7 @@ function makeSubscriptionFunction<S, T>(
 
 function makeReactionFunctionCreator<S, T>(
   watch: (state: S) => T,
-  reaction: TReactionFunction<S, T>
+  reaction: TReactionFunction<S, T>,
 ): TReactionCreator<S> {
   return (store) => {
     let lastWatchState: T = watch(store.getRawState());
@@ -63,7 +64,7 @@ function makeReactionFunctionCreator<S, T>(
       if (forceRun || !isEqual(nextWatchState, lastWatchState)) {
         if (store._optListenerCount > 0) {
           const [nextState, patches, inversePatches] = produceWithPatches(currentState as any, (s: S) =>
-            reaction(nextWatchState, s as Draft<S>, currentState, lastWatchState)
+            reaction(nextWatchState, s as Draft<S>, currentState, lastWatchState),
           ) as any;
 
           store._updateStateWithoutReaction(nextState);
@@ -76,7 +77,7 @@ function makeReactionFunctionCreator<S, T>(
         } else {
           if (store._patchListeners.length > 0) {
             const [nextState, patches, inversePatches] = produceWithPatches(currentState as any, (s: S) =>
-              reaction(nextWatchState, s as Draft<S>, currentState, lastWatchState)
+              reaction(nextWatchState, s as Draft<S>, currentState, lastWatchState),
             ) as any;
 
             if (patches.length > 0) {
@@ -86,8 +87,8 @@ function makeReactionFunctionCreator<S, T>(
           } else {
             store._updateStateWithoutReaction(
               produce(currentState as any, (s: S) =>
-                reaction(nextWatchState, s as Draft<S>, currentState, lastWatchState)
-              ) as any
+                reaction(nextWatchState, s as Draft<S>, currentState, lastWatchState),
+              ) as any,
             );
           }
           lastWatchState = nextWatchState;
@@ -110,7 +111,7 @@ const optPathDivider = "~._.~";
 
 export type TStoreActionUpdate<S> = (
   updater: TUpdateFunction<S> | TUpdateFunction<S>[],
-  patchesCallback?: (patches: Patch[], inversePatches: Patch[]) => void
+  patchesCallback?: (patches: Patch[], inversePatches: Patch[]) => void,
 ) => void;
 
 export type TStoreAction<S> = (update: TStoreActionUpdate<S>) => void;
@@ -236,7 +237,7 @@ export class Store<S = any> {
 
     for (const keyedPath of listenerPathsKeyed) {
       this.optimizedListenerPropertyMap[keyedPath] = this.optimizedListenerPropertyMap[keyedPath].filter(
-        (ord) => ord !== ordKey
+        (ord) => ord !== ordKey,
       );
     }
 
@@ -265,7 +266,7 @@ export class Store<S = any> {
 
     return () => {
       console.warn(
-        `Pullstate: Subscriptions made on the server side are not registered - so therefor this call to unsubscribe does nothing.`
+        `Pullstate: Subscriptions made on the server side are not registered - so therefor this call to unsubscribe does nothing.`,
       );
     };
   }
@@ -273,7 +274,7 @@ export class Store<S = any> {
   createReaction<T>(
     watch: (state: S) => T,
     reaction: TReactionFunction<S, T>,
-    { runNow = false, runNowWithSideEffects = false }: ICreateReactionOptions = {}
+    { runNow = false, runNowWithSideEffects = false }: ICreateReactionOptions = {},
   ): () => void {
     const creator = makeReactionFunctionCreator(watch, reaction);
     this.reactionCreators.push(creator);
@@ -309,6 +310,14 @@ export class Store<S = any> {
     return useStoreState(this, getSubState!, deps);
   }
 
+  useLocalCopyInitial(deps?: ReadonlyArray<any>): Store<S> {
+    return useLocalStore(() => this.initialState, deps);
+  }
+
+  useLocalCopySnapshot(deps?: ReadonlyArray<any>): Store<S> {
+    return useLocalStore(this.currentState, deps);
+  }
+
   /*action<A extends Array<any>>(
     action: (...args: A) => TStoreAction<S>
   ): (...args: A) => TStoreAction<S> {
@@ -322,7 +331,7 @@ export class Store<S = any> {
 
   batch(
     updater: TUpdateFunction<S> | TUpdateFunction<S>[],
-    patchesCallback?: (patches: Patch[], inversePatches: Patch[]) => void
+    patchesCallback?: (patches: Patch[], inversePatches: Patch[]) => void,
   ): void {
     if (this.batchState === undefined) {
       this.batchState = this.currentState;
@@ -354,7 +363,7 @@ export class Store<S = any> {
 
   update(
     updater: TUpdateFunction<S> | TUpdateFunction<S>[],
-    patchesCallback?: (patches: Patch[], inversePatches: Patch[]) => void
+    patchesCallback?: (patches: Patch[], inversePatches: Patch[]) => void,
   ) {
     update(this, updater, patchesCallback);
   }
@@ -404,25 +413,25 @@ function getChangedPathsFromPatches(changePatches: Patch[], prev: IChangedPaths 
 function runUpdates<S>(
   currentState: S,
   updater: TUpdateFunction<S> | TUpdateFunction<S>[],
-  func: boolean
+  func: boolean,
 ): [S, Patch[], Patch[]] {
   return func
     ? (produceWithPatches(currentState, (s: S) => (updater as TUpdateFunction<S>)(s as Draft<S>, currentState)) as any)
     : ((updater as TUpdateFunction<S>[]).reduce(
-        ([nextState, patches, inversePatches], currentValue) => {
-          const resp = produceWithPatches(nextState as any, (s: S) => currentValue(s as Draft<S>, nextState)) as any;
-          patches.push(...resp[1]);
-          inversePatches.push(...resp[2]);
-          return [resp[0], patches, inversePatches];
-        },
-        [currentState, [], []] as [S, Patch[], Patch[]]
-      ) as [S, Patch[], Patch[]]);
+      ([nextState, patches, inversePatches], currentValue) => {
+        const resp = produceWithPatches(nextState as any, (s: S) => currentValue(s as Draft<S>, nextState)) as any;
+        patches.push(...resp[1]);
+        inversePatches.push(...resp[2]);
+        return [resp[0], patches, inversePatches];
+      },
+      [currentState, [], []] as [S, Patch[], Patch[]],
+    ) as [S, Patch[], Patch[]]);
 }
 
 export function update<S = any>(
   store: Store<S>,
   updater: TUpdateFunction<S> | TUpdateFunction<S>[],
-  patchesCallback?: (patches: Patch[], inversePatches: Patch[]) => void
+  patchesCallback?: (patches: Patch[], inversePatches: Patch[]) => void,
 ) {
   const currentState: S = store.getRawState();
   const func = typeof updater === "function";
@@ -459,8 +468,8 @@ export function update<S = any>(
         func
           ? (updater as TUpdateFunction<S>)(s as Draft<S>, currentState)
           : (updater as TUpdateFunction<S>[]).reduce((previousValue, currentUpdater) => {
-              return produce(previousValue as any, (s: S) => currentUpdater(s as Draft<S>, previousValue)) as any;
-            }, currentState)
+            return produce(previousValue as any, (s: S) => currentUpdater(s as Draft<S>, previousValue)) as any;
+          }, currentState),
       ) as any;
     }
 

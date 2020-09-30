@@ -17,12 +17,14 @@ import { EAsyncActionInjectType, InjectAsyncAction, TInjectAsyncActionProps } fr
 import { InjectStoreStateOpt } from "./InjectStoreStateOpt";
 import { TUseResponse } from "./async-types";
 import { registerInDevtools } from "./reduxDevtools";
+import { useLocalStore } from "./useLocalStore";
 
 export * from "./async-types";
 
 export {
   useStoreState,
   useStoreStateOpt,
+  useLocalStore,
   update,
   Store,
   InjectStoreState,
