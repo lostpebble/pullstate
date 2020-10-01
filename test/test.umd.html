@@ -1,0 +1,21 @@
+<!DOCTYPE html>
+<html>
+<head>
+	<title>Test Minified</title>
+	<script crossorigin src="https://unpkg.com/react@16/umd/react.development.js"></script>
+	<script crossorigin src="https://unpkg.com/immer@7.0.1/dist/immer.umd.production.min.js"></script>
+	<script src="../dist/pullstate.umd.min.js" type="text/javascript" charset="utf-8"></script>
+</head>
+<body>
+<h1>Hi</h1>
+<script type="text/javascript">
+	const TestStore = new pullstate.Store({
+		hi: "hello",
+	});
+
+	console.log(TestStore);
+
+	TestStore.subscribe(s => s.hi, (text) => console.log(text));
+</script>
+</body>
+</html>
