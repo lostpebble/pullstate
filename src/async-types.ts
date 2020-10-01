@@ -118,8 +118,8 @@ export interface IAsyncActionWatchOptions extends IAsyncActionBeckonOptions {
   initiate?: boolean;
 }
 
-export interface IAsyncActionUseOptions extends IAsyncActionWatchOptions {
-  onSuccess?: () => void;
+export interface IAsyncActionUseOptions<R> extends IAsyncActionWatchOptions {
+  onSuccess?: (result: R) => void;
 }
 
 export interface IAsyncActionRunOptions<S extends IPullstateAllStores = any> {
@@ -158,7 +158,7 @@ export interface IAsyncActionUpdateCachedOptions extends IAsyncActionSetCachedOp
 
 export type TAsyncActionUse<A, R, T extends string> = (
   args?: A,
-  options?: IAsyncActionUseOptions
+  options?: IAsyncActionUseOptions<R>
 ) => TUseResponse<R, T>;
 
 export type TAsyncActionBeckon<A, R, T extends string> = (
