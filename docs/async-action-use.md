@@ -93,7 +93,7 @@ const PicturesPage = () => {
 You can pass the following options to `read(args, options)`:
 
 ```ts
-{
+interface Options {
   postActionEnabled?: boolean;
   cacheBreakEnabled?: boolean;
 }
@@ -117,8 +117,8 @@ const result = await searchPicturesForTag.run({ tag }, options);
 
 The structure of the options:
 
-```jsx
-{
+```tsx
+interface Options {
   treatAsUpdate: boolean,       // default = false
   respectCache: boolean,        // default = false
   ignoreShortCircuit: boolean,  // default = false

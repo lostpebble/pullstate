@@ -8,6 +8,7 @@ import {
   IAsyncActionResultNegative,
   IAsyncActionResultPositive,
   IAsyncActionRunOptions,
+  IAsyncActionUseDeferOptions,
   IAsyncActionUseOptions,
   IAsyncActionWatchOptions,
   ICreateAsyncActionOptions,
@@ -26,10 +27,12 @@ import {
   TAsyncActionSetCachedPayload,
   TAsyncActionUpdateCached,
   TAsyncActionUse,
+  TAsyncActionUseDefer,
   TAsyncActionWatch,
   TPullstateAsyncAction,
   TPullstateAsyncWatchResponse,
   TRunWithPayload,
+  TUseDeferResponse,
   TUseResponse,
 } from "./async-types";
 // @ts-ignore
@@ -107,7 +110,7 @@ function actionOrdUpdate(cache: IPullstateAsyncCache, key: string): number {
 export function successResult<R, T extends string = string>(
   payload: R = (null as unknown) as R,
   tags: (EAsyncEndTags | T)[] = [],
-  message: string = ""
+  message: string = "",
 ): IAsyncActionResultPositive<R, T> {
   return {
     payload,
@@ -119,7 +122,7 @@ export function successResult<R, T extends string = string>(
 
 export function errorResult<R = any, T extends string = string>(
   tags: (EAsyncEndTags | T)[] = [],
-  message: string = ""
+  message: string = "",
 ): IAsyncActionResultNegative<T> {
   return {
     payload: null,
@@ -143,7 +146,7 @@ try {
   storeErrorProxy = new Proxy(
     {},
     {
-      get: function (obj, prop) {
+      get: function(obj, prop) {
         throw new Error(
           `Pullstate: Trying to access store (${String(prop)}) inside async actions without the correct usage or setup.
 If this error occurred on the server:
@@ -151,10 +154,10 @@ If this error occurred on the server:
 * If using read(), useWatch(), useBeckon() etc. - make sure you have properly set up your <PullstateProvider/>
 
 If this error occurred on the client:
-* Make sure you have created your "pullstateCore" object with all your stores, using createPullstateCore(), and are making use of instantiate() before rendering.`
+* Make sure you have created your "pullstateCore" object with all your stores, using createPullstateCore(), and are making use of instantiate() before rendering.`,
         );
       },
-    }
+    },
   );
 } catch {
   storeErrorProxy = {};
@@ -173,25 +176,21 @@ const startedButUnfinishedResult: TPullstateAsyncWatchResponse = [
   -1,
 ];
 
-export function createAsyncActionDirect<
-  A extends any = any,
+export function createAsyncActionDirect<A extends any = any,
   R extends any = any,
-  S extends IPullstateAllStores = IPullstateAllStores
->(
+  S extends IPullstateAllStores = IPullstateAllStores>(
   action: (args: A) => Promise<R>,
-  options: ICreateAsyncActionOptions<A, R, string, S> = {}
+  options: ICreateAsyncActionOptions<A, R, string, S> = {},
 ): IOCreateAsyncActionOutput<A, R> {
   return createAsyncAction<A, R, string, S>(async (args: A) => {
     return successResult(await action(args));
   }, options);
 }
 
-export function createAsyncAction<
-  A = any,
+export function createAsyncAction<A = any,
   R = any,
   T extends string = string,
-  S extends IPullstateAllStores = IPullstateAllStores
->(
+  S extends IPullstateAllStores = IPullstateAllStores>(
   action: TPullstateAsyncAction<A, R, T, S>,
   {
     forceContext = false,
@@ -199,7 +198,7 @@ export function createAsyncAction<
     cacheBreakHook,
     postActionHook,
     subsetKey,
-  }: ICreateAsyncActionOptions<A, R, T, S> = {}
+  }: ICreateAsyncActionOptions<A, R, T, S> = {},
 ): IOCreateAsyncActionOutput<A, R, T> {
   const ordinal: number = asyncCreationOrdinal++;
   const onServer: boolean = typeof window === "undefined";
@@ -222,6 +221,7 @@ export function createAsyncAction<
       [watchId: string]: boolean;
     };
   } = {};
+
   // console.log(`Creating async action with ordinal: ${ordinal} - action name: ${action.name}`);
 
   function runPostActionHook(result: TAsyncActionResult<R, T>, args: A, stores: S, context: EPostActionContext): void {
@@ -238,7 +238,7 @@ export function createAsyncAction<
     context: EPostActionContext,
     postActionEnabled: boolean,
     cacheBreakEnabled: boolean,
-    fromListener: boolean
+    fromListener: boolean,
   ): TPullstateAsyncWatchResponse<R, T> | undefined {
     if (cache.results.hasOwnProperty(key)) {
       const cacheBreakLoop = cacheBreakWatcher.hasOwnProperty(key) && cacheBreakWatcher[key] > 2;
@@ -295,7 +295,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     stores: S,
     currentActionOrd: number,
     postActionEnabled: boolean,
-    context: EPostActionContext
+    context: EPostActionContext,
   ): () => Promise<TAsyncActionResult<R, T>> {
     return () =>
       action(args, stores)
@@ -349,7 +349,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     fromListener = false,
     postActionEnabled = true,
     cacheBreakEnabled = true,
-    holdingResult: TPullstateAsyncWatchResponse<R, T> | undefined = undefined
+    holdingResult: TPullstateAsyncWatchResponse<R, T> | undefined = undefined,
   ): TPullstateAsyncWatchResponse<R, T> {
     const cached = getCachedResult(
       key,
@@ -359,7 +359,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       initiate ? EPostActionContext.BECKON_HIT_CACHE : EPostActionContext.WATCH_HIT_CACHE,
       postActionEnabled,
       cacheBreakEnabled,
-      fromListener
+      fromListener,
     );
 
     if (cached) {
@@ -392,7 +392,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
             stores,
             currentActionOrd,
             postActionEnabled,
-            EPostActionContext.BECKON_RUN
+            EPostActionContext.BECKON_RUN,
           );
         }
 
@@ -454,7 +454,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
   const read: TAsyncActionRead<A, R> = (
     args = {} as A,
-    { cacheBreakEnabled = true, postActionEnabled = true, key: customKey }: IAsyncActionReadOptions = {}
+    { cacheBreakEnabled = true, postActionEnabled = true, key: customKey }: IAsyncActionReadOptions = {},
   ): R => {
     const key = _createKey(args, customKey);
 
@@ -474,7 +474,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       EPostActionContext.READ_HIT_CACHE,
       postActionEnabled,
       cacheBreakEnabled,
-      false
+      false,
     );
 
     if (cached) {
@@ -508,12 +508,12 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         stores,
         currentActionOrd,
         postActionEnabled,
-        EPostActionContext.READ_RUN
+        EPostActionContext.READ_RUN,
       );
 
       if (onServer) {
         throw new Error(
-          `Pullstate Async Action: action.read() : Resolve all async state for Suspense actions before Server-side render ( make use of instance.runAsyncAction() )`
+          `Pullstate Async Action: action.read() : Resolve all async state for Suspense actions before Server-side render ( make use of instance.runAsyncAction() )`,
         );
       }
 
@@ -522,7 +522,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
     if (onServer) {
       throw new Error(
-        `Pullstate Async Action: action.read() : Resolve all async state for Suspense actions before Server-side render ( make use of instance.runAsyncAction() )`
+        `Pullstate Async Action: action.read() : Resolve all async state for Suspense actions before Server-side render ( make use of instance.runAsyncAction() )`,
       );
     }
 
@@ -546,7 +546,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       holdPrevious = false,
       dormant = false,
       key: customKey,
-    }: IAsyncActionWatchOptions = {}
+    }: IAsyncActionWatchOptions = {},
   ) => {
     // Where we store the current response that will be returned from our hook
     const responseRef = useRef<TPullstateAsyncWatchResponse<R, T>>();
@@ -602,7 +602,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
             stores,
             true,
             postActionEnabled,
-            cacheBreakEnabled
+            cacheBreakEnabled,
           );
 
           setWatchUpdate((prev) => {
@@ -637,7 +637,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
             // console.log(`[${key}][${watchId}] Removed listener (after: ${Object.keys(cache.listeners[key]).length})`);
           }
         },
-        [key]
+        [key],
       );
     }
 
@@ -655,17 +655,17 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         holdPrevious && responseRef.current && responseRef.current[1]
           ? responseRef.current
           : ([
-              false,
-              false,
-              {
-                message: "",
-                tags: [EAsyncEndTags.DORMANT],
-                error: true,
-                payload: null,
-              },
-              false,
-              -1,
-            ] as TPullstateAsyncWatchResponse<R, T>);
+            false,
+            false,
+            {
+              message: "",
+              tags: [EAsyncEndTags.DORMANT],
+              error: true,
+              payload: null,
+            },
+            false,
+            -1,
+          ] as TPullstateAsyncWatchResponse<R, T>);
       prevKeyRef.current = ".";
     } else if (prevKeyRef.current !== key) {
       // console.log(`[${key}][${watchId}] KEYS MISMATCH old !== new [${prevKeyRef.current} !== ${key}]`);
@@ -688,7 +688,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         cacheBreakEnabled,
         // If we want to hold previous and the previous result was finished -
         // keep showing that until this new one resolves
-        holdPrevious && responseRef.current && responseRef.current[1] ? responseRef.current : undefined
+        holdPrevious && responseRef.current && responseRef.current[1] ? responseRef.current : undefined,
       );
     }
 
@@ -709,7 +709,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       cacheBreakEnabled = true,
       holdPrevious = false,
       dormant = false,
-    }: IAsyncActionBeckonOptions = {}
+    }: IAsyncActionBeckonOptions = {},
   ) => {
     const result = useWatch(args, { initiate: true, ssr, postActionEnabled, cacheBreakEnabled, holdPrevious, dormant });
     return [result[1], result[2], result[3]];
@@ -724,7 +724,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       key: customKey,
       _asyncCache = clientAsyncCache,
       _stores = clientStores.loaded ? clientStores.stores : (storeErrorProxy as S),
-    }: IAsyncActionRunOptions = {}
+    }: IAsyncActionRunOptions = {},
   ): Promise<TAsyncActionResult<R, T>> => {
     const key = _createKey(args, customKey);
     // console.log(`[${key}] Running action`);
@@ -739,7 +739,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         EPostActionContext.RUN_HIT_CACHE,
         true,
         true,
-        false
+        false,
       );
 
       // console.log(`Async RUN: Found cached`, cached);
@@ -815,7 +815,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       _stores,
       currentActionOrd,
       true,
-      EPostActionContext.DIRECT_RUN
+      EPostActionContext.DIRECT_RUN,
     );
 
     notifyListeners(key);
@@ -863,7 +863,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
   const updateCached: TAsyncActionUpdateCached<A, R> = (args, updater, options) => {
     const { notify = true, resetTimeCached = true, runPostActionHook: postAction = false, key: customKey } =
-      options || {};
+    options || {};
 
     const key = _createKey(args, customKey);
 
@@ -884,7 +884,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
           newResult,
           args,
           clientStores.loaded ? (clientStores.stores as S) : (storeErrorProxy as S),
-          EPostActionContext.CACHE_UPDATE
+          EPostActionContext.CACHE_UPDATE,
         );
       }
 
@@ -915,8 +915,8 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         const stores = onServer
           ? (useContext(PullstateContext)!.stores as S)
           : clientStores.loaded
-          ? (clientStores.stores as S)
-          : (storeErrorProxy as S);
+            ? (clientStores.stores as S)
+            : (storeErrorProxy as S);
 
         if (
           cacheBreakHook({
@@ -962,7 +962,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
   const delayedRun: TAsyncActionDelayedRun<A> = (
     args = {} as A,
-    { clearOldRun = true, delay, immediateIfCached = true, ...otherRunOptions }
+    { clearOldRun = true, delay, immediateIfCached = true, ...otherRunOptions },
   ) => {
     if (clearOldRun) {
       clearTimeout(delayedRunActionTimeout);
@@ -973,7 +973,8 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
       if (finished && !cacheBreakable) {
         run(args, otherRunOptions);
-        return () => {};
+        return () => {
+        };
       }
     }
 
@@ -1001,7 +1002,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       dormant = false,
       key,
       onSuccess,
-    }: IAsyncActionUseOptions<R> = {}
+    }: IAsyncActionUseOptions<R> = {},
   ): TUseResponse<R, T> => {
     // Set default options if initiate is true (beckon) or false (watch)
     if (postActionEnabled == null) {
@@ -1052,8 +1053,25 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     } as TUseResponse<R, T>;
   };
 
+  const useDefer: TAsyncActionUseDefer<A, R, T> = (
+    inputs: IAsyncActionUseDeferOptions<R>): TUseDeferResponse<A, R, T> => {
+    const initialResponse = use({} as any, {
+      ...inputs,
+      initiate: false,
+    });
+
+    return {
+      ...initialResponse,
+      clear: () => {
+        clearCache({} as any, inputs.key);
+      },
+      execute: (args, runOptions) => run(args, { ...runOptions, key: inputs.key }),
+    };
+  };
+
   return {
     use,
+    useDefer,
     read,
     useBeckon,
     useWatch,
