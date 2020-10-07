@@ -123,9 +123,10 @@ export interface IAsyncActionUseOptions<R> extends IAsyncActionWatchOptions {
 }
 
 export interface IAsyncActionUseDeferOptions<R> extends Omit<IAsyncActionReadOptions, "key"> {
-  key: string;
+  key?: string;
   holdPrevious?: boolean;
   onSuccess?: (result: R) => void;
+  clearOnSuccess?: boolean;
 }
 
 export interface IAsyncActionRunOptions<S extends IPullstateAllStores = any> {
@@ -168,7 +169,7 @@ export type TAsyncActionUse<A, R, T extends string> = (
 ) => TUseResponse<R, T>;
 
 export type TAsyncActionUseDefer<A, R, T extends string> = (
-  options: IAsyncActionUseDeferOptions<R>,
+  options?: IAsyncActionUseDeferOptions<R>,
 ) => TUseDeferResponse<A, R, T>;
 
 export type TAsyncActionBeckon<A, R, T extends string> = (
@@ -270,7 +271,6 @@ export interface IBaseObjResponseUse<R, T extends string> {
 }
 
 export interface IBaseObjResponseUseDefer<A, R, T extends string> {
-  clear: () => void;
   execute: (args?: A, runOptions?: Omit<IAsyncActionRunOptions, "key">) => TPullstateAsyncRunResponse<R, T>;
 }
 
@@ -281,6 +281,10 @@ export interface IBaseObjResponse<R, T extends string> {
   isStarted: boolean;
   isSuccess: boolean;
   isFailure: boolean;
+  clearCached: () => void;
+  updateCached: (updater: TUpdateFunction<R>, options?: IAsyncActionUpdateCachedOptions) => void;
+  setCached: (result: TAsyncActionResult<R, T>, options?: IAsyncActionSetCachedOptions) => void;
+  setCachedPayload: (payload: R, options?: IAsyncActionSetCachedOptions) => void;
   endTags: (T | EAsyncEndTags)[];
   renderPayload: TRunWithPayload<R>;
   message: string;

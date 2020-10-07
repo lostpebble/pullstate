@@ -203,8 +203,8 @@ export function createAsyncAction<A = any,
   const ordinal: number = asyncCreationOrdinal++;
   const onServer: boolean = typeof window === "undefined";
 
-  function _createKey(args: A, customKey: string | undefined) {
-    if (customKey) {
+  function _createKey(args: A, customKey?: string) {
+    if (customKey != null) {
       return `${ordinal}-c-${customKey}`;
     }
 
@@ -873,7 +873,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       const currentCached: R = cache.results[key][2].payload;
 
       const newResult = {
-        payload: (produce(currentCached, (s: R) => updater(s as Draft<R>, currentCached)) as unknown) as R,
+        payload: produce(currentCached, (s: Draft<R>) => updater(s as Draft<R>, currentCached)),
         error: false,
         message: cache.results[key][2].message,
         tags: cache.results[key][2].tags,
@@ -992,7 +992,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
   };
 
   const use: TAsyncActionUse<A, R, T> = (
-    args?: A,
+    args: A = {} as A,
     {
       initiate = true,
       ssr = true,
@@ -1049,23 +1049,58 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       message: result.message,
       raw,
       execute: (runOptions) => run(args, runOptions),
-      clear: () => clearCache(args),
+      clearCached: () => clearCache(args),
+      setCached: (response, options) => {
+        setCached(args, response, options);
+      },
+      setCachedPayload: (payload, options) => {
+        setCachedPayload(args, payload, options);
+      },
+      updateCached: (updater, options) => {
+        updateCached(args, updater, options);
+      },
     } as TUseResponse<R, T>;
   };
 
   const useDefer: TAsyncActionUseDefer<A, R, T> = (
-    inputs: IAsyncActionUseDeferOptions<R>): TUseDeferResponse<A, R, T> => {
+    inputs: IAsyncActionUseDeferOptions<R> = {}): TUseDeferResponse<A, R, T> => {
+    const [key, setKey] = useState<string>(() => inputs.key ? inputs.key : _createKey({} as A));
+
     const initialResponse = use({} as any, {
       ...inputs,
+      key,
       initiate: false,
     });
 
     return {
       ...initialResponse,
-      clear: () => {
-        clearCache({} as any, inputs.key);
+      clearCached: () => {
+        clearCache({} as any, key);
       },
-      execute: (args, runOptions) => run(args, { ...runOptions, key: inputs.key }),
+      setCached: (response, options = {}) => {
+        options.key = key;
+        setCached({} as A, response, options);
+      },
+      setCachedPayload: (payload, options = {}) => {
+        options.key = key;
+        setCachedPayload({} as A, payload, options);
+      },
+      updateCached: (updater, options = {}) => {
+        options.key = key;
+        updateCached({} as A, updater, options);
+      },
+      execute: (args = {} as A, runOptions) => {
+        const executionKey = inputs.key ?? _createKey(args);
+        setKey(executionKey);
+
+        return run(args, { ...runOptions, key: executionKey }).then(resp => {
+          if (inputs.clearOnSuccess) {
+            clearCache({} as any, executionKey);
+          }
+
+          return resp;
+        });
+      },
     };
   };
 
