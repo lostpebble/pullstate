@@ -618,27 +618,26 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         }*/
       };
 
-      useMemo(() => {
+      useEffect(() => {
         if (!dormant) {
           if (!cache.listeners.hasOwnProperty(key)) {
             cache.listeners[key] = {};
           }
           cache.listeners[key][watchId.current] = onAsyncStateChanged;
+          shouldUpdate[key][watchId.current] = true;
+
           // console.log(`[${key}][${watchId}] Added listener (total now: ${Object.keys(cache.listeners[key]).length})`);
         }
-      }, [key]);
 
-      useEffect(
-        () => () => {
+        return () => {
           if (!dormant) {
             // console.log(`[${key}][${watchId}] Removing listener (before: ${Object.keys(cache.listeners[key]).length})`);
             delete cache.listeners[key][watchId.current];
             shouldUpdate[key][watchId.current] = false;
             // console.log(`[${key}][${watchId}] Removed listener (after: ${Object.keys(cache.listeners[key]).length})`);
           }
-        },
-        [key]
-      );
+        };
+      }, [key]);
     }
 
     // Purely for forcing this hook to update
