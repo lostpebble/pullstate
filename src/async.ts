@@ -618,11 +618,16 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         }*/
       };
 
+      if (!dormant) {
+        if (!cache.listeners.hasOwnProperty(key)) {
+          cache.listeners[key] = {};
+        }
+        cache.listeners[key][watchId.current] = onAsyncStateChanged;
+        // console.log(`[${key}][${watchId}] Added listener (total now: ${Object.keys(cache.listeners[key]).length})`);
+      }
+
       useEffect(() => {
         if (!dormant) {
-          if (!cache.listeners.hasOwnProperty(key)) {
-            cache.listeners[key] = {};
-          }
           cache.listeners[key][watchId.current] = onAsyncStateChanged;
           shouldUpdate[key][watchId.current] = true;
 
