@@ -7,7 +7,7 @@
 > Ridiculously simple state stores with performant retrieval anywhere
 > in your React tree using the wonderful concept of React hooks!
 
-* ~6KB minified and gzipped! (excluding Immer and React)
+* ~7KB minified and gzipped! (excluding Immer and React)
 * Built with Typescript, providing a great dev experience if you're using it too
 * Uses [immer](https://github.com/mweststrate/immer) for state updates - easily and safely mutate your state directly!
 * **NEW** - [Create async actions](https://lostpebble.github.io/pullstate/docs/async-actions-introduction) and use React hooks or `<Suspense/>` to have complete control over their UI states!
