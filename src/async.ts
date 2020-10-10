@@ -1,5 +1,5 @@
 import { clientStores, IPullstateAllStores, PullstateContext } from "./PullstateCore";
-import React, { MutableRefObject, useContext, useEffect, useMemo, useRef, useState } from "react";
+import React, { MutableRefObject, useContext, useEffect, useRef, useState } from "react";
 import {
   EAsyncEndTags,
   EPostActionContext,
@@ -623,6 +623,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
           cache.listeners[key] = {};
         }
         cache.listeners[key][watchId.current] = onAsyncStateChanged;
+        shouldUpdate[key][watchId.current] = true;
         // console.log(`[${key}][${watchId}] Added listener (total now: ${Object.keys(cache.listeners[key]).length})`);
       }
 
@@ -867,7 +868,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
   const updateCached: TAsyncActionUpdateCached<A, R> = (args, updater, options) => {
     const { notify = true, resetTimeCached = true, runPostActionHook: postAction = false, key: customKey } =
-      options || {};
+    options || {};
 
     const key = _createKey(args, customKey);
 
@@ -888,7 +889,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
           newResult,
           args,
           clientStores.loaded ? (clientStores.stores as S) : (storeErrorProxy as S),
-          EPostActionContext.CACHE_UPDATE
+          EPostActionContext.CACHE_UPDATE,
         );
       }
 
@@ -919,8 +920,8 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         const stores = onServer
           ? (useContext(PullstateContext)!.stores as S)
           : clientStores.loaded
-          ? (clientStores.stores as S)
-          : (storeErrorProxy as S);
+            ? (clientStores.stores as S)
+            : (storeErrorProxy as S);
 
         if (
           cacheBreakHook({
@@ -966,7 +967,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
   const delayedRun: TAsyncActionDelayedRun<A> = (
     args = {} as A,
-    { clearOldRun = true, delay, immediateIfCached = true, ...otherRunOptions }
+    { clearOldRun = true, delay, immediateIfCached = true, ...otherRunOptions },
   ) => {
     if (clearOldRun) {
       clearTimeout(delayedRunActionTimeout);
@@ -977,7 +978,8 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
       if (finished && !cacheBreakable) {
         run(args, otherRunOptions);
-        return () => {};
+        return () => {
+        };
       }
     }
 
