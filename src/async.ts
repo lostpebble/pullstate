@@ -618,27 +618,31 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         }*/
       };
 
-      useMemo(() => {
+      if (!dormant) {
+        if (!cache.listeners.hasOwnProperty(key)) {
+          cache.listeners[key] = {};
+        }
+        cache.listeners[key][watchId.current] = onAsyncStateChanged;
+        // console.log(`[${key}][${watchId}] Added listener (total now: ${Object.keys(cache.listeners[key]).length})`);
+      }
+
+      useEffect(() => {
         if (!dormant) {
-          if (!cache.listeners.hasOwnProperty(key)) {
-            cache.listeners[key] = {};
-          }
           cache.listeners[key][watchId.current] = onAsyncStateChanged;
+          shouldUpdate[key][watchId.current] = true;
+
           // console.log(`[${key}][${watchId}] Added listener (total now: ${Object.keys(cache.listeners[key]).length})`);
         }
-      }, [key]);
 
-      useEffect(
-        () => () => {
+        return () => {
           if (!dormant) {
             // console.log(`[${key}][${watchId}] Removing listener (before: ${Object.keys(cache.listeners[key]).length})`);
             delete cache.listeners[key][watchId.current];
             shouldUpdate[key][watchId.current] = false;
             // console.log(`[${key}][${watchId}] Removed listener (after: ${Object.keys(cache.listeners[key]).length})`);
           }
-        },
-        [key],
-      );
+        };
+      }, [key]);
     }
 
     // Purely for forcing this hook to update
@@ -863,7 +867,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
   const updateCached: TAsyncActionUpdateCached<A, R> = (args, updater, options) => {
     const { notify = true, resetTimeCached = true, runPostActionHook: postAction = false, key: customKey } =
-    options || {};
+      options || {};
 
     const key = _createKey(args, customKey);
 
@@ -873,7 +877,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       const currentCached: R = cache.results[key][2].payload;
 
       const newResult = {
-        payload: produce(currentCached, (s: Draft<R>) => updater(s as Draft<R>, currentCached)),
+        payload: (produce(currentCached, (s: R) => updater(s as Draft<R>, currentCached)) as unknown) as R,
         error: false,
         message: cache.results[key][2].message,
         tags: cache.results[key][2].tags,
@@ -884,7 +888,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
           newResult,
           args,
           clientStores.loaded ? (clientStores.stores as S) : (storeErrorProxy as S),
-          EPostActionContext.CACHE_UPDATE,
+          EPostActionContext.CACHE_UPDATE
         );
       }
 
@@ -915,8 +919,8 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         const stores = onServer
           ? (useContext(PullstateContext)!.stores as S)
           : clientStores.loaded
-            ? (clientStores.stores as S)
-            : (storeErrorProxy as S);
+          ? (clientStores.stores as S)
+          : (storeErrorProxy as S);
 
         if (
           cacheBreakHook({
@@ -962,7 +966,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
   const delayedRun: TAsyncActionDelayedRun<A> = (
     args = {} as A,
-    { clearOldRun = true, delay, immediateIfCached = true, ...otherRunOptions },
+    { clearOldRun = true, delay, immediateIfCached = true, ...otherRunOptions }
   ) => {
     if (clearOldRun) {
       clearTimeout(delayedRunActionTimeout);
@@ -973,8 +977,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
       if (finished && !cacheBreakable) {
         run(args, otherRunOptions);
-        return () => {
-        };
+        return () => {};
       }
     }
 
