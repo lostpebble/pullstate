@@ -25,7 +25,7 @@ function useStoreState<S = any>(store: Store<S>): S;
 function useStoreState<S = any, SS = any>(
   store: Store<S>,
   getSubState: (state: S) => SS,
-  deps?: ReadonlyArray<any>,
+  deps?: ReadonlyArray<any>
 ): SS;
 function useStoreState(store: Store, getSubState?: (state: any) => any, deps?: ReadonlyArray<any>): any {
   const updateRef = useRef<IUpdateRefNew>({ state: undefined, initialized: false });
@@ -47,14 +47,17 @@ function useStoreState(store: Store, getSubState?: (state: any) => any, deps?: R
     const effectState = { shouldUpdate: true };
 
     function update() {
-      const nextSubState = getSubState
-        ? getSubState(store.getRawState())
-        : store.getRawState();
-      if (effectState.shouldUpdate && !isEqual(updateRef.current.state, nextSubState)) {
-        // final check again before actually running state update (might prevent no-op errors with React)
-        if (effectState.shouldUpdate) {
-          updateRef.current.state = nextSubState;
-          setUpdateTrigger((val) => val + 1);
+      if (effectState.shouldUpdate) {
+        const nextSubState = getSubState
+          ? getSubState(store.getRawState())
+          : store.getRawState();
+
+        if (!isEqual(updateRef.current.state, nextSubState)) {
+          // final check again before actually running state update (might prevent no-op errors with React)
+          if (effectState.shouldUpdate) {
+            updateRef.current.state = nextSubState;
+            setUpdateTrigger((val) => val + 1);
+          }
         }
       }
     }
