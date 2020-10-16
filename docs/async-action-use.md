@@ -10,7 +10,7 @@ sidebar_label: Use Async Actions
 
 ## Watch an Async Action (React hook)
 
-```tsx
+```ts
 const [started, finished, result, updating] = searchPicturesForTag.useWatch({ tag }, options);
 ```
 
