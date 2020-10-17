@@ -2,7 +2,7 @@ import { Store } from "./Store";
 import { useRef } from "react";
 import isEqual from "fast-deep-equal/es6";
 
-function useLocalStore<S>(initialState: (() => S) | S, deps?: ReadonlyArray<any>): Store<S> {
+function useLocalStore<S extends object>(initialState: (() => S) | S, deps?: ReadonlyArray<any>): Store<S> {
   const storeRef = useRef<Store<S>>();
 
   if (storeRef.current == null) {

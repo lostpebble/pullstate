@@ -2,11 +2,9 @@
   "compilerOptions": {
     "jsx": "react",
     "module": "esnext",
+    "moduleResolution": "Node",
     "esModuleInterop": true,
     "target": "ES2020",
-    "sourceMap": true,
-    "inlineSourceMap": false,
-    "sourceRoot": "src",
     "rootDir": "./src",
     "declarationDir": "./dist",
     "declaration": true,

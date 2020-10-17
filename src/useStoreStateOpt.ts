@@ -5,13 +5,13 @@ import { DeepKeyOfArray, DeepTypeOfArray, TAllPathsParameter } from "./useStoreS
 
 let updateListenerOrd = 0;
 
-function fastGet<S>(obj: S, path: any[]): any {
+function fastGet<S extends object>(obj: S, path: any[]): any {
   return path.reduce((cur: any = obj, key: string | number) => {
     return cur[key];
   }, undefined);
 }
 
-function getSubStateFromPaths<S, P extends DeepKeyOfArray<S>[]>(store: Store<S>, paths: P): any[] {
+function getSubStateFromPaths<S extends object, P extends DeepKeyOfArray<S>[]>(store: Store<S>, paths: P): any[] {
   const state: any = store.getRawState();
 
   const resp: any[] = [];
@@ -23,7 +23,7 @@ function getSubStateFromPaths<S, P extends DeepKeyOfArray<S>[]>(store: Store<S>,
   return resp;
 }
 
-function useStoreStateOpt<S, P extends TAllPathsParameter<S>>(
+function useStoreStateOpt<S extends object, P extends TAllPathsParameter<S>>(
   store: Store<S>,
   paths: P
 ): [

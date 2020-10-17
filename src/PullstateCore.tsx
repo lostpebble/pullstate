@@ -9,7 +9,7 @@ import {
   IPullstateAsyncCache,
   IPullstateAsyncResultState,
   TPullstateAsyncAction,
-  TPullstateAsyncRunResponse,
+  TPullstateAsyncRunResponse
 } from "./async-types";
 
 type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
@@ -120,7 +120,7 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
     return useInstance<S>();
   }
 
-  actionSetup(): {
+  /*actionSetup(): {
     action: (update: TMultiStoreAction<PullstateSingleton<S>, S>) => TMultiStoreAction<PullstateSingleton<S>, S>;
     act: (action: TMultiStoreAction<PullstateSingleton<S>, S>) => void;
     // act: (action: (update: TMultiStoreUpdateMap<S>) => void) => void;
@@ -150,7 +150,7 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
       action,
       act,
     };
-  }
+  }*/
 
   createAsyncActionDirect<A extends any = any, R extends any = any>(
     action: (args: A) => Promise<R>,
