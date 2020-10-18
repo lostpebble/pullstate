@@ -2,5 +2,7 @@
   "tsconfig": "./typedoc.tsconfig.json",
   "mode": "file",
   "out": "type-docs",
-  "excludePrivate": true
+  "excludePrivate": true,
+  "excludeNotExported": true,
+  "stripInternal": true
 }

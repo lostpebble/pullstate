@@ -12,6 +12,7 @@
     "dist"
   ],
   "scripts": {
+    "generate-typedoc": "typedoc src/index.ts",
     "test": "jest",
     "test-watch": "jest --watch",
     "clean": "rimraf ./dist",
@@ -19,7 +20,6 @@
     "uglify": "terser ./dist/index.js -o ./dist/index.js",
     "check-size": "minified-size ./dist/index.es.js",
     "check-size-cjs": "minified-size ./dist/index.js",
-    "generate-typedoc": "typedoc src/index.ts",
     "benchmark-all": "cross-env TS_NODE_PROJECT=./test/tsconfig.json node -r ts-node/register --max-old-space-size=4096  test/benchmark/all.ts",
     "benchmark-async-argument": "cross-env TS_NODE_PROJECT=./test/tsconfig.json node -r ts-node/register --max-old-space-size=4096  test/benchmark/benchmark-async-argument.ts",
     "benchmark-destructuring": "cross-env TS_NODE_PROJECT=./test/tsconfig.json node -r ts-node/register --max-old-space-size=4096  test/benchmark/benchmark-destructuring.ts",

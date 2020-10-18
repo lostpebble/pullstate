@@ -24,8 +24,17 @@ export interface IStoreInternalOptions<S extends object> {
   reactionCreators?: TReactionCreator<S>[];
 }
 
+/**
+ * @typeParam S  The store's state
+ * @param draft  The mutable store state to change during this update (uses immer, which makes use of Proxies)
+ * @param original  A readonly version of the store's state, for referencing during this update
+ */
 export type TUpdateFunction<S> = (draft: Draft<S>, original: S) => void;
 type TReactionFunction<S extends object, T> = (watched: T, draft: Draft<S>, original: S, previousWatched: T) => void;
+
+/**
+ * @internal
+ */
 type TRunReactionFunction = (forceRun?: boolean) => string[];
 type TRunSubscriptionFunction = () => void;
 type TReactionCreator<S extends object> = (store: Store<S>) => TRunReactionFunction;
@@ -106,12 +115,12 @@ interface ICreateReactionOptions {
 
 const optPathDivider = "~._.~";
 
-export type TStoreActionUpdate<S> = (
+export type TStoreActionUpdate<S extends object> = (
   updater: TUpdateFunction<S> | TUpdateFunction<S>[],
   patchesCallback?: (patches: Patch[], inversePatches: Patch[]) => void
 ) => void;
 
-export type TStoreAction<S> = (update: TStoreActionUpdate<S>) => void;
+export type TStoreAction<S extends object> = (update: TStoreActionUpdate<S>) => void;
 
 /**
  * @typeParam S  Your store's state interface
@@ -151,28 +160,46 @@ export class Store<S extends object = object> {
     // this._storeName = name;
   }
 
+  /**
+   * @internal
+   */
   _setInternalOptions({ ssr, reactionCreators = [] }: IStoreInternalOptions<S>) {
     this.ssr = ssr;
     this.reactionCreators = reactionCreators;
     this.reactions = reactionCreators.map((rc) => rc(this));
   }
 
+  /**
+   * @internal
+   */
   _getReactionCreators(): TReactionCreator<S>[] {
     return this.reactionCreators;
   }
 
+  /**
+   * @internal
+   */
   _instantiateReactions() {
     this.reactions = this.reactionCreators.map((rc) => rc(this));
   }
 
+  /**
+   * @internal
+   */
   _getInitialState(): S {
     return this.initialState;
   }
 
+  /**
+   * @internal
+   */
   _updateStateWithoutReaction(nextState: S) {
     this.currentState = nextState;
   }
 
+  /**
+   * @internal
+   */
   _updateState(nextState: S, updateKeyedPaths: string[] = []) {
     this.currentState = nextState;
     this.batchState = undefined;
@@ -247,7 +274,7 @@ export class Store<S extends object = object> {
   }
 
   /**
-   * @ignore
+   * @internal
    * @param ordKey
    */
   _removeUpdateListenerOpt(ordKey: string) {
@@ -317,7 +344,7 @@ export class Store<S extends object = object> {
    * ---
    * ** WARNING **
    *
-   * Most of the time if you're using this, there's probably a better way to do it
+   * Most of the time, if you're using this in your App, there's probably a better way to do it
    * ---
    */
   getRawState(): S {
@@ -392,6 +419,11 @@ export class Store<S extends object = object> {
     update(this, updater, patchesCallback);
   }
 
+  /**
+   * Replace the store's state entirely with a new state value
+   *
+   * @param newState
+   */
   replace(newState: S) {
     this._updateState(newState);
   }
@@ -413,6 +445,12 @@ interface IChangedPaths {
   [path: string]: 1;
 }
 
+/**
+ * @internal
+ *
+ * @param changePatches
+ * @param prev
+ */
 function getChangedPathsFromPatches(changePatches: Patch[], prev: IChangedPaths = {}): IChangedPaths {
   // const updateKeyedPathsMap: IChangedPaths = {};
 
@@ -434,7 +472,14 @@ function getChangedPathsFromPatches(changePatches: Patch[], prev: IChangedPaths 
   // return Object.keys(updateKeyedPathsMap);
 }
 
-function runUpdates<S>(
+/**
+ * @internal
+ *
+ * @param currentState
+ * @param updater
+ * @param func
+ */
+function runUpdates<S extends object>(
   currentState: S,
   updater: TUpdateFunction<S> | TUpdateFunction<S>[],
   func: boolean
@@ -452,6 +497,12 @@ function runUpdates<S>(
     ) as [S, Patch[], Patch[]]);
 }
 
+/**
+ *
+ * @param store  The store to run an update on
+ * @param updater  The update function, or an array of update functions
+ * @param patchesCallback  A callback to keep track of the patches made during this update.
+ */
 export function update<S extends object = any>(
   store: Store<S>,
   updater: TUpdateFunction<S> | TUpdateFunction<S>[],
