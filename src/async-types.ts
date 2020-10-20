@@ -118,14 +118,14 @@ export interface IAsyncActionWatchOptions extends IAsyncActionBeckonOptions {
   initiate?: boolean;
 }
 
-export interface IAsyncActionUseOptions<R> extends IAsyncActionWatchOptions {
-  onSuccess?: (result: R) => void;
+export interface IAsyncActionUseOptions<R, A> extends IAsyncActionWatchOptions {
+  onSuccess?: (result: R, args: A) => void;
 }
 
-export interface IAsyncActionUseDeferOptions<R> extends Omit<IAsyncActionReadOptions, "key"> {
+export interface IAsyncActionUseDeferOptions<R, A> extends Omit<IAsyncActionReadOptions, "key"> {
   key?: string;
   holdPrevious?: boolean;
-  onSuccess?: (result: R) => void;
+  onSuccess?: (result: R, args: A) => void;
   clearOnSuccess?: boolean;
 }
 
@@ -165,11 +165,11 @@ export interface IAsyncActionUpdateCachedOptions extends IAsyncActionSetCachedOp
 
 export type TAsyncActionUse<A, R, T extends string> = (
   args?: A,
-  options?: IAsyncActionUseOptions<R>,
+  options?: IAsyncActionUseOptions<R, A>,
 ) => TUseResponse<R, T>;
 
 export type TAsyncActionUseDefer<A, R, T extends string> = (
-  options?: IAsyncActionUseDeferOptions<R>,
+  options?: IAsyncActionUseDeferOptions<R, A>,
 ) => TUseDeferResponse<A, R, T>;
 
 export type TAsyncActionBeckon<A, R, T extends string> = (
