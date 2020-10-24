@@ -134,6 +134,8 @@ export type TStoreActionUpdate<S extends object> = (
 export type TStoreAction<S extends object> = (update: TStoreActionUpdate<S>) => void;
 
 /**
+ * The Store. A home for your state, and from whence you can pull it, shape it and listen to it in various ways.
+ *
  * @typeParam S  Your store's state interface
  */
 export class Store<S extends object = object> {
@@ -165,6 +167,11 @@ export class Store<S extends object = object> {
    */
   public _patchListeners: PatchListener[] = [];
 
+  /**
+   * Create your Store with an initial state.
+   *
+   * @param initialState  The initial state for this store
+   */
   constructor(initialState: S) {
     this.currentState = initialState;
     this.initialState = initialState;
@@ -306,6 +313,8 @@ export class Store<S extends object = object> {
   /**
    * Listen to all changes made to this store's state in the form of "patches" sent to a patch listener.
    * This is basically a direct link to [Immer's functionality of patches](https://immerjs.github.io/immer/docs/patches).
+   *
+   * See also: {@link Store.applyPatches}
    *
    * @param patchListener  A function which matches exactly the patch callback functionality in Immer
    */
@@ -479,6 +488,14 @@ export class Store<S extends object = object> {
     }
   }*/
 
+  /**
+   * The store's update function. Pass in a function which takes the current store's state and mutates it directly, thanks to [Immer](https://immerjs.github.io/immer)
+   *
+   * @param updater  The update function. Takes the current state and mutates it to the next state.
+   *
+   * @param patchesCallback  Exactly the same as the Immer patches callback. Gives you the patches
+   * which represent the exact granular changes that happened to your store's state during this update.
+   */
   update(
     updater: TUpdateFunction<S> | TUpdateFunction<S>[],
     patchesCallback?: (patches: Patch[], inversePatches: Patch[]) => void
@@ -495,6 +512,13 @@ export class Store<S extends object = object> {
     this._updateState(newState);
   }
 
+  /**
+   * See [Immer's documentation on Patches](https://immerjs.github.io/immer/docs/patches). Will apply any patches as an update to this store's state.
+   *
+   * See also: {@link Store.listenToPatches}
+   *
+   * @param patches  The patches to apply.
+   */
   applyPatches(patches: Patch[]) {
     applyPatchesToStore(this, patches);
   }
