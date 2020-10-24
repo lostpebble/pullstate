@@ -1,4 +1,7 @@
 // prettier-ignore
+/**
+ * @internal
+ */
 export interface DeepKeyOfArray<O> extends Array<string | number> {
   ["0"]: keyof O;
   ["1"]?: this extends {
@@ -16,6 +19,9 @@ export interface DeepKeyOfArray<O> extends Array<string | number> {
   [rest: string]: any;
 }
 
+/**
+ * @internal
+ */
 export type TAllPathsParameter<S> =
   | [DeepKeyOfArray<S>]
   | [DeepKeyOfArray<S>, DeepKeyOfArray<S>]
@@ -66,8 +72,14 @@ export type TAllPathsParameter<S> =
       DeepKeyOfArray<S>
     ];
 
+/**
+ * @internal
+ */
 export type ArrayHasIndex<MinLength extends string> = { [K in MinLength]: any };
 
+/**
+ * @internal
+ */
 export type DeepTypeOfArray<T, L extends DeepKeyOfArray<T> | undefined> = L extends ArrayHasIndex<
   "0" | "1" | "2" | "3" | "4" | "5" | "6" | "7"
 >

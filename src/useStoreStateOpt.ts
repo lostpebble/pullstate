@@ -23,6 +23,13 @@ function getSubStateFromPaths<S extends object, P extends DeepKeyOfArray<S>[]>(s
   return resp;
 }
 
+/**
+ * @deprecated
+ * @internal
+ *
+ * @param store
+ * @param paths
+ */
 function useStoreStateOpt<S extends object, P extends TAllPathsParameter<S>>(
   store: Store<S>,
   paths: P
