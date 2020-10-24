@@ -1,7 +1,7 @@
 {
   "tsconfig": "./typedoc.tsconfig.json",
   "mode": "file",
-  "out": "type-docs",
+  "out": "type-docs-repo/docs",
   "excludePrivate": true,
   "excludeNotExported": true,
   "stripInternal": true

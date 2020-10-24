@@ -4,3 +4,4 @@ dist
 yarn-error.log
 .rpt2_cache
 website/build
+/type-docs-repo/

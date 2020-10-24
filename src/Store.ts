@@ -109,7 +109,18 @@ function makeReactionFunctionCreator<S extends object, T>(
 }
 
 interface ICreateReactionOptions {
+  /**
+   * Should this reaction run on initial registration
+   *
+   * @default false
+   */
   runNow?: boolean;
+  /**
+   * Should the initial running of this action cause a regular update that
+   * notifies any listeners to this store's state
+   *
+   * @default false
+   */
   runNowWithSideEffects?: boolean;
 }
 
@@ -292,6 +303,12 @@ export class Store<S extends object = object> {
     this._optListenerCount--;
   }
 
+  /**
+   * Listen to all changes made to this store's state in the form of "patches" sent to a patch listener.
+   * This is basically a direct link to [Immer's functionality of patches](https://immerjs.github.io/immer/docs/patches).
+   *
+   * @param patchListener  A function which matches exactly the patch callback functionality in Immer
+   */
   listenToPatches(patchListener: PatchListener): () => void {
     this._patchListeners.push(patchListener);
     return () => {
@@ -299,7 +316,23 @@ export class Store<S extends object = object> {
     };
   }
 
-  subscribe<T>(watch: (state: S) => T, listener: (watched: T, allState: S, previousWatched: T) => void): () => void {
+  /**
+   * Subscribe to changes on this store by watching a sub-selection of its state
+   *
+   * @typeParam T  The type of the returned watched value
+   * @param watch  The selector function. Return the values you want to watch for changes on.
+   * @param listener  The listener. The function which will run with those changes whenever they have changed.
+   *
+   * @returns  An un-subscribe function. Stops listening for watched changes.
+   */
+  subscribe<T>(watch: (state: S) => T,
+               listener:
+                 /**
+                  * @param watched  The new watched value (returned from the selection function)
+                  * @param allState  Your entire store's state (read-only, do not mutate)
+                  * @param previousWatched  The previous value that was watched
+                  */
+                 (watched: T, allState: S, previousWatched: T) => void): () => void {
     if (!this.ssr) {
       const func = makeSubscriptionFunction(this, watch, listener);
       this.clientSubscriptions.push(func);
@@ -315,11 +348,24 @@ export class Store<S extends object = object> {
     };
   }
 
+  /**
+   * React to changes on this store by watching a sub-selection of its state and
+   * then updating the store directly (similar to subscribe, but allows direct
+   * batched updates to the store on changes)
+   *
+   * @typeParam T  The type of the returned watched value
+   * @param watch  The selector function. Return the values you want to watch for changes on.
+   * @param reaction  The reaction. The function which will run with those changes whenever they have changed.
+   * @param options
+   *
+   * @returns  An un-subscribe function. Stops listening for watched changes.
+   */
   createReaction<T>(
     watch: (state: S) => T,
     reaction: TReactionFunction<S, T>,
-    { runNow = false, runNowWithSideEffects = false }: ICreateReactionOptions = {}
+    options?: ICreateReactionOptions
   ): () => void {
+    const { runNow = false, runNowWithSideEffects = false } = options ?? {};
     const creator = makeReactionFunctionCreator(watch, reaction);
     this.reactionCreators.push(creator);
     const func = creator(this);
@@ -342,9 +388,11 @@ export class Store<S extends object = object> {
    * Returns the raw state object contained within this store at this moment
    *
    * ---
-   * ** WARNING **
+   *
+   * **WARNING**
    *
    * Most of the time, if you're using this in your App, there's probably a better way to do it
+   *
    * ---
    */
   getRawState(): S {
@@ -355,16 +403,35 @@ export class Store<S extends object = object> {
     }
   }
 
+  /**
+   * 🎣 React hook
+   *
+   * Select and use the store's state in your React components
+   */
   useState(): S;
   useState<SS = any>(getSubState: (state: S) => SS, deps?: ReadonlyArray<any>): SS;
   useState<SS = any>(getSubState?: (state: S) => SS, deps?: ReadonlyArray<any>): SS {
     return useStoreState(this, getSubState!, deps);
   }
 
+  /**
+   * 🎣 React hook
+   *
+   * Makes a local component-bound copy ot this store, using the *initial* state that was set when this store was created, which otherwise functions exactly the same.
+   *
+   * @param deps  Dependencies, which if changed will cause a new local Store to be created and returned - again set to the initial state.
+   */
   useLocalCopyInitial(deps?: ReadonlyArray<any>): Store<S> {
     return useLocalStore(() => this.initialState, deps);
   }
 
+  /**
+   * 🎣 React hook
+   *
+   * Makes a local component-bound copy of this store, using the *current snapshot* of its state, which otherwise functions exactly the same.
+   *
+   * @param deps  Dependencies, which if changed will cause a new local Store to be created and returned - again at the Store's current snapshot at that time
+   */
   useLocalCopySnapshot(deps?: ReadonlyArray<any>): Store<S> {
     return useLocalStore(this.currentState, deps);
   }
