@@ -20,6 +20,10 @@
         "title": "Introduction to Async Actions",
         "sidebar_label": "Introduction"
       },
+      "async-action-new-use": {
+        "title": "(Latest) Ways to make use of Async Actions",
+        "sidebar_label": "Use Async Actions (New)"
+      },
       "async-actions-other-options": {
         "title": "Other Async Action Options",
         "sidebar_label": "Other Async Action Options"
@@ -83,6 +87,7 @@
     },
     "links": {
       "Docs": "Docs",
+      "API Reference": "API Reference",
       "GitHub": "GitHub"
     },
     "categories": {

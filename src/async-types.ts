@@ -262,8 +262,6 @@ export interface ICreateAsyncActionOptions<A, R, T extends string, S extends IPu
   subsetKey?: (args: A) => any;
 }
 
-// action.use() types
-
 export type TRunWithPayload<R> = (func: (payload: R) => any) => any;
 
 export interface IBaseObjResponseUse<R, T extends string> {

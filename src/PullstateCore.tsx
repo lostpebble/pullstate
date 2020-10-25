@@ -12,8 +12,6 @@ import {
   TPullstateAsyncRunResponse
 } from "./async-types";
 
-type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
-
 export interface IPullstateAllStores {
   [storeName: string]: Store<any>;
 }
@@ -32,6 +30,9 @@ export const PullstateProvider = <T extends IPullstateAllStores = IPullstateAllS
 
 let singleton: PullstateSingleton<any> | null = null;
 
+/**
+ * @internal
+ */
 export const clientStores: {
   internalClientStores: true;
   stores: IPullstateAllStores;
@@ -42,6 +43,9 @@ export const clientStores: {
   stores: {},
 };
 
+/**
+ * @internal
+ */
 export type TMultiStoreAction<
   P extends PullstateSingleton<S>,
   S extends IPullstateAllStores = P extends PullstateSingleton<infer ST> ? ST : any
@@ -177,6 +181,9 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
   }
 }
 
+/**
+ * @internal
+ */
 type TMultiStoreUpdateMap<S extends IPullstateAllStores> = {
   [K in keyof S]: (updater: TUpdateFunction<S[K] extends Store<infer T> ? T : any>) => void;
 };
@@ -187,6 +194,9 @@ interface IPullstateSnapshot {
   asyncActionOrd: IPullstateAsyncActionOrdState;
 }
 
+/**
+ * @internal
+ */
 export interface IPullstateInstanceConsumable<T extends IPullstateAllStores = IPullstateAllStores> {
   stores: T;
 

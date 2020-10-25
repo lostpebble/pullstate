@@ -39,8 +39,10 @@ import {
 import produce, { Draft } from "immer";
 
 import isEqual from "fast-deep-equal/es6";
-// const isEqual = require("fast-deep-equal/es6");
 
+/**
+ * @internal
+ */
 export const clientAsyncCache: IPullstateAsyncCache = {
   listeners: {},
   results: {},
@@ -48,8 +50,14 @@ export const clientAsyncCache: IPullstateAsyncCache = {
   actionOrd: {}
 };
 
+/**
+ * @internal
+ */
 let asyncCreationOrdinal = 0;
 
+/**
+ * @internal
+ */
 export function keyFromObject(json: any) {
   if (json === null) {
     return "(n)";
@@ -76,6 +84,9 @@ export function keyFromObject(json: any) {
   return prefix + "}";
 }
 
+/**
+ * @internal
+ */
 function notifyListeners(key: string) {
   if (clientAsyncCache.listeners.hasOwnProperty(key)) {
     // console.log(`[${key}] Notifying (${Object.keys(clientAsyncCache.listeners[key]).length}) listeners`);
@@ -86,6 +97,9 @@ function notifyListeners(key: string) {
   }
 }
 
+/**
+ * @internal
+ */
 function clearActionCache(key: string, clearPending: boolean = true) {
   if (clearPending && clientAsyncCache.actionOrd.hasOwnProperty(key)) {
     clientAsyncCache.actionOrd[key] += 1;
@@ -97,6 +111,9 @@ function clearActionCache(key: string, clearPending: boolean = true) {
   notifyListeners(key);
 }
 
+/**
+ * @internal
+ */
 function actionOrdUpdate(cache: IPullstateAsyncCache, key: string): number {
   if (!cache.actionOrd.hasOwnProperty(key)) {
     cache.actionOrd[key] = 0;
@@ -132,6 +149,9 @@ export function errorResult<R = any, T extends string = string>(
   };
 }
 
+/**
+ * @internal
+ */
 export class PullstateAsyncError extends Error {
   tags: string[];
 
@@ -141,6 +161,9 @@ export class PullstateAsyncError extends Error {
   }
 }
 
+/**
+ * @internal
+ */
 let storeErrorProxy: any;
 try {
   storeErrorProxy = new Proxy(
@@ -163,6 +186,9 @@ If this error occurred on the client:
   storeErrorProxy = {};
 }
 
+/**
+ * @internal
+ */
 const startedButUnfinishedResult: TPullstateAsyncWatchResponse = [
   true,
   false,

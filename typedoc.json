@@ -4,5 +4,15 @@
   "out": "type-docs-repo/docs",
   "excludePrivate": true,
   "excludeNotExported": true,
-  "stripInternal": true
+  "stripInternal": true,
+  "exclude": [
+    "./src/async-types.ts",
+    "./src/useStoreStateOpt.ts",
+    "./src/useStoreStateOpt-types.ts",
+    "./src/InjectStoreStateOpt.ts"
+  ],
+  "inputFiles": [
+    "./src/Store.ts",
+    "./src/async.ts"
+  ]
 }
