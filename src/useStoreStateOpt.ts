@@ -1,16 +1,31 @@
 import { Store } from "./Store";
 import { useEffect, useRef, useState } from "react";
-import { IUpdateRef } from "./useStoreState";
+import { IUpdateRefNew } from "./useStoreState";
 import { DeepKeyOfArray, DeepTypeOfArray, TAllPathsParameter } from "./useStoreStateOpt-types";
 
+/**
+ * @internal
+ */
 let updateListenerOrd = 0;
 
+/**
+ * @internal
+ *
+ * @param obj
+ * @param path
+ */
 function fastGet<S extends object>(obj: S, path: any[]): any {
   return path.reduce((cur: any = obj, key: string | number) => {
     return cur[key];
   }, undefined);
 }
 
+/**
+ * @internal
+ *
+ * @param store
+ * @param paths
+ */
 function getSubStateFromPaths<S extends object, P extends DeepKeyOfArray<S>[]>(store: Store<S>, paths: P): any[] {
   const state: any = store.getRawState();
 
@@ -46,16 +61,41 @@ function useStoreStateOpt<S extends object, P extends TAllPathsParameter<S>>(
   DeepTypeOfArray<S, P[9]>,
   DeepTypeOfArray<S, P[10]>
 ] {
-  const [subState, setSubState] = useState<any>(() => getSubStateFromPaths(store, paths));
+  // const [subState, setSubState] = useState<any>(() => getSubStateFromPaths(store, paths));
 
-  const updateRef = useRef<Partial<IUpdateRef & { ordKey: string }>>({
-    shouldUpdate: true,
-    onStoreUpdate: null,
-    currentSubState: null,
-    ordKey: `_${updateListenerOrd++}`,
+  const updateRef = useRef<IUpdateRefNew & { ordKey: string }>({
+    initialized: false,
+    state: undefined,
+    ordKey: `_${updateListenerOrd++}`
   });
 
-  updateRef.current.currentSubState = subState;
+  if (!updateRef.current.initialized) {
+    updateRef.current.state = getSubStateFromPaths(store, paths);
+    updateRef.current.initialized = true;
+  }
+
+  // useState with only a simple value to prevent double equality checks for the state
+  const [, setUpdateTrigger] = useState(0);
+
+  useEffect(() => {
+    const effectState = { shouldUpdate: true };
+
+    function update() {
+      if (effectState.shouldUpdate) {
+        updateRef.current.state = getSubStateFromPaths(store, paths);
+        setUpdateTrigger((val) => val + 1);
+      }
+    }
+
+    store._addUpdateListenerOpt(update, updateRef.current.ordKey!, paths);
+
+    return () => {
+      effectState.shouldUpdate = false;
+      store._removeUpdateListenerOpt(updateRef.current.ordKey!);
+    };
+  }, paths);
+
+  /*updateRef.current.currentSubState = subState;
 
   if (updateRef.current.onStoreUpdate === null) {
     updateRef.current.onStoreUpdate = function onStoreUpdateOpt() {
@@ -74,9 +114,9 @@ function useStoreStateOpt<S extends object, P extends TAllPathsParameter<S>>(
       store._removeUpdateListenerOpt(updateRef.current.ordKey!);
     },
     []
-  );
+  );*/
 
-  return subState;
+  return updateRef.current.state;
 }
 
 export { useStoreStateOpt };

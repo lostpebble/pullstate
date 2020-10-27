@@ -92,7 +92,7 @@ function notifyListeners(key: string) {
     // console.log(`[${key}] Notifying (${Object.keys(clientAsyncCache.listeners[key]).length}) listeners`);
     for (const watchId of Object.keys(clientAsyncCache.listeners[key])) {
       // console.log(`[${key}] Notifying listener with watch id: [${watchId}]`);
-      clientAsyncCache.listeners[key][watchId]();
+      clientAsyncCache.listeners[key][watchId]?.();
     }
   }
 }
