@@ -122,10 +122,11 @@ export function successResult<R, T extends string = string>(
 
 export function errorResult<R = any, T extends string = string>(
   tags: (EAsyncEndTags | T)[] = [],
-  message: string = ""
+  message: string = "",
+  payload?: R 
 ): IAsyncActionResultNegative<T> {
   return {
-    payload: null,
+    payload,
     tags: [EAsyncEndTags.RETURNED_ERROR, ...tags],
     message,
     error: true
