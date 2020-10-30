@@ -4,10 +4,10 @@ import { TUpdateFunction } from "./Store";
 type TPullstateAsyncUpdateListener = () => void;
 
 // [ started, finished, result, updating, timeCached ]
-export type TPullstateAsyncWatchResponse<R = any, T extends string = string> = [
+export type TPullstateAsyncWatchResponse<R = any, T extends string = string, N = any> = [
   boolean,
   boolean,
-  TAsyncActionResult<R, T>,
+  TAsyncActionResult<R, T, N>,
   boolean,
   number
 ];
@@ -24,13 +24,13 @@ export type TPullstateAsyncWatchResponse<R = any, T extends string = string> = [
 // ];
 
 // [finished, result, updating]
-export type TPullstateAsyncBeckonResponse<R = any, T extends string = string> = [
+export type TPullstateAsyncBeckonResponse<R = any, T extends string = string, N = any> = [
   boolean,
-  TAsyncActionResult<R, T>,
+  TAsyncActionResult<R, T, N>,
   boolean
 ];
 // [result]
-export type TPullstateAsyncRunResponse<R = any, T extends string = string> = Promise<TAsyncActionResult<R, T>>;
+export type TPullstateAsyncRunResponse<R = any, T extends string = string, N = any> = Promise<TAsyncActionResult<R, T, N>>;
 
 export interface IPullstateAsyncResultState {
   [key: string]: TPullstateAsyncWatchResponse<any, string>;
@@ -55,15 +55,18 @@ interface IAsyncActionResultBase<T extends string> {
 export interface IAsyncActionResultPositive<R, T extends string> extends IAsyncActionResultBase<T> {
   error: false;
   payload: R;
+  errorPayload: null;
 }
 
 export interface IAsyncActionResultNegative<T extends string, N = unknown> extends IAsyncActionResultBase<T> {
   error: true;
-  errorPayload?: N;
+  errorPayload: N;
   payload: null;
 }
 
-export type TAsyncActionResult<R, T extends string, N = unknown> = IAsyncActionResultPositive<R, T> | IAsyncActionResultNegative<T, N>;
+export type TAsyncActionResult<R, T extends string, N> =
+  IAsyncActionResultPositive<R, T>
+  | IAsyncActionResultNegative<T, N>;
 
 // Order of new hook functions:
 
@@ -72,14 +75,14 @@ export type TAsyncActionResult<R, T extends string, N = unknown> = IAsyncActionR
 // postActionHook = ({ args, result, stores }) => void | new result       - happens on all actions, after the async / short circuit has resolved
 // ----> postActionHook potentially needs a mechanism which allows it to run only once per new key change (another layer caching of some sorts expiring on key change)
 
-export type TPullstateAsyncShortCircuitHook<A, R, T extends string, S extends IPullstateAllStores> = (inputs: {
+export type TPullstateAsyncShortCircuitHook<A, R, T extends string, N, S extends IPullstateAllStores> = (inputs: {
   args: A;
   stores: S;
-}) => TAsyncActionResult<R, T> | false;
+}) => TAsyncActionResult<R, T, N> | false;
 
-export type TPullstateAsyncCacheBreakHook<A, R, T extends string, S extends IPullstateAllStores> = (inputs: {
+export type TPullstateAsyncCacheBreakHook<A, R, T extends string, N, S extends IPullstateAllStores> = (inputs: {
   args: A;
-  result: TAsyncActionResult<R, T>;
+  result: TAsyncActionResult<R, T, N>;
   stores: S;
   timeCached: number;
 }) => boolean;
@@ -96,9 +99,9 @@ export enum EPostActionContext {
   CACHE_UPDATE = "CACHE_UPDATE",
 }
 
-export type TPullstateAsyncPostActionHook<A, R, T extends string, S extends IPullstateAllStores> = (inputs: {
+export type TPullstateAsyncPostActionHook<A, R, T extends string, N, S extends IPullstateAllStores> = (inputs: {
   args: A;
-  result: TAsyncActionResult<R, T>;
+  result: TAsyncActionResult<R, T, N>;
   stores: S;
   context: EPostActionContext;
 }) => void;
@@ -144,10 +147,10 @@ export interface IAsyncActionGetCachedOptions {
   key?: string;
 }
 
-export interface IGetCachedResponse<R, T extends string> {
+export interface IGetCachedResponse<R, T extends string, N = any> {
   started: boolean;
   finished: boolean;
-  result: TAsyncActionResult<R, T>;
+  result: TAsyncActionResult<R, T, N>;
   updating: boolean;
   existed: boolean;
   cacheBreakable: boolean;
@@ -164,29 +167,29 @@ export interface IAsyncActionUpdateCachedOptions extends IAsyncActionSetCachedOp
   runPostActionHook?: boolean;
 }
 
-export type TAsyncActionUse<A, R, T extends string> = (
+export type TAsyncActionUse<A, R, T extends string, N> = (
   args?: A,
-  options?: IAsyncActionUseOptions<R, A>,
-) => TUseResponse<R, T>;
+  options?: IAsyncActionUseOptions<R, A>
+) => TUseResponse<R, T, N>;
 
-export type TAsyncActionUseDefer<A, R, T extends string> = (
-  options?: IAsyncActionUseDeferOptions<R, A>,
-) => TUseDeferResponse<A, R, T>;
+export type TAsyncActionUseDefer<A, R, T extends string, N> = (
+  options?: IAsyncActionUseDeferOptions<R, A>
+) => TUseDeferResponse<A, R, T, N>;
 
-export type TAsyncActionBeckon<A, R, T extends string> = (
+export type TAsyncActionBeckon<A, R, T extends string, N> = (
   args?: A,
-  options?: IAsyncActionBeckonOptions,
-) => TPullstateAsyncBeckonResponse<R, T>;
+  options?: IAsyncActionBeckonOptions
+) => TPullstateAsyncBeckonResponse<R, T, N>;
 
-export type TAsyncActionWatch<A, R, T extends string> = (
+export type TAsyncActionWatch<A, R, T extends string, N> = (
   args?: A,
-  options?: IAsyncActionWatchOptions,
-) => TPullstateAsyncWatchResponse<R, T>;
+  options?: IAsyncActionWatchOptions
+) => TPullstateAsyncWatchResponse<R, T, N>;
 
-export type TAsyncActionRun<A, R, T extends string> = (
+export type TAsyncActionRun<A, R, T extends string, N> = (
   args?: A,
-  options?: IAsyncActionRunOptions,
-) => TPullstateAsyncRunResponse<R, T>;
+  options?: IAsyncActionRunOptions
+) => TPullstateAsyncRunResponse<R, T, N>;
 
 export type TAsyncActionClearCache<A> = (args?: A, customKey?: string) => void;
 
@@ -194,15 +197,15 @@ export type TAsyncActionClearAllCache = () => void;
 
 export type TAsyncActionClearAllUnwatchedCache = () => void;
 
-export type TAsyncActionGetCached<A, R, T extends string> = (
+export type TAsyncActionGetCached<A, R, T extends string, N> = (
   args?: A,
-  options?: IAsyncActionGetCachedOptions,
-) => IGetCachedResponse<R, T>;
+  options?: IAsyncActionGetCachedOptions
+) => IGetCachedResponse<R, T, N>;
 
-export type TAsyncActionSetCached<A, R, T extends string> = (
+export type TAsyncActionSetCached<A, R, T extends string, N> = (
   args: A,
-  result: TAsyncActionResult<R, T>,
-  options?: IAsyncActionSetCachedOptions,
+  result: TAsyncActionResult<R, T, N>,
+  options?: IAsyncActionSetCachedOptions
 ) => void;
 
 export type TAsyncActionSetCachedPayload<A, R> = (args: A, payload: R, options?: IAsyncActionSetCachedOptions) => void;
@@ -210,25 +213,25 @@ export type TAsyncActionSetCachedPayload<A, R> = (args: A, payload: R, options?:
 export type TAsyncActionUpdateCached<A, R> = (
   args: A,
   updater: TUpdateFunction<R>,
-  options?: IAsyncActionUpdateCachedOptions,
+  options?: IAsyncActionUpdateCachedOptions
 ) => void;
 export type TAsyncActionRead<A, R> = (args?: A, options?: IAsyncActionReadOptions) => R;
 
 export type TAsyncActionDelayedRun<A> = (
   args: A,
-  options: IAsyncActionRunOptions & { delay: number; clearOldRun?: boolean; immediateIfCached?: boolean },
+  options: IAsyncActionRunOptions & { delay: number; clearOldRun?: boolean; immediateIfCached?: boolean }
 ) => () => void;
 
-export interface IOCreateAsyncActionOutput<A = any, R = any, T extends string = string> {
-  use: TAsyncActionUse<A, R, T>;
-  useDefer: TAsyncActionUseDefer<A, R, T>;
+export interface IOCreateAsyncActionOutput<A = any, R = any, T extends string = string, N = any> {
+  use: TAsyncActionUse<A, R, T, N>;
+  useDefer: TAsyncActionUseDefer<A, R, T, N>;
   read: TAsyncActionRead<A, R>;
-  useBeckon: TAsyncActionBeckon<A, R, T>;
-  useWatch: TAsyncActionWatch<A, R, T>;
-  run: TAsyncActionRun<A, R, T>;
+  useBeckon: TAsyncActionBeckon<A, R, T, N>;
+  useWatch: TAsyncActionWatch<A, R, T, N>;
+  run: TAsyncActionRun<A, R, T, N>;
   delayedRun: TAsyncActionDelayedRun<A>;
-  getCached: TAsyncActionGetCached<A, R, T>;
-  setCached: TAsyncActionSetCached<A, R, T>;
+  getCached: TAsyncActionGetCached<A, R, T, N>;
+  setCached: TAsyncActionSetCached<A, R, T, N>;
   setCachedPayload: TAsyncActionSetCachedPayload<A, R>;
   updateCached: TAsyncActionUpdateCached<A, R>;
   clearCache: TAsyncActionClearCache<A>;
@@ -244,22 +247,22 @@ export interface IPullstateAsyncCache {
     };
   };
   actions: {
-    [key: string]: () => Promise<TAsyncActionResult<any, string>>;
+    [key: string]: () => Promise<TAsyncActionResult<any, string, any>>;
   };
   actionOrd: IPullstateAsyncActionOrdState;
 }
 
-export type TPullstateAsyncAction<A, R, T extends string, S extends IPullstateAllStores> = (
+export type TPullstateAsyncAction<A, R, T extends string, N, S extends IPullstateAllStores> = (
   args: A,
-  stores: S,
-) => Promise<TAsyncActionResult<R, T>>;
+  stores: S
+) => Promise<TAsyncActionResult<R, T, N>>;
 
-export interface ICreateAsyncActionOptions<A, R, T extends string, S extends IPullstateAllStores> {
+export interface ICreateAsyncActionOptions<A, R, T extends string, N, S extends IPullstateAllStores> {
   forceContext?: boolean;
   // clientStores?: S;
-  shortCircuitHook?: TPullstateAsyncShortCircuitHook<A, R, T, S>;
-  cacheBreakHook?: TPullstateAsyncCacheBreakHook<A, R, T, S>;
-  postActionHook?: TPullstateAsyncPostActionHook<A, R, T, S>;
+  shortCircuitHook?: TPullstateAsyncShortCircuitHook<A, R, T, N, S>;
+  cacheBreakHook?: TPullstateAsyncCacheBreakHook<A, R, T, N, S>;
+  postActionHook?: TPullstateAsyncPostActionHook<A, R, T, N, S>;
   subsetKey?: (args: A) => any;
 }
 
@@ -275,7 +278,7 @@ export interface IBaseObjResponseUseDefer<A, R, T extends string> {
   execute: (args?: A, runOptions?: Omit<IAsyncActionRunOptions, "key">) => TPullstateAsyncRunResponse<R, T>;
 }
 
-export interface IBaseObjResponse<R, T extends string> {
+export interface IBaseObjResponse<R, T extends string, N> {
   isLoading: boolean;
   isFinished: boolean;
   isUpdating: boolean;
@@ -284,7 +287,7 @@ export interface IBaseObjResponse<R, T extends string> {
   isFailure: boolean;
   clearCached: () => void;
   updateCached: (updater: TUpdateFunction<R>, options?: IAsyncActionUpdateCachedOptions) => void;
-  setCached: (result: TAsyncActionResult<R, T>, options?: IAsyncActionSetCachedOptions) => void;
+  setCached: (result: TAsyncActionResult<R, T, N>, options?: IAsyncActionSetCachedOptions) => void;
   setCachedPayload: (payload: R, options?: IAsyncActionSetCachedOptions) => void;
   endTags: (T | EAsyncEndTags)[];
   renderPayload: TRunWithPayload<R>;
@@ -292,24 +295,26 @@ export interface IBaseObjResponse<R, T extends string> {
   raw: TPullstateAsyncWatchResponse<R, T>;
 }
 
-export interface IBaseObjSuccessResponse<R, T extends string> extends IBaseObjResponse<R, T> {
+export interface IBaseObjSuccessResponse<R, T extends string, N> extends IBaseObjResponse<R, T, N> {
   payload: R;
+  errorPayload: null;
   error: false;
   isSuccess: true;
   isFailure: false;
 }
 
-export interface IBaseObjErrorResponse<R, T extends string> extends IBaseObjResponse<R, T> {
+export interface IBaseObjErrorResponse<R, T extends string, N> extends IBaseObjResponse<R, T, N> {
   payload: null;
+  errorPayload: N;
   error: true;
   isFailure: true;
   isSuccess: false;
 }
 
-export type TUseResponse<R = any, T extends string = string> =
-  (IBaseObjSuccessResponse<R, T>
-    | IBaseObjErrorResponse<R, T>) & IBaseObjResponseUse<R, T>;
+export type TUseResponse<R = any, T extends string = string, N = any> =
+  (IBaseObjSuccessResponse<R, T, N>
+    | IBaseObjErrorResponse<R, T, N>) & IBaseObjResponseUse<R, T>;
 
-export type TUseDeferResponse<A = any, R = any, T extends string = string> =
-  (IBaseObjSuccessResponse<R, T>
-    | IBaseObjErrorResponse<R, T>) & IBaseObjResponseUseDefer<A, R, T>;
+export type TUseDeferResponse<A = any, R = any, T extends string = string, N = any> =
+  (IBaseObjSuccessResponse<R, T, N>
+    | IBaseObjErrorResponse<R, T, N>) & IBaseObjResponseUseDefer<A, R, T>;

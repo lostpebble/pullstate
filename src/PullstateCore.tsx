@@ -152,9 +152,9 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
     };
   }*/
 
-  createAsyncActionDirect<A extends any = any, R extends any = any>(
+  createAsyncActionDirect<A extends any = any, R extends any = any, N extends any = any>(
     action: (args: A) => Promise<R>,
-    options: ICreateAsyncActionOptions<A, R, string, S> = {}
+    options: ICreateAsyncActionOptions<A, R, string, N, S> = {}
   ): IOCreateAsyncActionOutput<A, R> {
     return createAsyncActionDirect(action, options);
     // return createAsyncAction<A, R, string, S>(async (args: A) => {
@@ -162,18 +162,18 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
     // }, options);
   }
 
-  createAsyncAction<A = any, R = any, T extends string = string>(
-    action: TPullstateAsyncAction<A, R, T, S>,
+  createAsyncAction<A = any, R = any, T extends string = string, N extends any = any>(
+    action: TPullstateAsyncAction<A, R, T, N, S>,
     // options: Omit<ICreateAsyncActionOptions<A, R, T, S>, "clientStores"> = {}
-    options: ICreateAsyncActionOptions<A, R, T, S> = {}
-  ): IOCreateAsyncActionOutput<A, R, T> {
+    options: ICreateAsyncActionOptions<A, R, T, N, S> = {}
+  ): IOCreateAsyncActionOutput<A, R, T, N> {
     // options.clientStores = this.originStores;
     if (this.options.asyncActions?.defaultCachingSeconds && !options.cacheBreakHook) {
       options.cacheBreakHook = (inputs) =>
         inputs.timeCached < Date.now() - this.options.asyncActions!.defaultCachingSeconds! * 1000;
     }
 
-    return createAsyncAction<A, R, T, S>(action, options);
+    return createAsyncAction<A, R, T, N, S>(action, options);
   }
 }
 
