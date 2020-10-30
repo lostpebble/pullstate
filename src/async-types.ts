@@ -57,7 +57,7 @@ export interface IAsyncActionResultPositive<R, T extends string> extends IAsyncA
   payload: R;
 }
 
-export interface IAsyncActionResultNegative<T extends string, N = any> extends IAsyncActionResultBase<T> {
+export interface IAsyncActionResultNegative<T extends string, N = unknown> extends IAsyncActionResultBase<T> {
   error: true;
   errorPayload?: N;
   payload: null;
