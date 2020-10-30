@@ -12,21 +12,20 @@ import {
   TPullstateAsyncRunResponse
 } from "./async-types";
 
-type Omit<T, K> = Pick<T, Exclude<keyof T, K>>;
-
 export interface IPullstateAllStores {
   [storeName: string]: Store<any>;
 }
 
 export const PullstateContext = React.createContext<PullstateInstance | null>(null);
 
-export const PullstateProvider = <T extends IPullstateAllStores = IPullstateAllStores>({
-  instance,
-  children,
-}: {
-  instance: PullstateInstance<T>;
-  children?: any;
-}) => {
+export const PullstateProvider = <T extends IPullstateAllStores = IPullstateAllStores>(
+  {
+    instance,
+    children
+  }: {
+    instance: PullstateInstance<T>;
+    children?: any;
+  }) => {
   return <PullstateContext.Provider value={instance}>{children}</PullstateContext.Provider>;
 };
 
@@ -39,13 +38,11 @@ export const clientStores: {
 } = {
   internalClientStores: true,
   loaded: false,
-  stores: {},
+  stores: {}
 };
 
-export type TMultiStoreAction<
-  P extends PullstateSingleton<S>,
-  S extends IPullstateAllStores = P extends PullstateSingleton<infer ST> ? ST : any
-> = (update: TMultiStoreUpdateMap<S>) => void;
+export type TMultiStoreAction<P extends PullstateSingleton<S>,
+  S extends IPullstateAllStores = P extends PullstateSingleton<infer ST> ? ST : any> = (update: TMultiStoreUpdateMap<S>) => void;
 
 interface IPullstateSingletonOptions {
   asyncActions?: {
@@ -73,10 +70,11 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
     this.options = options;
   }
 
-  instantiate({
-    hydrateSnapshot,
-    ssr = false,
-  }: { hydrateSnapshot?: IPullstateSnapshot; ssr?: boolean } = {}): PullstateInstance<S> {
+  instantiate(
+    {
+      hydrateSnapshot,
+      ssr = false
+    }: { hydrateSnapshot?: IPullstateSnapshot; ssr?: boolean } = {}): PullstateInstance<S> {
     if (!ssr) {
       const instantiated = new PullstateInstance(clientStores.stores, false);
 
@@ -104,7 +102,7 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
 
       newStores[storeName]._setInternalOptions({
         ssr,
-        reactionCreators: clientStores.stores[storeName]._getReactionCreators(),
+        reactionCreators: clientStores.stores[storeName]._getReactionCreators()
       });
     }
 
@@ -152,28 +150,28 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
     };
   }*/
 
-  createAsyncActionDirect<A extends any = any, R extends any = any>(
+  createAsyncActionDirect<A extends any = any, R extends any = any, N extends any = any>(
     action: (args: A) => Promise<R>,
-    options: ICreateAsyncActionOptions<A, R, string, S> = {}
-  ): IOCreateAsyncActionOutput<A, R> {
+    options: ICreateAsyncActionOptions<A, R, string, N, S> = {}
+  ): IOCreateAsyncActionOutput<A, R, string, N> {
     return createAsyncActionDirect(action, options);
     // return createAsyncAction<A, R, string, S>(async (args: A) => {
     //   return successResult(await action(args));
     // }, options);
   }
 
-  createAsyncAction<A = any, R = any, T extends string = string>(
-    action: TPullstateAsyncAction<A, R, T, S>,
+  createAsyncAction<A = any, R = any, T extends string = string, N extends any = any>(
+    action: TPullstateAsyncAction<A, R, T, N, S>,
     // options: Omit<ICreateAsyncActionOptions<A, R, T, S>, "clientStores"> = {}
-    options: ICreateAsyncActionOptions<A, R, T, S> = {}
-  ): IOCreateAsyncActionOutput<A, R, T> {
+    options: ICreateAsyncActionOptions<A, R, T, N, S> = {}
+  ): IOCreateAsyncActionOutput<A, R, T, N> {
     // options.clientStores = this.originStores;
     if (this.options.asyncActions?.defaultCachingSeconds && !options.cacheBreakHook) {
       options.cacheBreakHook = (inputs) =>
         inputs.timeCached < Date.now() - this.options.asyncActions!.defaultCachingSeconds! * 1000;
     }
 
-    return createAsyncAction<A, R, T, S>(action, options);
+    return createAsyncAction<A, R, T, N, S>(action, options);
   }
 }
 
@@ -198,11 +196,11 @@ export interface IPullstateInstanceConsumable<T extends IPullstateAllStores = IP
 
   hydrateFromSnapshot(snapshot: IPullstateSnapshot): void;
 
-  runAsyncAction<A, R, X extends string>(
-    asyncAction: IOCreateAsyncActionOutput<A, R, X>,
+  runAsyncAction<A, R, X extends string, N>(
+    asyncAction: IOCreateAsyncActionOutput<A, R, X, N>,
     args?: A,
     runOptions?: Pick<IAsyncActionRunOptions, "ignoreShortCircuit" | "respectCache">
-  ): TPullstateAsyncRunResponse<R, X>;
+  ): TPullstateAsyncRunResponse<R, X, N>;
 }
 
 class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores>
@@ -213,7 +211,7 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores>
     listeners: {},
     results: {},
     actions: {},
-    actionOrd: {},
+    actionOrd: {}
   };
 
   constructor(allStores: T, ssr: boolean) {
@@ -259,11 +257,11 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores>
     return this._stores;
   }
 
-  async runAsyncAction<A, R, X extends string>(
-    asyncAction: IOCreateAsyncActionOutput<A, R, X>,
+  async runAsyncAction<A, R, X extends string, N>(
+    asyncAction: IOCreateAsyncActionOutput<A, R, X, N>,
     args: A = {} as A,
     runOptions: Pick<IAsyncActionRunOptions, "ignoreShortCircuit" | "respectCache"> = {}
-  ): TPullstateAsyncRunResponse<R, X> {
+  ): TPullstateAsyncRunResponse<R, X, N> {
     if (this._ssr) {
       (runOptions as IAsyncActionRunOptions)._asyncCache = this._asyncCache;
       (runOptions as IAsyncActionRunOptions)._stores = this._stores;

@@ -157,11 +157,11 @@ return successResult({ pictures: result.pictures });
 Will set `{ error: true }` on the result object e.g:
 
 ```tsx
-//     errorResult(tags = [], message = "") <- default arguments
-return errorResult(["NO_USER_FOUND"], "No user found in database by that name");
+//     errorResult(tags = [], message = "", errorPayload = undefined) <- default arguments
+return errorResult(["NO_USER_FOUND"], "No user found in database by that name", errorPayload);
 ```
 
-The `tags` property here is a way to easily react to more specific error states in your UI. The default error result, when you haven't caught the errors yourself, will return with a single tag: `["UNKNOWN_ERROR"]`. If you return an error with `errorResult()`, the tag `"RETURNED_ERROR"` will automatically be added to tags.
+The `tags` property here is a way to easily react to more specific error states in your UI. The default error result, when you haven't caught the errors yourself, will return with a single tag: `["UNKNOWN_ERROR"]`. If you return an error with `errorResult()`, the tag `"RETURNED_ERROR"` will automatically be added to tags. You may optionally also pass a `errorPayload` as a third argument if you need to access additional error data from the result.
 
 ## Update our state stores with async actions
 
