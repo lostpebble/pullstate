@@ -33,7 +33,7 @@ export type TPullstateAsyncBeckonResponse<R = any, T extends string = string, N 
 export type TPullstateAsyncRunResponse<R = any, T extends string = string, N = any> = Promise<TAsyncActionResult<R, T, N>>;
 
 export interface IPullstateAsyncResultState {
-  [key: string]: TPullstateAsyncWatchResponse<any, string>;
+  [key: string]: TPullstateAsyncWatchResponse<any, string, any>;
 }
 
 export interface IPullstateAsyncActionOrdState {
@@ -270,12 +270,12 @@ export interface ICreateAsyncActionOptions<A, R, T extends string, N, S extends 
 
 export type TRunWithPayload<R> = (func: (payload: R) => any) => any;
 
-export interface IBaseObjResponseUse<R, T extends string> {
-  execute: (runOptions?: IAsyncActionRunOptions) => TPullstateAsyncRunResponse<R, T>;
+export interface IBaseObjResponseUse<R, T extends string, N> {
+  execute: (runOptions?: IAsyncActionRunOptions) => TPullstateAsyncRunResponse<R, T, N>;
 }
 
-export interface IBaseObjResponseUseDefer<A, R, T extends string> {
-  execute: (args?: A, runOptions?: Omit<IAsyncActionRunOptions, "key">) => TPullstateAsyncRunResponse<R, T>;
+export interface IBaseObjResponseUseDefer<A, R, T extends string, N> {
+  execute: (args?: A, runOptions?: Omit<IAsyncActionRunOptions, "key">) => TPullstateAsyncRunResponse<R, T, N>;
 }
 
 export interface IBaseObjResponse<R, T extends string, N> {
@@ -283,8 +283,8 @@ export interface IBaseObjResponse<R, T extends string, N> {
   isFinished: boolean;
   isUpdating: boolean;
   isStarted: boolean;
-  isSuccess: boolean;
-  isFailure: boolean;
+  // isSuccess: boolean;
+  // isFailure: boolean;
   clearCached: () => void;
   updateCached: (updater: TUpdateFunction<R>, options?: IAsyncActionUpdateCachedOptions) => void;
   setCached: (result: TAsyncActionResult<R, T, N>, options?: IAsyncActionSetCachedOptions) => void;
@@ -292,7 +292,7 @@ export interface IBaseObjResponse<R, T extends string, N> {
   endTags: (T | EAsyncEndTags)[];
   renderPayload: TRunWithPayload<R>;
   message: string;
-  raw: TPullstateAsyncWatchResponse<R, T>;
+  raw: TPullstateAsyncWatchResponse<R, T, N>;
 }
 
 export interface IBaseObjSuccessResponse<R, T extends string, N> extends IBaseObjResponse<R, T, N> {
@@ -313,8 +313,8 @@ export interface IBaseObjErrorResponse<R, T extends string, N> extends IBaseObjR
 
 export type TUseResponse<R = any, T extends string = string, N = any> =
   (IBaseObjSuccessResponse<R, T, N>
-    | IBaseObjErrorResponse<R, T, N>) & IBaseObjResponseUse<R, T>;
+    | IBaseObjErrorResponse<R, T, N>) & IBaseObjResponseUse<R, T, N>;
 
 export type TUseDeferResponse<A = any, R = any, T extends string = string, N = any> =
   (IBaseObjSuccessResponse<R, T, N>
-    | IBaseObjErrorResponse<R, T, N>) & IBaseObjResponseUseDefer<A, R, T>;
+    | IBaseObjErrorResponse<R, T, N>) & IBaseObjResponseUseDefer<A, R, T, N>;
