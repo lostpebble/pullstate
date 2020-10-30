@@ -120,16 +120,17 @@ export function successResult<R, T extends string = string>(
   };
 }
 
-export function errorResult<R = any, T extends string = string>(
+export function errorResult<T extends string = string, N = unknown>(
   tags: (EAsyncEndTags | T)[] = [],
   message: string = "",
-  payload?: R 
-): IAsyncActionResultNegative<T> {
+  errorPayload?: N
+): IAsyncActionResultNegative<T, N> {
   return {
-    payload,
+    payload: null,
     tags: [EAsyncEndTags.RETURNED_ERROR, ...tags],
     message,
-    error: true
+    error: true,
+    errorPayload,
   };
 }
 

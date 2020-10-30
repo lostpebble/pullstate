@@ -57,12 +57,13 @@ export interface IAsyncActionResultPositive<R, T extends string> extends IAsyncA
   payload: R;
 }
 
-export interface IAsyncActionResultNegative<T extends string, R = any> extends IAsyncActionResultBase<T> {
+export interface IAsyncActionResultNegative<T extends string, N = any> extends IAsyncActionResultBase<T> {
   error: true;
-  payload: R;
+  errorPayload?: N;
+  payload: null;
 }
 
-export type TAsyncActionResult<R, T extends string> = IAsyncActionResultPositive<R, T> | IAsyncActionResultNegative<T>;
+export type TAsyncActionResult<R, T extends string, N = unknown> = IAsyncActionResultPositive<R, T> | IAsyncActionResultNegative<T, N>;
 
 // Order of new hook functions:
 
