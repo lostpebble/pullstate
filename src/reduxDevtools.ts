@@ -1,11 +1,12 @@
 import { IPullstateAllStores } from "./PullstateCore";
+import { isWebOrReactNative } from "./environmentUtils";
 
 interface IORegisterInDevtoolsOptions {
   namespace?: string;
 }
 
 export function registerInDevtools(stores: IPullstateAllStores, { namespace = "" }: IORegisterInDevtoolsOptions = {}) {
-  if (typeof document !== "undefined") {
+  if (isWebOrReactNative()) {
     for (const key of Object.keys(stores)) {
       const store = stores[key];
 
