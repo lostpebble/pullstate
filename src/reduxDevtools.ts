@@ -5,7 +5,7 @@ interface IORegisterInDevtoolsOptions {
 }
 
 export function registerInDevtools(stores: IPullstateAllStores, { namespace = "" }: IORegisterInDevtoolsOptions = {}) {
-  const devToolsExtension = (window as any)?.__REDUX_DEVTOOLS_EXTENSION__;
+  const devToolsExtension = typeof window !== "undefined" ? (window as any)?.__REDUX_DEVTOOLS_EXTENSION__ : undefined;
 
   if (devToolsExtension) {
     for (const key of Object.keys(stores)) {
