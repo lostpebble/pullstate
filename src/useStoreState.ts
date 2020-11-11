@@ -63,6 +63,9 @@ function useStoreState(store: Store, getSubState?: (state: any) => any, deps?: R
     }
 
     store._addUpdateListener(update);
+    // This ensures we get the latest updated value, even if it has changed
+    // between the initial rendering and the effect
+    update();
 
     return () => {
       effectState.shouldUpdate = false;
