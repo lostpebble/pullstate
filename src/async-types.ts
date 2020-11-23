@@ -276,6 +276,8 @@ export interface IBaseObjResponseUse<R, T extends string, N> {
 
 export interface IBaseObjResponseUseDefer<A, R, T extends string, N> {
   execute: (args?: A, runOptions?: Omit<IAsyncActionRunOptions, "key">) => TPullstateAsyncRunResponse<R, T, N>;
+  args: A;
+  key: string;
 }
 
 export interface IBaseObjResponse<R, T extends string, N> {

@@ -1078,34 +1078,39 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
   const useDefer: TAsyncActionUseDefer<A, R, T, N> = (
     inputs: IAsyncActionUseDeferOptions<R, A> = {}) => {
-    const [key, setKey] = useState<string>(() => inputs.key ? inputs.key : _createKey({} as A));
+    const [argState, setArgState] = useState<{ args: A; key: string; }>(() => ({
+      key: inputs.key ? inputs.key : _createKey({} as A),
+      args: {} as A
+    }));
 
     const initialResponse = use({} as any, {
       ...inputs,
-      key,
+      key: argState.key,
       initiate: false
     });
 
     return {
       ...initialResponse,
       clearCached: () => {
-        clearCache({} as any, key);
+        clearCache({} as any, argState.key);
       },
       setCached: (response, options = {}) => {
-        options.key = key;
+        options.key = argState.key;
         setCached({} as A, response, options);
       },
       setCachedPayload: (payload, options = {}) => {
-        options.key = key;
+        options.key = argState.key;
         setCachedPayload({} as A, payload, options);
       },
       updateCached: (updater, options = {}) => {
-        options.key = key;
+        options.key = argState.key;
         updateCached({} as A, updater, options);
       },
       execute: (args = {} as A, runOptions) => {
         const executionKey = inputs.key ?? _createKey(args);
-        setKey(executionKey);
+        if (executionKey !== argState.key) {
+          setArgState({ key: executionKey, args });
+        }
 
         return run(args, { ...runOptions, key: executionKey }).then(resp => {
           if (inputs.clearOnSuccess) {
@@ -1114,7 +1119,9 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
           return resp;
         });
-      }
+      },
+      args: argState.args,
+      key: argState.key
     };
   };
 
