@@ -11,7 +11,7 @@ function fastGet<S extends object>(obj: S, path: any[]): any {
   }, undefined);
 }
 
-function getSubStateFromPaths<S extends object, P extends DeepKeyOfArray<S>[]>(store: Store<S>, paths: P): any[] {
+function getSubStateFromPaths<S extends any, P extends DeepKeyOfArray<S>[]>(store: Store<S>, paths: P): any[] {
   const state: any = store.getRawState();
 
   const resp: any[] = [];
@@ -23,7 +23,7 @@ function getSubStateFromPaths<S extends object, P extends DeepKeyOfArray<S>[]>(s
   return resp;
 }
 
-function useStoreStateOpt<S extends object, P extends TAllPathsParameter<S>>(
+function useStoreStateOpt<S extends any, P extends TAllPathsParameter<S>>(
   store: Store<S>,
   paths: P
 ): [

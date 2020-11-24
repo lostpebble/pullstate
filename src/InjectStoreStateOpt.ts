@@ -4,7 +4,7 @@ import { useStoreStateOpt } from "./useStoreStateOpt";
 import { DeepTypeOfArray, TAllPathsParameter } from "./useStoreStateOpt-types";
 
 export interface IPropsInjectStoreStateOpt<
-  S extends object = any,
+  S extends any = any,
   P extends TAllPathsParameter<S> = TAllPathsParameter<S>,
   O extends [
     DeepTypeOfArray<S, P[0]>,
@@ -38,7 +38,7 @@ export interface IPropsInjectStoreStateOpt<
 }
 
 export function InjectStoreStateOpt<
-  S extends object,
+  S extends any,
   P extends TAllPathsParameter<S>,
   O extends [
     DeepTypeOfArray<S, P[0]>,
