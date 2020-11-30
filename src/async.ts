@@ -720,10 +720,19 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       postActionEnabled = true,
       cacheBreakEnabled = true,
       holdPrevious = false,
-      dormant = false
+      dormant = false,
+      key
     }: IAsyncActionBeckonOptions = {}
   ) => {
-    const result = useWatch(args, { initiate: true, ssr, postActionEnabled, cacheBreakEnabled, holdPrevious, dormant });
+    const result = useWatch(args, {
+      initiate: true,
+      ssr,
+      postActionEnabled,
+      cacheBreakEnabled,
+      holdPrevious,
+      dormant,
+      key
+    });
     return [result[1], result[2], result[3]];
   };
 
