@@ -183,11 +183,11 @@ export function createAsyncActionDirect<A extends any = any,
   R extends any = any,
   N extends any = any,
   S extends IPullstateAllStores = IPullstateAllStores>(
-  action: (args: A) => Promise<R>,
+  action: (args: A, stores: S, customContext: any) => Promise<R>,
   options: ICreateAsyncActionOptions<A, R, string, N, S> = {}
 ): IOCreateAsyncActionOutput<A, R, string, N> {
-  return createAsyncAction<A, R, string, N, S>(async (args: A) => {
-    return successResult(await action(args));
+  return createAsyncAction<A, R, string, N, S>(async (args: A, stores: S, customContext: any) => {
+    return successResult(await action(args, stores, customContext));
   }, options);
 }
 
@@ -300,14 +300,15 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     stores: S,
     currentActionOrd: number,
     postActionEnabled: boolean,
-    context: EPostActionContext
+    executionContext: EPostActionContext,
+    customContext: any
   ): () => Promise<TAsyncActionResult<R, T, N>> {
     return () =>
-      action(args, stores)
+      action(args, stores, customContext)
         .then((resp) => {
           if (currentActionOrd === cache.actionOrd[key]) {
             if (postActionEnabled) {
-              runPostActionHook(resp as TAsyncActionResult<R, T, N>, args, stores, context);
+              runPostActionHook(resp as TAsyncActionResult<R, T, N>, args, stores, executionContext);
             }
             cache.results[key] = [true, true, resp, false, Date.now()] as TPullstateAsyncWatchResponse<R, T>;
           }
@@ -327,7 +328,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
           if (currentActionOrd === cache.actionOrd[key]) {
             if (postActionEnabled) {
-              runPostActionHook(result, args, stores, context);
+              runPostActionHook(result, args, stores, executionContext);
             }
             cache.results[key] = [true, true, result, false, Date.now()] as TPullstateAsyncWatchResponse<R, T>;
           }
@@ -355,7 +356,8 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     fromListener = false,
     postActionEnabled = true,
     cacheBreakEnabled = true,
-    holdingResult: TPullstateAsyncWatchResponse<R, T, N> | undefined = undefined
+    holdingResult: TPullstateAsyncWatchResponse<R, T, N> | undefined,
+    customContext: any
   ): TPullstateAsyncWatchResponse<R, T, N> {
     const cached = getCachedResult(
       key,
@@ -398,7 +400,8 @@ further looping. Fix in your cacheBreakHook() is needed.`);
             stores,
             currentActionOrd,
             postActionEnabled,
-            EPostActionContext.BECKON_RUN
+            EPostActionContext.BECKON_RUN,
+            customContext
           );
         }
 
@@ -466,12 +469,26 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     const key = _createKey(args, customKey);
 
     const cache: IPullstateAsyncCache = onServer ? useContext(PullstateContext)!._asyncCache : clientAsyncCache;
-    const stores =
+
+    let stores: S;
+    let customContext: any;
+
+    if (onServer || forceContext) {
+      const pullstateContext = useContext(PullstateContext)!;
+      stores = pullstateContext.stores as S;
+      customContext = pullstateContext.customContext;
+    } else if (clientStores.loaded) {
+      stores = clientStores.stores as S;
+    } else {
+      stores = storeErrorProxy as S;
+    }
+
+    /*const stores =
       onServer || forceContext
         ? (useContext(PullstateContext)!.stores as S)
         : clientStores.loaded
         ? (clientStores.stores as S)
-        : (storeErrorProxy as S);
+        : (storeErrorProxy as S);*/
 
     const cached = getCachedResult(
       key,
@@ -515,7 +532,8 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         stores,
         currentActionOrd,
         postActionEnabled,
-        EPostActionContext.READ_RUN
+        EPostActionContext.READ_RUN,
+        customContext
       );
 
       if (onServer) {
@@ -580,12 +598,25 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     // console.log(`[${key}][${watchId.current}] Starting useWatch()`);
 
     const cache: IPullstateAsyncCache = onServer ? useContext(PullstateContext)!._asyncCache : clientAsyncCache;
-    const stores =
+
+    let stores: S;
+    let customContext: any;
+
+    if (onServer || forceContext) {
+      const pullstateContext = useContext(PullstateContext)!;
+      stores = pullstateContext.stores as S;
+      customContext = pullstateContext.customContext;
+    } else if (clientStores.loaded) {
+      stores = clientStores.stores as S;
+    } else {
+      stores = storeErrorProxy as S;
+    }
+    /*const stores =
       onServer || forceContext
         ? (useContext(PullstateContext)!.stores as S)
         : clientStores.loaded
         ? (clientStores.stores as S)
-        : (storeErrorProxy as S);
+        : (storeErrorProxy as S);*/
 
     // only listen for updates when on client
     if (!onServer) {
@@ -609,7 +640,9 @@ further looping. Fix in your cacheBreakHook() is needed.`);
             stores,
             true,
             postActionEnabled,
-            cacheBreakEnabled
+            cacheBreakEnabled,
+            undefined,
+            customContext
           );
 
           setWatchUpdate((prev) => {
@@ -700,7 +733,8 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         cacheBreakEnabled,
         // If we want to hold previous and the previous result was finished -
         // keep showing that until this new one resolves
-        holdPrevious && responseRef.current && responseRef.current[1] ? responseRef.current : undefined
+        holdPrevious && responseRef.current && responseRef.current[1] ? responseRef.current : undefined,
+        customContext
       );
     }
 
@@ -744,7 +778,8 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       respectCache = false,
       key: customKey,
       _asyncCache = clientAsyncCache,
-      _stores = clientStores.loaded ? clientStores.stores : (storeErrorProxy as S)
+      _stores = clientStores.loaded ? clientStores.stores : (storeErrorProxy as S),
+      _customContext
     }: IAsyncActionRunOptions = {}
   ) => {
     const key = _createKey(args, customKey);
@@ -836,7 +871,8 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       _stores,
       currentActionOrd,
       true,
-      EPostActionContext.DIRECT_RUN
+      EPostActionContext.DIRECT_RUN,
+      _customContext
     );
 
     notifyListeners(key);

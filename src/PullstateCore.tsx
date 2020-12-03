@@ -73,10 +73,11 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
   instantiate(
     {
       hydrateSnapshot,
-      ssr = false
-    }: { hydrateSnapshot?: IPullstateSnapshot; ssr?: boolean } = {}): PullstateInstance<S> {
+      ssr = false,
+      customContext
+    }: { hydrateSnapshot?: IPullstateSnapshot; ssr?: boolean, customContext?: any } = {}): PullstateInstance<S> {
     if (!ssr) {
-      const instantiated = new PullstateInstance(clientStores.stores, false);
+      const instantiated = new PullstateInstance(clientStores.stores, false, customContext);
 
       if (hydrateSnapshot != null) {
         instantiated.hydrateFromSnapshot(hydrateSnapshot);
@@ -106,7 +107,7 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
       });
     }
 
-    return new PullstateInstance(newStores as S, true);
+    return new PullstateInstance(newStores as S, true, customContext);
   }
 
   useStores(): S {
@@ -206,6 +207,7 @@ export interface IPullstateInstanceConsumable<T extends IPullstateAllStores = IP
 class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores>
   implements IPullstateInstanceConsumable<T> {
   private _ssr: boolean = false;
+  private _customContext: any;
   private readonly _stores: T = {} as T;
   _asyncCache: IPullstateAsyncCache = {
     listeners: {},
@@ -214,9 +216,10 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores>
     actionOrd: {}
   };
 
-  constructor(allStores: T, ssr: boolean) {
+  constructor(allStores: T, ssr: boolean, customContext: any) {
     this._stores = allStores;
     this._ssr = ssr;
+    this._customContext = customContext;
     /*if (!ssr) {
       // console.log(`Instantiating Stores`, allStores);
       clientStores.stores = allStores;
@@ -257,6 +260,10 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores>
     return this._stores;
   }
 
+  get customContext(): any {
+    return this._customContext;
+  }
+
   async runAsyncAction<A, R, X extends string, N>(
     asyncAction: IOCreateAsyncActionOutput<A, R, X, N>,
     args: A = {} as A,
@@ -265,6 +272,7 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores>
     if (this._ssr) {
       (runOptions as IAsyncActionRunOptions)._asyncCache = this._asyncCache;
       (runOptions as IAsyncActionRunOptions)._stores = this._stores;
+      (runOptions as IAsyncActionRunOptions)._customContext = this._customContext;
     }
 
     return await asyncAction.run(args, runOptions);

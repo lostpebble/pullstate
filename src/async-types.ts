@@ -140,6 +140,7 @@ export interface IAsyncActionRunOptions<S extends IPullstateAllStores = any> {
   key?: string;
   _asyncCache?: IPullstateAsyncCache;
   _stores?: S;
+  _customContext?: any;
 }
 
 export interface IAsyncActionGetCachedOptions {
@@ -254,7 +255,8 @@ export interface IPullstateAsyncCache {
 
 export type TPullstateAsyncAction<A, R, T extends string, N, S extends IPullstateAllStores> = (
   args: A,
-  stores: S
+  stores: S,
+  customContext: any
 ) => Promise<TAsyncActionResult<R, T, N>>;
 
 export interface ICreateAsyncActionOptions<A, R, T extends string, N, S extends IPullstateAllStores> {
