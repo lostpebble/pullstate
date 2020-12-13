@@ -266,6 +266,7 @@ export interface ICreateAsyncActionOptions<A, R, T extends string, N, S extends 
   cacheBreakHook?: TPullstateAsyncCacheBreakHook<A, R, T, N, S>;
   postActionHook?: TPullstateAsyncPostActionHook<A, R, T, N, S>;
   subsetKey?: (args: A) => any;
+  actionId?: string | number;
 }
 
 // action.use() types

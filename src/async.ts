@@ -202,10 +202,11 @@ export function createAsyncAction<A = any,
     shortCircuitHook,
     cacheBreakHook,
     postActionHook,
-    subsetKey
+    subsetKey,
+    actionId
   }: ICreateAsyncActionOptions<A, R, T, N, S> = {}
 ): IOCreateAsyncActionOutput<A, R, T, N> {
-  const ordinal: number = asyncCreationOrdinal++;
+  const ordinal: string | number = actionId != null ? `_${actionId}` : asyncCreationOrdinal++;
   const onServer: boolean = typeof window === "undefined";
 
   function _createKey(args: A, customKey?: string) {
