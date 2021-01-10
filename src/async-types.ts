@@ -158,12 +158,15 @@ export interface IGetCachedResponse<R, T extends string, N = any> {
   timeCached: number;
 }
 
-export interface IAsyncActionSetCachedOptions {
+export interface IAsyncClearCacheOptions {
   notify?: boolean;
+}
+
+export interface IAsyncActionSetOrClearCachedValueOptions extends IAsyncClearCacheOptions {
   key?: string;
 }
 
-export interface IAsyncActionUpdateCachedOptions extends IAsyncActionSetCachedOptions {
+export interface IAsyncActionUpdateCachedOptions extends IAsyncActionSetOrClearCachedValueOptions {
   resetTimeCached?: boolean;
   runPostActionHook?: boolean;
 }
@@ -192,11 +195,11 @@ export type TAsyncActionRun<A, R, T extends string, N> = (
   options?: IAsyncActionRunOptions
 ) => TPullstateAsyncRunResponse<R, T, N>;
 
-export type TAsyncActionClearCache<A> = (args?: A, customKey?: string) => void;
+export type TAsyncActionClearCache<A> = (args?: A, options?: IAsyncActionSetOrClearCachedValueOptions) => void;
 
-export type TAsyncActionClearAllCache = () => void;
+export type TAsyncActionClearAllCache = (options?: IAsyncClearCacheOptions) => void;
 
-export type TAsyncActionClearAllUnwatchedCache = () => void;
+export type TAsyncActionClearAllUnwatchedCache = (options?: IAsyncClearCacheOptions) => void;
 
 export type TAsyncActionGetCached<A, R, T extends string, N> = (
   args?: A,
@@ -206,10 +209,10 @@ export type TAsyncActionGetCached<A, R, T extends string, N> = (
 export type TAsyncActionSetCached<A, R, T extends string, N> = (
   args: A,
   result: TAsyncActionResult<R, T, N>,
-  options?: IAsyncActionSetCachedOptions
+  options?: IAsyncActionSetOrClearCachedValueOptions
 ) => void;
 
-export type TAsyncActionSetCachedPayload<A, R> = (args: A, payload: R, options?: IAsyncActionSetCachedOptions) => void;
+export type TAsyncActionSetCachedPayload<A, R> = (args: A, payload: R, options?: IAsyncActionSetOrClearCachedValueOptions) => void;
 
 export type TAsyncActionUpdateCached<A, R> = (
   args: A,
@@ -292,8 +295,8 @@ export interface IBaseObjResponse<R, T extends string, N> {
   // isFailure: boolean;
   clearCached: () => void;
   updateCached: (updater: TUpdateFunction<R>, options?: IAsyncActionUpdateCachedOptions) => void;
-  setCached: (result: TAsyncActionResult<R, T, N>, options?: IAsyncActionSetCachedOptions) => void;
-  setCachedPayload: (payload: R, options?: IAsyncActionSetCachedOptions) => void;
+  setCached: (result: TAsyncActionResult<R, T, N>, options?: IAsyncActionSetOrClearCachedValueOptions) => void;
+  setCachedPayload: (payload: R, options?: IAsyncActionSetOrClearCachedValueOptions) => void;
   endTags: (T | EAsyncEndTags)[];
   renderPayload: TRunWithPayload<R>;
   message: string;

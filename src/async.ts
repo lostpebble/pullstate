@@ -85,7 +85,7 @@ function notifyListeners(key: string) {
   }
 }
 
-function clearActionCache(key: string, clearPending: boolean = true) {
+function clearActionCache(key: string, clearPending: boolean = true, notify = true) {
   if (clearPending && clientAsyncCache.actionOrd.hasOwnProperty(key)) {
     clientAsyncCache.actionOrd[key] += 1;
   }
@@ -93,7 +93,9 @@ function clearActionCache(key: string, clearPending: boolean = true) {
   // console.log(`Set ordinal for action [${key}] to ${clientAsyncCache.actionOrd[key] || "DIDNT EXIST"}`);
   // console.log(`Clearing cache for [${key}]`);
   delete clientAsyncCache.results[key];
-  notifyListeners(key);
+  if (notify) {
+    notifyListeners(key);
+  }
 }
 
 function actionOrdUpdate(cache: IPullstateAsyncCache, key: string): number {
@@ -881,24 +883,24 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     return _asyncCache.actions[key]() as Promise<TAsyncActionResult<R, T, N>>;
   };
 
-  const clearCache: TAsyncActionClearCache<A> = (args = {} as A, customKey?: string) => {
+  const clearCache: TAsyncActionClearCache<A> = (args = {} as A, { key: customKey, notify = true } = {}) => {
     const key = _createKey(args, customKey);
-    clearActionCache(key);
+    clearActionCache(key, true, notify);
   };
 
-  const clearAllCache: TAsyncActionClearAllCache = () => {
+  const clearAllCache: TAsyncActionClearAllCache = ({ notify = true } = {}) => {
     for (const key of Object.keys(clientAsyncCache.actionOrd)) {
       if (key.startsWith(`${ordinal}-`)) {
-        clearActionCache(key);
+        clearActionCache(key, true, notify);
       }
     }
   };
 
-  const clearAllUnwatchedCache: TAsyncActionClearAllUnwatchedCache = () => {
+  const clearAllUnwatchedCache: TAsyncActionClearAllUnwatchedCache = ({ notify = true } = {}) => {
     for (const key of Object.keys(shouldUpdate)) {
       if (!Object.values(shouldUpdate[key]).some((su) => su)) {
         delete shouldUpdate[key];
-        clearActionCache(key, false);
+        clearActionCache(key, false, notify);
       }
     }
   };
@@ -1138,7 +1140,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     return {
       ...initialResponse,
       clearCached: () => {
-        clearCache({} as any, argState.key);
+        clearCache({} as any, { key: argState.key });
       },
       setCached: (response, options = {}) => {
         options.key = argState.key;
@@ -1160,7 +1162,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
         return run(args, { ...runOptions, key: executionKey }).then(resp => {
           if (inputs.clearOnSuccess) {
-            clearCache({} as any, executionKey);
+            clearCache({} as any, { key: executionKey });
           }
 
           return resp;
