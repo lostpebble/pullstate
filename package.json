@@ -76,7 +76,6 @@
     "webpack-cli": "^3.3.12"
   },
   "peerDependencies": {
-    "immer": "^8.0.1",
     "react": "^16.12.0"
   }
 }
