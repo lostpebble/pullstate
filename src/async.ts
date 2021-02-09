@@ -577,7 +577,10 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     }: IAsyncActionWatchOptions = {}
   ) => {
     // Where we store the current response that will be returned from our hook
-    const responseRef = useRef<TPullstateAsyncWatchResponse<R, T>>();
+    const responseRef = useRef<{ response: TPullstateAsyncWatchResponse<R, T> | undefined, initialized: boolean }>({
+      initialized: false,
+      response: undefined
+    });
 
     // For comparisons to our previous "fingerprint" / key from args
     const prevKeyRef = useRef<string>(".");
@@ -626,15 +629,15 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       const onAsyncStateChanged = () => {
         /*console.log(`[${key}][${watchId.current}] should update: ${shouldUpdate[key][watchId.current]}`);
         console.log(
-          `[${key}][${watchId.current}] will update?: ${!isEqual(responseRef.current, cache.results[key])} - ${
-            responseRef.current
+          `[${key}][${watchId.current}] will update?: ${!isEqual(responseRef.current.response, cache.results[key])} - ${
+            responseRef.current.response
           } !== ${cache.results[key]}`
         );
-        console.log(responseRef.current);
+        console.log(responseRef.current.response);
         console.log(cache.results[key]);
         console.log(cache);*/
-        if (shouldUpdate[key][watchId.current] && !isEqual(responseRef.current, cache.results[key])) {
-          responseRef.current = checkKeyAndReturnResponse(
+        if (shouldUpdate[key][watchId.current] && !isEqual(responseRef.current.response, cache.results[key])) {
+          responseRef.current.response = checkKeyAndReturnResponse(
             key,
             cache,
             initiate,
@@ -694,14 +697,14 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
     /*// If we've run this before, and the keys are equal, quick return with the current set result
     if (prevKeyRef.current !== null && prevKeyRef.current === key) {
-      return responseRef.current;
+      return responseRef.current.response;
     }*/
     // console.log(`[${key}][${watchId}] Is dormamt?: ${dormant}`);
     // console.log(`[${key}][${watchId}] CHECKING KEYS [${prevKeyRef.current} <---> ${key}]`);
     if (dormant) {
-      responseRef.current =
-        holdPrevious && responseRef.current && responseRef.current[1]
-          ? responseRef.current
+      responseRef.current.response =
+        holdPrevious && responseRef.current.response && responseRef.current.response[1]
+          ? responseRef.current.response
           : ([
             false,
             false,
@@ -724,7 +727,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
       prevKeyRef.current = key;
 
-      responseRef.current = checkKeyAndReturnResponse(
+      responseRef.current.response = checkKeyAndReturnResponse(
         key,
         cache,
         initiate,
@@ -736,17 +739,17 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         cacheBreakEnabled,
         // If we want to hold previous and the previous result was finished -
         // keep showing that until this new one resolves
-        holdPrevious && responseRef.current && responseRef.current[1] ? responseRef.current : undefined,
+        holdPrevious && responseRef.current.response && responseRef.current.response[1] ? responseRef.current.response : undefined,
         customContext
       );
     }
 
     /*console.log(
       `[${key}][${watchId}] Returning from watch() [update no. ${_}] with response: ${JSON.stringify(
-        responseRef.current
+        responseRef.current.response
       )}`
     );*/
-    return responseRef.current!;
+    return responseRef.current.response!;
   };
 
   // Same as watch - just initiated, so no need for "started" return value
