@@ -247,13 +247,14 @@ export function createAsyncAction<A = any,
     postActionEnabled: boolean,
     cacheBreakEnabled: boolean,
     fromListener: boolean
-  ): TPullstateAsyncWatchResponse<R, T> | undefined {
+  ): { cacheBroke: boolean; response: TPullstateAsyncWatchResponse<R, T> | undefined } {
     if (cache.results.hasOwnProperty(key)) {
       const cacheBreakLoop = cacheBreakWatcher.hasOwnProperty(key) && cacheBreakWatcher[key] > 2;
       // console.log(`[${key}] Pullstate Async: Already finished - returning cached result`);
 
       // Only beckon() or run() can cache break - because watch() will not initiate the re-caching mechanism
       if (
+        !fromListener &&
         cache.results[key][1] && // isFinished?
         cacheBreakEnabled &&
         cacheBreakHook !== undefined &&
@@ -272,6 +273,7 @@ export function createAsyncAction<A = any,
         }
 
         delete cache.results[key];
+        return { cacheBroke: true, response: undefined };
       } else {
         if (cacheBreakLoop) {
           console.error(`[${key}] Pullstate detected an infinite loop caused by cacheBreakHook()
@@ -289,11 +291,11 @@ further looping. Fix in your cacheBreakHook() is needed.`);
           runPostActionHook(cache.results[key][2] as TAsyncActionResult<R, T, N>, args, stores, context);
         }
 
-        return cache.results[key] as TPullstateAsyncWatchResponse<R, T>;
+        return { response: cache.results[key] as TPullstateAsyncWatchResponse<R, T>, cacheBroke: false };
       }
     }
 
-    return undefined;
+    return { cacheBroke: false, response: undefined };
   }
 
   function createInternalAction(
@@ -373,8 +375,8 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       fromListener
     );
 
-    if (cached) {
-      return cached;
+    if (cached.response) {
+      return cached.response;
     }
 
     // console.log(`[${key}] Pullstate Async: has no results yet`);
@@ -504,11 +506,11 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       false
     );
 
-    if (cached) {
-      if (!cached[2].error) {
-        return cached[2].payload;
+    if (cached.response) {
+      if (!cached.response[2].error) {
+        return cached.response[2].payload;
       } else {
-        throw new PullstateAsyncError(cached[2].message, cached[2].tags);
+        throw new PullstateAsyncError(cached.response[2].message, cached.response[2].tags);
       }
     }
 
@@ -803,9 +805,9 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
       // console.log(`Async RUN: Found cached`, cached);
 
-      if (cached) {
+      if (cached.response) {
         // If cached result is unfinished, wait for completion
-        if (!cached[1]) {
+        if (!cached.response[1]) {
           const watchOrd = watchIdOrd++;
           if (!_asyncCache.listeners.hasOwnProperty(key)) {
             _asyncCache.listeners[key] = {};
@@ -822,7 +824,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
           });
         }
 
-        return cached[2];
+        return cached.response[2];
       }
     }
 
