@@ -106,27 +106,28 @@ export type TPullstateAsyncPostActionHook<A, R, T extends string, N, S extends I
   context: EPostActionContext;
 }) => void;
 
-export interface IAsyncActionReadOptions {
+export interface IAsyncActionReadOptions<A, R, T extends string, N, S extends IPullstateAllStores> {
   postActionEnabled?: boolean;
   cacheBreakEnabled?: boolean;
   key?: string;
+  cacheBreakHook?: TPullstateAsyncCacheBreakHook<A, R, T, N, S>
 }
 
-export interface IAsyncActionBeckonOptions extends IAsyncActionReadOptions {
+export interface IAsyncActionBeckonOptions<A, R, T extends string, N, S extends IPullstateAllStores> extends IAsyncActionReadOptions<A, R, T, N, S> {
   ssr?: boolean;
   holdPrevious?: boolean;
   dormant?: boolean;
 }
 
-export interface IAsyncActionWatchOptions extends IAsyncActionBeckonOptions {
+export interface IAsyncActionWatchOptions<A, R, T extends string, N, S extends IPullstateAllStores> extends IAsyncActionBeckonOptions<A, R, T, N, S> {
   initiate?: boolean;
 }
 
-export interface IAsyncActionUseOptions<R, A> extends IAsyncActionWatchOptions {
+export interface IAsyncActionUseOptions<A, R, T extends string, N, S extends IPullstateAllStores> extends IAsyncActionWatchOptions<A, R, T, N, S> {
   onSuccess?: (result: R, args: A) => void;
 }
 
-export interface IAsyncActionUseDeferOptions<R, A> extends Omit<IAsyncActionReadOptions, "key"> {
+export interface IAsyncActionUseDeferOptions<A, R, T extends string, N, S extends IPullstateAllStores> extends Omit<IAsyncActionReadOptions<A, R, T, N, S>, "key"> {
   key?: string;
   holdPrevious?: boolean;
   onSuccess?: (result: R, args: A) => void;
@@ -171,23 +172,23 @@ export interface IAsyncActionUpdateCachedOptions extends IAsyncActionSetOrClearC
   runPostActionHook?: boolean;
 }
 
-export type TAsyncActionUse<A, R, T extends string, N> = (
+export type TAsyncActionUse<A, R, T extends string, N, S extends IPullstateAllStores> = (
   args?: A,
-  options?: IAsyncActionUseOptions<R, A>
+  options?: IAsyncActionUseOptions<A, R, T, N, S>
 ) => TUseResponse<R, T, N>;
 
-export type TAsyncActionUseDefer<A, R, T extends string, N> = (
-  options?: IAsyncActionUseDeferOptions<R, A>
+export type TAsyncActionUseDefer<A, R, T extends string, N, S extends IPullstateAllStores> = (
+  options?: IAsyncActionUseDeferOptions<A, R, T, N, S>
 ) => TUseDeferResponse<A, R, T, N>;
 
-export type TAsyncActionBeckon<A, R, T extends string, N> = (
+export type TAsyncActionBeckon<A, R, T extends string, N, S extends IPullstateAllStores> = (
   args?: A,
-  options?: IAsyncActionBeckonOptions
+  options?: IAsyncActionBeckonOptions<A, R, T, N, S>
 ) => TPullstateAsyncBeckonResponse<R, T, N>;
 
-export type TAsyncActionWatch<A, R, T extends string, N> = (
+export type TAsyncActionWatch<A, R, T extends string, N, S extends IPullstateAllStores> = (
   args?: A,
-  options?: IAsyncActionWatchOptions
+  options?: IAsyncActionWatchOptions<A, R, T, N, S>
 ) => TPullstateAsyncWatchResponse<R, T, N>;
 
 export type TAsyncActionRun<A, R, T extends string, N> = (
@@ -219,19 +220,19 @@ export type TAsyncActionUpdateCached<A, R> = (
   updater: TUpdateFunction<R>,
   options?: IAsyncActionUpdateCachedOptions
 ) => void;
-export type TAsyncActionRead<A, R> = (args?: A, options?: IAsyncActionReadOptions) => R;
+export type TAsyncActionRead<A, R, T extends string, N, S extends IPullstateAllStores> = (args?: A, options?: IAsyncActionReadOptions<A, R, T, N, S>) => R;
 
 export type TAsyncActionDelayedRun<A> = (
   args: A,
   options: IAsyncActionRunOptions & { delay: number; clearOldRun?: boolean; immediateIfCached?: boolean }
 ) => () => void;
 
-export interface IOCreateAsyncActionOutput<A = any, R = any, T extends string = string, N = any> {
-  use: TAsyncActionUse<A, R, T, N>;
-  useDefer: TAsyncActionUseDefer<A, R, T, N>;
-  read: TAsyncActionRead<A, R>;
-  useBeckon: TAsyncActionBeckon<A, R, T, N>;
-  useWatch: TAsyncActionWatch<A, R, T, N>;
+export interface IOCreateAsyncActionOutput<A = any, R = any, T extends string = string, N = any, S extends IPullstateAllStores = IPullstateAllStores> {
+  use: TAsyncActionUse<A, R, T, N, S>;
+  useDefer: TAsyncActionUseDefer<A, R, T, N, S>;
+  read: TAsyncActionRead<A, R, T, N, S>;
+  useBeckon: TAsyncActionBeckon<A, R, T, N, S>;
+  useWatch: TAsyncActionWatch<A, R, T, N, S>;
   run: TAsyncActionRun<A, R, T, N>;
   delayedRun: TAsyncActionDelayedRun<A>;
   getCached: TAsyncActionGetCached<A, R, T, N>;
