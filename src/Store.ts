@@ -128,8 +128,9 @@ export type TStoreAction<S extends any> = (update: TStoreActionUpdate<S>) => voi
 export class Store<S extends any = any> {
   private updateListeners: TPullstateUpdateListener[] = [];
   private currentState: S;
-  private batchState: S | undefined;
   private readonly initialState: S;
+  private readonly createInitialState: () => S;
+  private batchState: S | undefined;
   private ssr: boolean = false;
   private reactions: TRunReactionFunction[] = [];
   private clientSubscriptions: TRunSubscriptionFunction[] = [];
@@ -154,10 +155,17 @@ export class Store<S extends any = any> {
    */
   public _patchListeners: PatchListener[] = [];
 
-  constructor(initialState: S) {
-    this.currentState = initialState;
-    this.initialState = initialState;
-    // this._storeName = name;
+  constructor(initialState: S | (() => S)) {
+    if (initialState instanceof Function) {
+      const state: S = initialState();
+      this.currentState = state;
+      this.initialState = state;
+      this.createInitialState = initialState;
+    } else {
+      this.currentState = initialState;
+      this.initialState = initialState;
+      this.createInitialState = () => initialState;
+    }
   }
 
   /**
@@ -187,7 +195,7 @@ export class Store<S extends any = any> {
    * @internal
    */
   _getInitialState(): S {
-    return this.initialState;
+    return this.createInitialState();
   }
 
   /**
@@ -362,7 +370,7 @@ export class Store<S extends any = any> {
   }
 
   useLocalCopyInitial(deps?: ReadonlyArray<any>): Store<S> {
-    return useLocalStore(() => this.initialState, deps);
+    return useLocalStore(this.createInitialState, deps);
   }
 
   useLocalCopySnapshot(deps?: ReadonlyArray<any>): Store<S> {

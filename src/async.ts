@@ -240,7 +240,7 @@ export function createAsyncAction<A = any,
   }
 
   function getCachedResult(
-    { args, cache, cacheBreakEnabled, context, fromListener, key, postActionEnabled, stores, customCacheBreakHook }: {
+    { args, cache, cacheBreakEnabled, context, fromListener, key, postActionEnabled, stores, customCacheBreak }: {
       key: string,
       cache: IPullstateAsyncCache,
       args: A,
@@ -249,10 +249,14 @@ export function createAsyncAction<A = any,
       postActionEnabled: boolean,
       cacheBreakEnabled: boolean,
       fromListener: boolean,
-      customCacheBreakHook?: TPullstateAsyncCacheBreakHook<A, R, T, N, S>;
+      customCacheBreak?: TPullstateAsyncCacheBreakHook<A, R, T, N, S>;
     }
-  ): { cacheBroke: boolean; response: TPullstateAsyncWatchResponse<R, T> | undefined } {
-    const useCacheBreakHook = customCacheBreakHook ?? cacheBreakHook;
+  ): {
+    cacheBroke: boolean;
+    response: TPullstateAsyncWatchResponse<R, T> | undefined;
+    previous: TPullstateAsyncWatchResponse<R, T> | undefined
+  } {
+    const useCacheBreakHook = customCacheBreak ?? cacheBreakHook;
 
     if (cache.results.hasOwnProperty(key)) {
       const cacheBreakLoop = cacheBreakWatcher.hasOwnProperty(key) && cacheBreakWatcher[key] > 2;
@@ -278,8 +282,9 @@ export function createAsyncAction<A = any,
           cacheBreakWatcher[key] = 1;
         }
 
+        const previous = cache.results[key] as TPullstateAsyncWatchResponse<R, T>;
         delete cache.results[key];
-        return { cacheBroke: true, response: undefined };
+        return { cacheBroke: true, response: undefined, previous };
       } else {
         if (cacheBreakLoop) {
           console.error(`[${key}] Pullstate detected an infinite loop caused by cacheBreakHook()
@@ -297,11 +302,15 @@ further looping. Fix in your cacheBreakHook() is needed.`);
           runPostActionHook(cache.results[key][2] as TAsyncActionResult<R, T, N>, args, stores, context);
         }
 
-        return { response: cache.results[key] as TPullstateAsyncWatchResponse<R, T>, cacheBroke: false };
+        return {
+          response: cache.results[key] as TPullstateAsyncWatchResponse<R, T>,
+          cacheBroke: false,
+          previous: undefined
+        };
       }
     }
 
-    return { cacheBroke: false, response: undefined };
+    return { cacheBroke: false, response: undefined, previous: undefined };
   }
 
   function createInternalAction(
@@ -370,7 +379,8 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       cacheBreakEnabled = true,
       holdingResult,
       customContext,
-      customCacheBreakHook
+      customCacheBreak,
+      holdPrevious
     }: {
       key: string,
       cache: IPullstateAsyncCache,
@@ -383,7 +393,8 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       cacheBreakEnabled?: boolean;// = true,
       holdingResult: TPullstateAsyncWatchResponse<R, T, N> | undefined,
       customContext: any,
-      customCacheBreakHook?: TPullstateAsyncCacheBreakHook<A, R, T, N, S>;
+      customCacheBreak?: TPullstateAsyncCacheBreakHook<A, R, T, N, S>;
+      holdPrevious: boolean;
     }
   ): TPullstateAsyncWatchResponse<R, T, N> {
     const cached = getCachedResult(
@@ -396,7 +407,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         postActionEnabled,
         cacheBreakEnabled,
         fromListener,
-        customCacheBreakHook
+        customCacheBreak
       }
     );
 
@@ -460,11 +471,24 @@ further looping. Fix in your cacheBreakHook() is needed.`);
           cache.results[key] = resp;
         }
 
-        if (holdingResult) {
+        if (holdPrevious) {
+          if (holdingResult) {
+            const response = [...holdingResult] as TPullstateAsyncWatchResponse<R, T>;
+            response[3] = true;
+            return response;
+          }
+
+          if (cached.previous != null) {
+            const response = [...cached.previous] as TPullstateAsyncWatchResponse<R, T>;
+            response[3] = true;
+            return response;
+          }
+        }
+        /*if (holdingResult) {
           const response = [...holdingResult] as TPullstateAsyncWatchResponse<R, T>;
           response[3] = true;
           return response;
-        }
+        }*/
 
         return resp;
         // return cache.results[key] as TPullstateAsyncWatchResponse<R, T>;
@@ -483,11 +507,24 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       }
     }
 
-    if (holdingResult) {
+    if (holdPrevious) {
+      if (holdingResult) {
+        const response = [...holdingResult] as TPullstateAsyncWatchResponse<R, T>;
+        response[3] = true;
+        return response;
+      }
+
+      if (cached.previous != null) {
+        const response = [...cached.previous] as TPullstateAsyncWatchResponse<R, T>;
+        response[3] = true;
+        return response;
+      }
+    }
+    /*if (holdingResult) {
       const response = [...holdingResult] as TPullstateAsyncWatchResponse<R, T>;
       response[3] = true;
       return response;
-    }
+    }*/
 
     return startedButUnfinishedResult as TPullstateAsyncWatchResponse<R, T>;
   }
@@ -603,7 +640,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       holdPrevious = false,
       dormant = false,
       key: customKey,
-      cacheBreakHook: customCacheBreakHook
+      cacheBreak: customCacheBreak
     }: IAsyncActionWatchOptions<A, R, T, N, S> = {}
   ) => {
     // Where we store the current response that will be returned from our hook
@@ -676,8 +713,8 @@ further looping. Fix in your cacheBreakHook() is needed.`);
               postActionEnabled,
               cacheBreakEnabled,
               holdingResult: undefined,
-              customContext
-              // customCacheBreakHook,
+              customContext,
+              holdPrevious
             }
             // key,
             // cache,
@@ -781,7 +818,8 @@ further looping. Fix in your cacheBreakHook() is needed.`);
           cacheBreakEnabled,
           holdingResult: holdPrevious && responseRef.current && responseRef.current[1] ? responseRef.current : undefined,
           customContext,
-          customCacheBreakHook
+          customCacheBreak: typeof customCacheBreak === "boolean" ? () => true : customCacheBreak,
+          holdPrevious
         }
         // key,
         // cache,
@@ -1123,7 +1161,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       dormant = false,
       key,
       onSuccess,
-      cacheBreakHook: customCacheBreakHook
+      cacheBreak: customCacheBreakHook
     }: IAsyncActionUseOptions<A, R, T, N, S> = {}
   ) => {
     // Set default options if initiate is true (beckon) or false (watch)
@@ -1143,7 +1181,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       holdPrevious,
       dormant,
       key,
-      cacheBreakHook: customCacheBreakHook
+      cacheBreak: customCacheBreakHook
     });
     const [isStarted, isFinished, result, isUpdating] = raw;
 

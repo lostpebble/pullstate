@@ -281,7 +281,7 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores>
   hydrateFromSnapshot(snapshot: IPullstateSnapshot) {
     for (const storeName of Object.keys(this._stores)) {
       if (snapshot.allState.hasOwnProperty(storeName)) {
-        this._stores[storeName]._updateState(snapshot.allState[storeName]);
+        this._stores[storeName]._updateStateWithoutReaction(snapshot.allState[storeName]);
       } else {
         console.warn(`${storeName} didn't hydrate any state (data was non-existent on hydration object)`);
       }

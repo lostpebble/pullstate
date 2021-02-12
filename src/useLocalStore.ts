@@ -6,13 +6,13 @@ function useLocalStore<S extends any>(initialState: (() => S) | S, deps?: Readon
   const storeRef = useRef<Store<S>>();
 
   if (storeRef.current == null) {
-    storeRef.current = new Store(typeof initialState === "function" ? (initialState as any)() : initialState);
+    storeRef.current = new Store(initialState);
   }
 
   if (deps !== undefined) {
     const prevDeps = useRef<ReadonlyArray<any>>(deps);
     if (!isEqual(deps, prevDeps)) {
-      storeRef.current = new Store(typeof initialState === "function" ? (initialState as any)() : initialState);
+      storeRef.current = new Store(initialState);
     }
   }
 

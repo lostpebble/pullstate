@@ -110,7 +110,7 @@ export interface IAsyncActionReadOptions<A, R, T extends string, N, S extends IP
   postActionEnabled?: boolean;
   cacheBreakEnabled?: boolean;
   key?: string;
-  cacheBreakHook?: TPullstateAsyncCacheBreakHook<A, R, T, N, S>
+  cacheBreak?: true | TPullstateAsyncCacheBreakHook<A, R, T, N, S>
 }
 
 export interface IAsyncActionBeckonOptions<A, R, T extends string, N, S extends IPullstateAllStores> extends IAsyncActionReadOptions<A, R, T, N, S> {
