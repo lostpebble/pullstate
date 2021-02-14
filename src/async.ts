@@ -264,6 +264,7 @@ export function createAsyncAction<A = any,
 
       // Only beckon() or run() can cache break - because watch() will not initiate the re-caching mechanism
       if (
+        !onServer &&
         !fromListener &&
         cacheBreakEnabled &&
         useCacheBreakHook != null
