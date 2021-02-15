@@ -5,6 +5,7 @@ import { DeepKeyOfArray } from "./useStoreStateOpt-types";
 
 import isEqual from "fast-deep-equal/es6";
 import { useLocalStore } from "./useLocalStore";
+import { globalClientState } from "./globalClientState";
 
 enablePatches();
 
@@ -130,6 +131,7 @@ export class Store<S extends any = any> {
   private currentState: S;
   private readonly initialState: S;
   private readonly createInitialState: () => S;
+  private internalOrdId: number;
   private batchState: S | undefined;
   private ssr: boolean = false;
   private reactions: TRunReactionFunction[] = [];
@@ -166,6 +168,7 @@ export class Store<S extends any = any> {
       this.initialState = initialState;
       this.createInitialState = () => initialState;
     }
+    this.internalOrdId = globalClientState.storeOrdinal++;
   }
 
   /**
@@ -408,7 +411,7 @@ export class Store<S extends any = any> {
     }
 
     this.batchState = nextState;
-  }
+  }*/
 
   flushBatch(ignoreError = false) {
     if (this.batchState !== undefined) {
@@ -418,13 +421,36 @@ export class Store<S extends any = any> {
     } else if (!ignoreError) {
       console.error(`Pullstate: Trying to flush batch state which was never created or updated on`);
     }
-  }*/
+
+    this.batchState = undefined;
+  }
 
   update(
     updater: TUpdateFunction<S> | TUpdateFunction<S>[],
     patchesCallback?: (patches: Patch[], inversePatches: Patch[]) => void
   ) {
-    update(this, updater, patchesCallback);
+    if (globalClientState.batching) {
+      if (this.batchState === undefined) {
+        this.batchState = this.currentState;
+        globalClientState.flushStores[this.internalOrdId] = this;
+      }
+
+      const func = typeof updater === "function";
+      const [nextState, patches, inversePatches] = runUpdates(this.batchState, updater, func);
+
+      if (patches.length > 0 && (this._patchListeners.length > 0 || patchesCallback)) {
+        if (patchesCallback) {
+          patchesCallback(patches, inversePatches);
+        }
+
+        this._patchListeners.forEach((listener) => listener(patches, inversePatches));
+      }
+
+      this.batchState = nextState;
+    } else {
+      this.batchState = undefined;
+      update(this, updater, patchesCallback);
+    }
   }
 
   /**

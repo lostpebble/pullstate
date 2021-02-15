@@ -19,6 +19,7 @@ import { InjectStoreStateOpt } from "./InjectStoreStateOpt";
 import { TUseResponse } from "./async-types";
 import { registerInDevtools } from "./reduxDevtools";
 import { useLocalStore } from "./useLocalStore";
+import { batch, setupBatch } from "./batch";
 
 export * from "./async-types";
 
@@ -51,7 +52,9 @@ export {
   TMultiStoreAction,
   PullstateContext,
   TUseResponse,
-  registerInDevtools
+  registerInDevtools,
+  batch,
+  setupBatch
 };
 
 export type {
