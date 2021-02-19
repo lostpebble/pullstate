@@ -819,7 +819,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
           cacheBreakEnabled,
           holdingResult: holdPrevious && responseRef.current && responseRef.current[1] ? responseRef.current : undefined,
           customContext,
-          customCacheBreak: typeof customCacheBreak === "boolean" ? () => true : customCacheBreak,
+          customCacheBreak: typeof customCacheBreak === "boolean" ? () => customCacheBreak : customCacheBreak,
           holdPrevious
         }
         // key,
