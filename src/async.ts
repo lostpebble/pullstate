@@ -9,7 +9,6 @@ import {
   IAsyncActionResultPositive,
   IAsyncActionRunOptions,
   IAsyncActionUseDeferOptions,
-  IAsyncActionUseOptions,
   IAsyncActionWatchOptions,
   ICreateAsyncActionOptions,
   IOCreateAsyncActionOutput,
@@ -188,7 +187,7 @@ export function createAsyncActionDirect<A extends any = any,
   S extends IPullstateAllStores = IPullstateAllStores>(
   action: (args: A, stores: S, customContext: any) => Promise<R>,
   options: ICreateAsyncActionOptions<A, R, string, N, S> = {}
-): IOCreateAsyncActionOutput<A, R, string, N> {
+): IOCreateAsyncActionOutput<A, R, string, N, S> {
   return createAsyncAction<A, R, string, N, S>(async (args: A, stores: S, customContext: any) => {
     return successResult(await action(args, stores, customContext));
   }, options);
@@ -208,7 +207,7 @@ export function createAsyncAction<A = any,
     subsetKey,
     actionId
   }: ICreateAsyncActionOptions<A, R, T, N, S> = {}
-): IOCreateAsyncActionOutput<A, R, T, N> {
+): IOCreateAsyncActionOutput<A, R, T, N, S> {
   const ordinal: string | number = actionId != null ? `_${actionId}` : asyncCreationOrdinal++;
   const onServer: boolean = typeof window === "undefined";
 
@@ -222,6 +221,8 @@ export function createAsyncAction<A = any,
     }
     return `${ordinal}-${keyFromObject(args)}`;
   }
+
+  const deferWaitingKey = `def_wait_${_createKey({} as A)}`;
 
   let cacheBreakWatcher: { [actionKey: string]: number } = {};
   let watchIdOrd: number = 0;
@@ -870,7 +871,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     return [result[1], result[2], result[3]];
   };
 
-  const run: TAsyncActionRun<A, R, T, N> = async (
+  const run: TAsyncActionRun<A, R, T, N, S> = async (
     args = {} as A,
     {
       treatAsUpdate = false,
@@ -878,9 +879,10 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       respectCache = false,
       key: customKey,
       _asyncCache = clientAsyncCache,
-      _stores = clientStores.loaded ? clientStores.stores : (storeErrorProxy as S),
-      _customContext
-    }: IAsyncActionRunOptions = {}
+      _stores = clientStores.loaded ? clientStores.stores : storeErrorProxy,
+      _customContext,
+      cacheBreak: customCacheBreak
+    }: IAsyncActionRunOptions<A, R, T, N, S> = {}
   ) => {
     const key = _createKey(args, customKey);
     // console.log(`[${key}] Running action`);
@@ -896,7 +898,8 @@ further looping. Fix in your cacheBreakHook() is needed.`);
           context: EPostActionContext.RUN_HIT_CACHE,
           postActionEnabled: true,
           cacheBreakEnabled: true,
-          fromListener: false
+          fromListener: false,
+          customCacheBreak: typeof customCacheBreak === "boolean" ? () => customCacheBreak : customCacheBreak
         }
       );
 
@@ -1120,7 +1123,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
   let delayedRunActionTimeout: NodeJS.Timeout;
 
-  const delayedRun: TAsyncActionDelayedRun<A> = (
+  const delayedRun: TAsyncActionDelayedRun<A, R, T, N, S> = (
     args = {} as A,
     { clearOldRun = true, delay, immediateIfCached = true, ...otherRunOptions }
   ) => {
@@ -1163,7 +1166,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       key,
       onSuccess,
       cacheBreak: customCacheBreakHook
-    }: IAsyncActionUseOptions<A, R, T, N, S> = {}
+    } = {}
   ) => {
     // Set default options if initiate is true (beckon) or false (watch)
     if (postActionEnabled == null) {
@@ -1230,13 +1233,13 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       updateCached: (updater, options) => {
         updateCached(args, updater, options);
       }
-    } as TUseResponse<R, T, N>;
+    } as TUseResponse<A, R, T, N, S>;
   };
 
   const useDefer: TAsyncActionUseDefer<A, R, T, N, S> = (
     inputs: IAsyncActionUseDeferOptions<A, R, T, N, S> = {}) => {
     const [argState, setArgState] = useState<{ args: A; key: string; }>(() => ({
-      key: inputs.key ? inputs.key : _createKey({} as A),
+      key: inputs.key ? inputs.key : deferWaitingKey,
       args: {} as A
     }));
 
@@ -1250,6 +1253,9 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       ...initialResponse,
       clearCached: () => {
         clearCache({} as any, { key: argState.key });
+      },
+      unwatchExecuted: () => {
+        setArgState({ key: deferWaitingKey, args: {} as A });
       },
       setCached: (response, options = {}) => {
         options.key = argState.key;
@@ -1269,7 +1275,11 @@ further looping. Fix in your cacheBreakHook() is needed.`);
           setArgState({ key: executionKey, args });
         }
 
-        return run(args, { ...runOptions, key: executionKey }).then(resp => {
+        return run(args, {
+          ...runOptions,
+          key: executionKey,
+          cacheBreak: inputs.cacheBreak
+        } as IAsyncActionRunOptions<A, R, T, N, S>).then(resp => {
           if (inputs.clearOnSuccess) {
             clearCache({} as any, { key: executionKey });
           }
