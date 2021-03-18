@@ -873,7 +873,9 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
   const run: TAsyncActionRun<A, R, T, N, S> = async (
     args = {} as A,
-    {
+    inputs: IAsyncActionRunOptions<A, R, T, N, S> = {}
+  ) => {
+    const {
       treatAsUpdate = false,
       ignoreShortCircuit = false,
       respectCache = false,
@@ -882,10 +884,10 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       _stores = clientStores.loaded ? clientStores.stores : storeErrorProxy,
       _customContext,
       cacheBreak: customCacheBreak
-    }: IAsyncActionRunOptions<A, R, T, N, S> = {}
-  ) => {
+    } = inputs;
+
     const key = _createKey(args, customKey);
-    // console.log(`[${key}] Running action`);
+    // console.log(`[${key}] Running action`, inputs);
     // console.log(JSON.parse(JSON.stringify(_asyncCache)));
 
     if (respectCache) {
@@ -905,7 +907,8 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
       // console.log(`Async RUN: Found cached`, cached);
 
-      if (cached.response) {
+      // If cached, and has actually started
+      if (cached.response && cached.response[0]) {
         // If cached result is unfinished, wait for completion
         if (!cached.response[1]) {
           const watchOrd = watchIdOrd++;
