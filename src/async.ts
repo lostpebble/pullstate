@@ -47,6 +47,22 @@ export const clientAsyncCache: IPullstateAsyncCache = {
   actionOrd: {}
 };
 
+/*if (typeof window !== "undefined") {
+  console.log("Should start logging cache");
+
+  function logCache() {
+    const toLog: any = {};
+
+    for (const key of Object.keys(clientAsyncCache)) {
+      toLog[key] = { ...clientAsyncCache[key as keyof IPullstateAsyncCache] };
+    }
+
+    console.log(toLog);
+  }
+
+  setInterval(logCache, 1000);
+}*/
+
 let asyncCreationOrdinal = 0;
 
 export function keyFromObject(json: any) {
@@ -191,6 +207,30 @@ export function createAsyncActionDirect<A extends any = any,
   return createAsyncAction<A, R, string, N, S>(async (args: A, stores: S, customContext: any) => {
     return successResult(await action(args, stores, customContext));
   }, options);
+}
+
+function convertCustomCacheBreakHook<A = any,
+  R = any,
+  T extends string = string,
+  N extends any = any,
+  S extends IPullstateAllStores = IPullstateAllStores>(cacheBreakHook?: boolean | number | TPullstateAsyncCacheBreakHook<A, R, T, N, S>): TPullstateAsyncCacheBreakHook<A, R, T, N, S> | undefined {
+  if (cacheBreakHook != null) {
+    if (typeof cacheBreakHook === "boolean") {
+      return () => cacheBreakHook;
+    } else if (typeof cacheBreakHook === "number") {
+      return ({ timeCached, result }) => {
+        if (!result.error) {
+          return Date.now() - timeCached > cacheBreakHook;
+        }
+
+        return true;
+      };
+    }
+
+    return cacheBreakHook;
+  }
+
+  return undefined;
 }
 
 export function createAsyncAction<A = any,
@@ -642,7 +682,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       holdPrevious = false,
       dormant = false,
       key: customKey,
-      cacheBreak: customCacheBreak
+      cacheBreak: customCacheBreakIncoming
     }: IAsyncActionWatchOptions<A, R, T, N, S> = {}
   ) => {
     // Where we store the current response that will be returned from our hook
@@ -807,6 +847,24 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
       prevKeyRef.current = key;
 
+      /*let customCacheBreak: TPullstateAsyncCacheBreakHook<A, R, T, N, S> | undefined = undefined;
+
+      if (customCacheBreakIncoming != null) {
+        if (typeof customCacheBreakIncoming === "boolean") {
+          customCacheBreak = () => customCacheBreakIncoming;
+        } else if (typeof customCacheBreakIncoming === "number") {
+          customCacheBreak = ({ timeCached, result }) => {
+            if (!result.error) {
+              return Date.now() - timeCached > customCacheBreakIncoming;
+            }
+
+            return true;
+          };
+        } else {
+          customCacheBreak = customCacheBreakIncoming;
+        }
+      }*/
+
       responseRef.current = checkKeyAndReturnResponse(
         {
           key,
@@ -820,7 +878,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
           cacheBreakEnabled,
           holdingResult: holdPrevious && responseRef.current && responseRef.current[1] ? responseRef.current : undefined,
           customContext,
-          customCacheBreak: typeof customCacheBreak === "boolean" ? () => customCacheBreak : customCacheBreak,
+          customCacheBreak: convertCustomCacheBreakHook(customCacheBreakIncoming),
           holdPrevious
         }
         // key,
@@ -901,7 +959,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
           postActionEnabled: true,
           cacheBreakEnabled: true,
           fromListener: false,
-          customCacheBreak: typeof customCacheBreak === "boolean" ? () => customCacheBreak : customCacheBreak
+          customCacheBreak: convertCustomCacheBreakHook(customCacheBreak)
         }
       );
 
