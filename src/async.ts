@@ -743,7 +743,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         console.log(cache.results[key]);
         console.log(cache);*/
         if (shouldUpdate[key][watchId.current] && !isEqual(responseRef.current, cache.results[key])) {
-          responseRef.current = checkKeyAndReturnResponse(
+          const nextResponse = checkKeyAndReturnResponse(
             {
               key,
               cache,
@@ -758,18 +758,14 @@ further looping. Fix in your cacheBreakHook() is needed.`);
               customContext,
               holdPrevious
             }
-            // key,
-            // cache,
-            // initiate,
-            // ssr,
-            // args,
-            // stores,
-            // true,
-            // postActionEnabled,
-            // cacheBreakEnabled,
-            // undefined,
-            // customContext
           );
+
+          if (holdPrevious && !nextResponse[1] && responseRef.current != null && responseRef.current[1]) {
+            responseRef.current = [...responseRef.current];
+            responseRef.current[3] = true;
+          } else {
+            responseRef.current = nextResponse;
+          }
 
           setWatchUpdate((prev) => {
             return prev + 1;
@@ -846,24 +842,6 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       }
 
       prevKeyRef.current = key;
-
-      /*let customCacheBreak: TPullstateAsyncCacheBreakHook<A, R, T, N, S> | undefined = undefined;
-
-      if (customCacheBreakIncoming != null) {
-        if (typeof customCacheBreakIncoming === "boolean") {
-          customCacheBreak = () => customCacheBreakIncoming;
-        } else if (typeof customCacheBreakIncoming === "number") {
-          customCacheBreak = ({ timeCached, result }) => {
-            if (!result.error) {
-              return Date.now() - timeCached > customCacheBreakIncoming;
-            }
-
-            return true;
-          };
-        } else {
-          customCacheBreak = customCacheBreakIncoming;
-        }
-      }*/
 
       responseRef.current = checkKeyAndReturnResponse(
         {
@@ -1125,16 +1103,18 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     }
   };
 
-  const getCached: TAsyncActionGetCached<A, R, T, N> = (args = {} as A, options) => {
-    const { checkCacheBreak = false, key: customKey } = options || {};
+  const getCached: TAsyncActionGetCached<A, R, T, N, S> = (args = {} as A, options) => {
+    const { checkCacheBreak = false, key: customKey, cacheBreak: incomingCacheBreak } = options || {};
     const key = _createKey(args, customKey);
 
     let cacheBreakable = false;
 
-    const cache: IPullstateAsyncCache = onServer ? useContext(PullstateContext)!._asyncCache : clientAsyncCache;
+    const cache: IPullstateAsyncCache = /*onServer ? useContext(PullstateContext)!._asyncCache : */ clientAsyncCache;
 
     if (cache.results.hasOwnProperty(key)) {
-      if (checkCacheBreak && cacheBreakHook !== undefined) {
+      const finalizedCacheBreakHook = convertCustomCacheBreakHook(incomingCacheBreak) ?? cacheBreakHook;
+
+      if (checkCacheBreak && finalizedCacheBreakHook !== undefined) {
         const stores = onServer
           ? (useContext(PullstateContext)!.stores as S)
           : clientStores.loaded
@@ -1142,7 +1122,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
             : (storeErrorProxy as S);
 
         if (
-          cacheBreakHook({
+          finalizedCacheBreakHook({
             args,
             result: cache.results[key][2] as TAsyncActionResult<R, T, N>,
             stores,
@@ -1329,6 +1309,23 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       updateCached: (updater, options = {}) => {
         options.key = argState.key;
         updateCached({} as A, updater, options);
+      },
+      hasCached: (args = {} as A, options = {}) => {
+        const executionKey = inputs.key ?? _createKey(args);
+        const { checkCacheBreak = true, successOnly = false } = options;
+        const cached = getCached(args, {
+          key: executionKey,
+          cacheBreak: options.cacheBreak ?? inputs.cacheBreak,
+          checkCacheBreak
+        });
+
+        if (cached.existed) {
+          if (!checkCacheBreak || !cached.cacheBreakable) {
+            return !successOnly || !cached.result.error;
+          }
+        }
+
+        return false;
       },
       execute: (args = {} as A, runOptions) => {
         const executionKey = inputs.key ?? _createKey(args);

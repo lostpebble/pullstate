@@ -145,8 +145,9 @@ export interface IAsyncActionRunOptions<A, R, T extends string, N, S extends IPu
   _customContext?: any;
 }
 
-export interface IAsyncActionGetCachedOptions {
+export interface IAsyncActionGetCachedOptions<A, R, T extends string, N, S extends IPullstateAllStores> {
   checkCacheBreak?: boolean;
+  cacheBreak?: boolean | number | TPullstateAsyncCacheBreakHook<A, R, T, N, S>;
   key?: string;
 }
 
@@ -203,9 +204,9 @@ export type TAsyncActionClearAllCache = (options?: IAsyncClearCacheOptions) => v
 
 export type TAsyncActionClearAllUnwatchedCache = (options?: IAsyncClearCacheOptions) => void;
 
-export type TAsyncActionGetCached<A, R, T extends string, N> = (
+export type TAsyncActionGetCached<A, R, T extends string, N, S extends IPullstateAllStores> = (
   args?: A,
-  options?: IAsyncActionGetCachedOptions
+  options?: IAsyncActionGetCachedOptions<A, R, T, N, S>
 ) => IGetCachedResponse<R, T, N>;
 
 export type TAsyncActionSetCached<A, R, T extends string, N> = (
@@ -236,7 +237,7 @@ export interface IOCreateAsyncActionOutput<A = any, R = any, T extends string = 
   useWatch: TAsyncActionWatch<A, R, T, N, S>;
   run: TAsyncActionRun<A, R, T, N, S>;
   delayedRun: TAsyncActionDelayedRun<A, R, T, N, S>;
-  getCached: TAsyncActionGetCached<A, R, T, N>;
+  getCached: TAsyncActionGetCached<A, R, T, N, S>;
   setCached: TAsyncActionSetCached<A, R, T, N>;
   setCachedPayload: TAsyncActionSetCachedPayload<A, R>;
   updateCached: TAsyncActionUpdateCached<A, R>;
@@ -284,6 +285,7 @@ export interface IBaseObjResponseUse<A, R, T extends string, N, S extends IPulls
 
 export interface IBaseObjResponseUseDefer<A, R, T extends string, N, S extends IPullstateAllStores> {
   execute: (args?: A, runOptions?: Omit<IAsyncActionRunOptions<A, R, T, N, S>, "key" | "cacheBreak">) => TPullstateAsyncRunResponse<R, T, N>;
+  hasCached: (args?: A, options?: { successOnly?: boolean } & Omit<IAsyncActionGetCachedOptions<A, R, T, N, S>, "key">) => boolean;
   unwatchExecuted: () => void;
   args: A;
   key: string;
