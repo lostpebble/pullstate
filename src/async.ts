@@ -10,6 +10,7 @@ import {
   IAsyncActionRunOptions,
   IAsyncActionUseDeferOptions,
   IAsyncActionWatchOptions,
+  IBaseObjResponseUseDefer,
   ICreateAsyncActionOptions,
   IOCreateAsyncActionOutput,
   IPullstateAsyncCache,
@@ -1290,14 +1291,53 @@ further looping. Fix in your cacheBreakHook() is needed.`);
       initiate: false
     });
 
+    const hasCached: IBaseObjResponseUseDefer<A, R, T, N, S>["hasCached"] = (args = {} as A, options = {}) => {
+      const executionKey = inputs.key ?? _createKey(args);
+      const { checkCacheBreak = true, successOnly = false } = options;
+      const cached = getCached(args, {
+        key: executionKey,
+        cacheBreak: options.cacheBreak ?? inputs.cacheBreak,
+        checkCacheBreak
+      });
+
+      if (cached.existed) {
+        if (!checkCacheBreak || !cached.cacheBreakable) {
+          return !successOnly || !cached.result.error;
+        }
+      }
+
+      return false;
+    };
+
+    const unwatchExecuted = () => {
+      setArgState({ key: deferWaitingKey, args: {} as A });
+    };
+
+    const execute: IBaseObjResponseUseDefer<A, R, T, N, S>["execute"] = (args = {} as A, runOptions) => {
+      const executionKey = inputs.key ?? _createKey(args);
+      if (executionKey !== argState.key) {
+        setArgState({ key: executionKey, args });
+      }
+
+      return run(args, {
+        ...runOptions,
+        key: executionKey,
+        cacheBreak: inputs.cacheBreak
+      } as IAsyncActionRunOptions<A, R, T, N, S>).then(resp => {
+        if (inputs.clearOnSuccess) {
+          clearCache({} as any, { key: executionKey });
+        }
+
+        return resp;
+      });
+    };
+
     return {
       ...initialResponse,
       clearCached: () => {
         clearCache({} as any, { key: argState.key });
       },
-      unwatchExecuted: () => {
-        setArgState({ key: deferWaitingKey, args: {} as A });
-      },
+      unwatchExecuted,
       setCached: (response, options = {}) => {
         options.key = argState.key;
         setCached({} as A, response, options);
@@ -1310,41 +1350,60 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         options.key = argState.key;
         updateCached({} as A, updater, options);
       },
-      hasCached: (args = {} as A, options = {}) => {
-        const executionKey = inputs.key ?? _createKey(args);
-        const { checkCacheBreak = true, successOnly = false } = options;
-        const cached = getCached(args, {
-          key: executionKey,
-          cacheBreak: options.cacheBreak ?? inputs.cacheBreak,
-          checkCacheBreak
-        });
+      useDebouncedExecution: (args, delay, options = {}) => {
+        if (!onServer) {
+          const stateRef = useRef({ update: false });
+          const currentValue = useRef<any>(undefined);
+          const executionOrd = useRef<number>(-1);
+          const timeout = useRef<any>(undefined);
 
-        if (cached.existed) {
-          if (!checkCacheBreak || !cached.cacheBreakable) {
-            return !successOnly || !cached.result.error;
+          useEffect(() => {
+            stateRef.current.update = true;
+            return () => {
+              stateRef.current.update = false;
+            };
+          }, []);
+
+          const hasEqualityCheck = options.equality != null;
+
+          if (hasEqualityCheck) {
+            if (typeof options.equality === "function") {
+              if ((currentValue.current === undefined || options.equality(currentValue.current, args))) {
+                currentValue.current = args;
+                executionOrd.current += 1;
+              }
+            } else if (currentValue.current !== options.equality) {
+              currentValue.current = options.equality;
+              executionOrd.current += 1;
+            }
+          } else if (!isEqual(currentValue.current, args)) {
+            currentValue.current = args;
+            executionOrd.current += 1;
           }
+
+          useEffect(() => {
+            clearTimeout(timeout.current);
+
+            const executeAction = () => {
+              if (stateRef.current.update) {
+                execute(args, options.executeOptions ?? { respectCache: true });
+              }
+            };
+
+            if (options.validInput?.(args) ?? true) {
+              if (hasCached(args)) {
+                executeAction();
+              } else {
+                timeout.current = setTimeout(executeAction, delay);
+              }
+            } else if (!(options.watchLastValid ?? false)) {
+              unwatchExecuted();
+            }
+          }, [executionOrd.current]);
         }
-
-        return false;
       },
-      execute: (args = {} as A, runOptions) => {
-        const executionKey = inputs.key ?? _createKey(args);
-        if (executionKey !== argState.key) {
-          setArgState({ key: executionKey, args });
-        }
-
-        return run(args, {
-          ...runOptions,
-          key: executionKey,
-          cacheBreak: inputs.cacheBreak
-        } as IAsyncActionRunOptions<A, R, T, N, S>).then(resp => {
-          if (inputs.clearOnSuccess) {
-            clearCache({} as any, { key: executionKey });
-          }
-
-          return resp;
-        });
-      },
+      hasCached,
+      execute,
       args: argState.args,
       key: argState.key
     };

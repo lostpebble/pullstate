@@ -277,6 +277,13 @@ export interface ICreateAsyncActionOptions<A, R, T extends string, N, S extends 
 
 // action.use() types
 
+export interface IUseDebouncedExecutionOptions<A, R, T extends string, N, S extends IPullstateAllStores> {
+  validInput?: (args: A) => boolean;
+  equality?: ((argsPrev: A, argsNew: A) => boolean) | any;
+  executeOptions?: Omit<IAsyncActionRunOptions<A, R, T, N, S>, "key" | "cacheBreak">;
+  watchLastValid?: boolean;
+}
+
 export type TRunWithPayload<R> = (func: (payload: R) => any) => any;
 
 export interface IBaseObjResponseUse<A, R, T extends string, N, S extends IPullstateAllStores> {
@@ -287,6 +294,7 @@ export interface IBaseObjResponseUseDefer<A, R, T extends string, N, S extends I
   execute: (args?: A, runOptions?: Omit<IAsyncActionRunOptions<A, R, T, N, S>, "key" | "cacheBreak">) => TPullstateAsyncRunResponse<R, T, N>;
   hasCached: (args?: A, options?: { successOnly?: boolean } & Omit<IAsyncActionGetCachedOptions<A, R, T, N, S>, "key">) => boolean;
   unwatchExecuted: () => void;
+  useDebouncedExecution: (args: A, delay: number, options?: IUseDebouncedExecutionOptions<A, R, T, N, S>) => void;
   args: A;
   key: string;
 }
