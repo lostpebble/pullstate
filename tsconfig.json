@@ -3,7 +3,7 @@
     "jsx": "react",
     "module": "esnext",
     "esModuleInterop": true,
-    "target": "ES2019",
+    "target": "ES2016",
     "sourceMap": true,
     "inlineSourceMap": false,
     "sourceRoot": "src",
