@@ -50,7 +50,7 @@ The next two arguments are the same as those used whe running `update()` on a st
 * You can mutate your store directly, using `draft`
 
 * `original` is passed as a performance consideration. It is exactly the same as `draft` but without all the `immer` magic. It's a plain object of your state.
-  * **Why?** Referencing values directly on your `draft` object can be a performance hit in certain situations because of the way that immer works internally (JavaScript proxies) - so if you need to _reference_ the current store state, you should use `original`. But if you want to _change_ it, you use `draft`. [Read more on immer's github](https://github.com/immerjs/immer#pitfalls).
+  * **Why?** Referencing values directly on your `draft` object can be a performance hit in certain situations because of the way that immer works internally (JavaScript proxies) - so if you need to _reference_ the current store state, you should use `original`. But if you want to _change_ it, you use `draft`. [Read more in immer's docs](https://immerjs.github.io/immer/performance#for-expensive-search-operations-read-from-the-original-state-not-the-draft).
 
 The last argument is the last watched value, passed as a convenience for if you ever need to refer to it.
   
