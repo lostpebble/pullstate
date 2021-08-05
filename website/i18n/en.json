@@ -68,6 +68,10 @@
         "title": "Reactions",
         "sidebar_label": "Reactions"
       },
+      "redux-dev-tools": {
+        "title": "Redux Devtools",
+        "sidebar_label": "Redux Devtools"
+      },
       "subscribe": {
         "title": "Subscribe",
         "sidebar_label": "Subscribe"
@@ -89,7 +93,8 @@
       "Getting Started": "Getting Started",
       "Reading Store State": "Reading Store State",
       "Updating Store State": "Updating Store State",
-      "Async Actions": "Async Actions"
+      "Async Actions": "Async Actions",
+      "Dev Tools": "Dev Tools"
     }
   },
   "pages-strings": {
