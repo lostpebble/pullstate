@@ -1,8 +1,19 @@
 {
   "docs": {
-    "Getting Started": ["installation", "quick-example", "quick-example-server-rendered"],
-    "Reading Store State": ["use-store-state-hook", "inject-store-state", "subscribe"],
-    "Updating Store State": ["update-store", "reactions"],
+    "Getting Started": [
+      "installation",
+      "quick-example",
+      "quick-example-server-rendered"
+    ],
+    "Reading Store State": [
+      "use-store-state-hook",
+      "inject-store-state",
+      "subscribe"
+    ],
+    "Updating Store State": [
+      "update-store",
+      "reactions"
+    ],
     "Async Actions": [
       "async-actions-introduction",
       "async-actions-creating",
@@ -10,11 +21,17 @@
       {
         "type": "subcategory",
         "label": "Async Action Hooks",
-        "ids": ["async-hooks-overview", "async-post-action-hook", "async-short-circuit-hook", "async-cache-break-hook"]
+        "ids": [
+          "async-hooks-overview",
+          "async-post-action-hook",
+          "async-short-circuit-hook",
+          "async-cache-break-hook"
+        ]
       },
       "async-actions-other-options",
       "async-cache-clearing",
       "async-server-rendering"
-    ]
+    ],
+    "Dev Tools": ["redux-dev-tools"]
   }
 }
