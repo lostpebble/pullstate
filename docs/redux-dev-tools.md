@@ -4,7 +4,7 @@ title: Redux Devtools
 sidebar_label: Redux Devtools
 ---
 
-Pullstate includes a simple way to plug into Redux's devtools, which are well established and developed.
+Pullstate includes a simple way to plug into Redux's devtools, which are already well established and extensive.
 
 Simply include the following somewhere after your Store definitions:
 
@@ -16,7 +16,7 @@ const ExampleStore = new Store({
   //...
 });
 
-// Register as many or as few Stores as you would like to monitor
+// Register as many or as few Stores as you would like to monitor in the devtools
 registerInDevtools({
   ExampleStore,
 });
