@@ -58,6 +58,7 @@
     "jest-environment-jsdom-global": "4.0.0",
     "js-beautify": "^1.14.7",
     "lodash": "^4.17.21",
+    "minified-size": "^3.0.0",
     "prettier": "^2.8.0",
     "react-test-renderer": "^18.2.0",
     "@rollup/plugin-commonjs": "^23.0.3",
