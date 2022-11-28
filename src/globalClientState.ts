@@ -4,7 +4,7 @@ export const globalClientState: {
   storeOrdinal: number,
   batching: boolean;
   flushStores: {
-    [storeName: number]: Store;
+    [storeName: number]: Store<any>;
   };
 } = {
   storeOrdinal: 0,

@@ -1,4 +1,21 @@
 // prettier-ignore
+
+type ExtractObj<S extends object, K> = K extends keyof S ? S[K] : never
+
+export type ObjectPath<S extends object, T extends readonly unknown[]> =
+  T extends readonly [infer T0, ...infer TR]
+    ? TR extends []
+      ? ExtractObj<S, T0> extends never
+        ? readonly []
+        : readonly [T0]
+      : ExtractObj<S, T0> extends object
+        ? readonly [T0, ...ObjectPath<ExtractObj<S, T0>, TR>]
+        : ExtractObj<S, T0> extends never
+          ? readonly []
+          : readonly [T0]
+    : readonly []
+
+/*
 export interface DeepKeyOfArray<O> extends Array<string | number> {
   ["0"]: keyof O;
   ["1"]?: this extends {
@@ -87,3 +104,4 @@ export type DeepTypeOfArray<T, L extends DeepKeyOfArray<T> | undefined> = L exte
   : L extends ArrayHasIndex<"0">
   ? T[L["0"]]
   : never;
+*/

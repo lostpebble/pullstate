@@ -21,8 +21,8 @@ export interface IUpdateRefNew {
 
 const onServer = typeof window === "undefined";
 
-function useStoreState<S extends any = any>(store: Store<S>): S;
-function useStoreState<S extends any = any, SS = any>(
+function useStoreState<S extends object = any>(store: Store<S>): S;
+function useStoreState<S extends object = any, SS = any>(
   store: Store<S>,
   getSubState: (state: S) => SS,
   deps?: ReadonlyArray<any>

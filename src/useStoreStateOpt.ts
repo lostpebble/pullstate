@@ -1,7 +1,7 @@
 import { Store } from "./Store";
 import { useEffect, useRef, useState } from "react";
 import { IUpdateRef } from "./useStoreState";
-import { DeepKeyOfArray, DeepTypeOfArray, TAllPathsParameter } from "./useStoreStateOpt-types";
+import { ObjectPath } from "./useStoreStateOpt-types";
 
 let updateListenerOrd = 0;
 
@@ -11,7 +11,11 @@ function fastGet<S extends object>(obj: S, path: any[]): any {
   }, undefined);
 }
 
-function getSubStateFromPaths<S extends any, P extends DeepKeyOfArray<S>[]>(store: Store<S>, paths: P): any[] {
+function getSubStateFromPaths<
+  T extends readonly unknown[],
+  S extends object = object,
+  P extends ObjectPath<S, T> = T extends ObjectPath<S, T> ? T : never
+>(store: Store<S>, paths: P): any[] {
   const state: any = store.getRawState();
 
   const resp: any[] = [];
@@ -23,22 +27,11 @@ function getSubStateFromPaths<S extends any, P extends DeepKeyOfArray<S>[]>(stor
   return resp;
 }
 
-function useStoreStateOpt<S extends any, P extends TAllPathsParameter<S>>(
-  store: Store<S>,
-  paths: P
-): [
-  DeepTypeOfArray<S, P[0]>,
-  DeepTypeOfArray<S, P[1]>,
-  DeepTypeOfArray<S, P[2]>,
-  DeepTypeOfArray<S, P[3]>,
-  DeepTypeOfArray<S, P[4]>,
-  DeepTypeOfArray<S, P[5]>,
-  DeepTypeOfArray<S, P[6]>,
-  DeepTypeOfArray<S, P[7]>,
-  DeepTypeOfArray<S, P[8]>,
-  DeepTypeOfArray<S, P[9]>,
-  DeepTypeOfArray<S, P[10]>
-] {
+function useStoreStateOpt<
+  T extends readonly unknown[],
+  S extends object = object,
+  P extends ObjectPath<S, T> = T extends ObjectPath<S, T> ? T : never
+>(store: Store<S>, paths: any) {
   const [subState, setSubState] = useState<any>(() => getSubStateFromPaths(store, paths));
 
   const updateRef = useRef<Partial<IUpdateRef & { ordKey: string }>>({
@@ -57,7 +50,7 @@ function useStoreStateOpt<S extends any, P extends TAllPathsParameter<S>>(
         setSubState(getSubStateFromPaths(store, paths));
       }
     };
-    store._addUpdateListenerOpt(updateRef.current.onStoreUpdate, updateRef.current.ordKey!, paths);
+    // store._addUpdateListenerOpt(updateRef.current.onStoreUpdate, updateRef.current.ordKey!, paths);
   }
 
   useEffect(

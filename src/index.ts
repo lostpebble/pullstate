@@ -1,5 +1,4 @@
 import { useStoreState } from "./useStoreState";
-import { useStoreStateOpt } from "./useStoreStateOpt";
 import { Store, TStoreAction, TUpdateFunction, update } from "./Store";
 import { InjectStoreState } from "./InjectStoreState";
 import type { PullstateSingleton } from "./PullstateCore";
@@ -15,7 +14,6 @@ import {
 } from "./PullstateCore";
 import { createAsyncAction, createAsyncActionDirect, errorResult, successResult } from "./async";
 import { EAsyncActionInjectType, InjectAsyncAction, TInjectAsyncActionProps } from "./InjectAsyncAction";
-import { InjectStoreStateOpt } from "./InjectStoreStateOpt";
 import { TUseResponse } from "./async-types";
 import { registerInDevtools } from "./reduxDevtools";
 import { useLocalStore } from "./useLocalStore";
@@ -25,12 +23,10 @@ export * from "./async-types";
 
 export {
   useStoreState,
-  useStoreStateOpt,
   useLocalStore,
   update,
   Store,
   InjectStoreState,
-  InjectStoreStateOpt,
   PullstateProvider,
   useStores,
   useInstance,

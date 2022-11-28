@@ -14,7 +14,8 @@
     "strict": true,
     "lib": [
       "dom"
-    ]
+    ],
+    "moduleResolution": "Node"
   },
   "exclude": [
     "./test",

@@ -1,7 +1,6 @@
 // @ts-ignore
 import { applyPatches, Draft, enablePatches, Patch, PatchListener, produce, produceWithPatches } from "immer";
 import { useStoreState } from "./useStoreState";
-import { DeepKeyOfArray } from "./useStoreStateOpt-types";
 
 import isEqual from "fast-deep-equal/es6";
 import { useLocalStore } from "./useLocalStore";
@@ -20,7 +19,7 @@ enablePatches();
 
 export type TPullstateUpdateListener = () => void;
 
-export interface IStoreInternalOptions<S extends any> {
+export interface IStoreInternalOptions<S extends object> {
   ssr: boolean;
   reactionCreators?: TReactionCreator<S>[];
 }
@@ -38,9 +37,9 @@ type TReactionFunction<S extends any, T> = (watched: T, draft: Draft<S>, origina
  */
 type TRunReactionFunction = (forceRun?: boolean) => string[];
 type TRunSubscriptionFunction = () => void;
-type TReactionCreator<S extends any> = (store: Store<S>) => TRunReactionFunction;
+type TReactionCreator<S extends object> = (store: Store<S>) => TRunReactionFunction;
 
-function makeSubscriptionFunction<S extends any, T>(
+function makeSubscriptionFunction<S extends object, T>(
   store: Store<S>,
   watch: (state: S) => T,
   listener: (watched: T, allState: S, previousWatched: T, uid?: string) => void
@@ -58,7 +57,7 @@ function makeSubscriptionFunction<S extends any, T>(
   };
 }
 
-function makeReactionFunctionCreator<S extends any, T>(
+function makeReactionFunctionCreator<S extends object, T>(
   watch: (state: S) => T,
   reaction: TReactionFunction<S, T>
 ): TReactionCreator<S> {
@@ -116,17 +115,17 @@ interface ICreateReactionOptions {
 
 const optPathDivider = "~._.~";
 
-export type TStoreActionUpdate<S extends any> = (
+export type TStoreActionUpdate<S extends object> = (
   updater: TUpdateFunction<S> | TUpdateFunction<S>[],
   patchesCallback?: (patches: Patch[], inversePatches: Patch[]) => void
 ) => void;
 
-export type TStoreAction<S extends any> = (update: TStoreActionUpdate<S>) => void;
+export type TStoreAction<S extends object> = (update: TStoreActionUpdate<S>) => void;
 
 /**
  * @typeParam S  Your store's state interface
  */
-export class Store<S extends any = any> {
+export class Store<S extends object = object> {
   private updateListeners: TPullstateUpdateListener[] = [];
   private currentState: S;
   private readonly initialState: S;
@@ -254,26 +253,6 @@ export class Store<S extends any = any> {
    */
   _addUpdateListener(listener: TPullstateUpdateListener) {
     this.updateListeners.push(listener);
-  }
-
-  /**
-   * @internal
-   * @param listener
-   * @param ordKey
-   * @param paths
-   */
-  _addUpdateListenerOpt(listener: TPullstateUpdateListener, ordKey: string, paths: DeepKeyOfArray<S>[]) {
-    this.optimizedUpdateListeners[ordKey] = listener;
-    const listenerPathsKeyed: string[] = paths.map((path) => path.join(optPathDivider));
-    this.optimizedUpdateListenerPaths[ordKey] = listenerPathsKeyed;
-    for (const keyedPath of listenerPathsKeyed) {
-      if (this.optimizedListenerPropertyMap[keyedPath] == null) {
-        this.optimizedListenerPropertyMap[keyedPath] = [ordKey];
-      } else {
-        this.optimizedListenerPropertyMap[keyedPath].push(ordKey);
-      }
-    }
-    this._optListenerCount++;
   }
 
   /**
@@ -462,12 +441,16 @@ export class Store<S extends any = any> {
     this._updateState(newState);
   }
 
+  replaceFromCurrent(replacer: (state: S) => S) {
+    this._updateState(replacer(this.currentState));
+  }
+
   applyPatches(patches: Patch[]) {
     applyPatchesToStore(this, patches);
   }
 }
 
-export function applyPatchesToStore<S extends any = any>(store: Store<S>, patches: Patch[]) {
+export function applyPatchesToStore<S extends object = object>(store: Store<S>, patches: Patch[]) {
   const currentState: S = store.getRawState();
   const nextState = applyPatches(currentState as any, patches);
   if (nextState !== currentState) {
@@ -521,14 +504,14 @@ function runUpdates<S extends any>(
   return func
     ? (produceWithPatches(currentState, (s: S) => (updater as TUpdateFunction<S>)(s as Draft<S>, currentState)) as any)
     : ((updater as TUpdateFunction<S>[]).reduce(
-      ([nextState, patches, inversePatches], currentValue) => {
-        const resp = produceWithPatches(nextState as any, (s: S) => currentValue(s as Draft<S>, nextState)) as any;
-        patches.push(...resp[1]);
-        inversePatches.push(...resp[2]);
-        return [resp[0], patches, inversePatches];
-      },
-      [currentState, [], []] as [S, Patch[], Patch[]]
-    ) as [S, Patch[], Patch[]]);
+        ([nextState, patches, inversePatches], currentValue) => {
+          const resp = produceWithPatches(nextState as any, (s: S) => currentValue(s as Draft<S>, nextState)) as any;
+          patches.push(...resp[1]);
+          inversePatches.push(...resp[2]);
+          return [resp[0], patches, inversePatches];
+        },
+        [currentState, [], []] as [S, Patch[], Patch[]]
+      ) as [S, Patch[], Patch[]]);
 }
 
 /**
@@ -537,7 +520,7 @@ function runUpdates<S extends any>(
  * @param updater  The update function, or an array of update functions
  * @param patchesCallback  A callback to keep track of the patches made during this update.
  */
-export function update<S extends any = any>(
+export function update<S extends object = object>(
   store: Store<S>,
   updater: TUpdateFunction<S> | TUpdateFunction<S>[],
   patchesCallback?: (patches: Patch[], inversePatches: Patch[]) => void
@@ -577,8 +560,8 @@ export function update<S extends any = any>(
         func
           ? (updater as TUpdateFunction<S>)(s as Draft<S>, currentState)
           : (updater as TUpdateFunction<S>[]).reduce((previousValue, currentUpdater) => {
-            return produce(previousValue as any, (s: S) => currentUpdater(s as Draft<S>, previousValue)) as any;
-          }, currentState)
+              return produce(previousValue as any, (s: S) => currentUpdater(s as Draft<S>, previousValue)) as any;
+            }, currentState)
       ) as any;
     }
 

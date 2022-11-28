@@ -23,7 +23,7 @@ function InjectStoreState({ store, on, children }) {
 `SS` = Sub State (which you are selecting to be returned in the child function):
 
 ```tsx
-interface IPropsInjectStoreState<S extends any = any, SS extends any = any> {
+interface IPropsInjectStoreState<S extends object = object, SS extends any = any> {
   store: Store<S>;
   on?: (state: S) => SS;
   children: (output: SS) => React.ReactElement;

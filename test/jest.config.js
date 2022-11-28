@@ -1,21 +1,6 @@
+/** @type {import('ts-jest').JestConfigWithTsJest} */
 module.exports = {
-  "bail": false,
-  "moduleFileExtensions": [
-    "ts",
-    "tsx",
-    "js",
-    "jsx",
-    "json",
-    "node"
-  ],
-  moduleDirectories: [
-    "test/node_modules", "node_modules"
-  ],
-  "testEnvironment": "jsdom",
-  "testRegex": "((test|spec)|(tests|specs))\\.(jsx?|tsx?)$",
-  "transform": {
-    "^.+\\.tsx?$": "ts-jest"
-  },
-  "verbose": true,
-  setupFilesAfterEnv: ["./rtl.setup.ts"],
+  preset: 'ts-jest',
+  testEnvironment: 'node',
+  testMatch: ['**/tests/*.ts?(x)'],
 };
