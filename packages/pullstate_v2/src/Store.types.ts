@@ -32,8 +32,6 @@ export type TListOfProp<S extends Array<any>, O = S extends Array<infer AO> ? AO
 
 // --- Object Selector functions ---
 
-export type TPick<S, K extends keyof S = keyof S> = (key: K) => TValueSelector<S[K]>;
-
 type TSelectorMutateFunctions<S> = {
   replace: TReplace<S>;
 } & (S extends Primitive
@@ -43,6 +41,10 @@ type TSelectorMutateFunctions<S> = {
       mutate: TMutate<S>;
     });
 
+export type TObjectValueSelector<S> = {
+  pick: <K extends keyof S>(key: K) => TValueSelector<S[K]>;
+};
+
 export type TValueSelector<S> = TSelectorMutateFunctions<S> &
   (S extends Primitive
     ? {}
@@ -51,9 +53,7 @@ export type TValueSelector<S> = TSelectorMutateFunctions<S> &
         listWith: TListWith<S>;
         listOfProp: TListOfProp<S>;
       }
-    : {
-        pick: TPick<S>;
-      });
+    : TObjectValueSelector<S>);
 
 export type TItemMatchSelector<S> = {};
 

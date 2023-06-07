@@ -47,4 +47,4 @@ const AppStore = new Store<IAppState>({
   },
 });
 
-AppStore.select("profile.tasks.0").pick("text").replace(0);
+AppStore.select("profile.tasks.0").pick("text").replace("Eat");
