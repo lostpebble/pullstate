@@ -1,0 +1,27 @@
+{
+  "compilerOptions": {
+    "jsx": "react",
+    "module": "esnext",
+    "esModuleInterop": true,
+    "target": "ES2019",
+    "sourceMap": true,
+    "inlineSourceMap": false,
+    "sourceRoot": "src",
+    "rootDir": "./src",
+    "declarationDir": "./dist",
+    "declaration": true,
+    "removeComments": true,
+    "strict": true,
+    "lib": [
+      "dom"
+    ],
+    "moduleResolution": "Node"
+  },
+  "include": [
+    "src",
+    "test"
+  ],
+  "exclude": [
+    "website"
+  ]
+}
