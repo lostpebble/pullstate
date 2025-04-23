@@ -11,6 +11,7 @@
     "declarationDir": "./dist",
     "declaration": true,
     "removeComments": true,
+    "skipLibCheck": true,
     "strict": true,
     "lib": [
       "dom"
