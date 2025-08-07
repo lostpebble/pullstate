@@ -33,10 +33,10 @@ import {
   TPullstateAsyncCacheBreakHook,
   TPullstateAsyncWatchResponse,
   TRunWithPayload,
-  TUseResponse
+  TUseResponse,
 } from "./async-types";
 // @ts-ignore
-import produce, { Draft } from "immer";
+import { Draft, produce } from "immer";
 import { deepEqual } from "fast-equals";
 // const isEqual = require("fast-deep-equal/es6");
 

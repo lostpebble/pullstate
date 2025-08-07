@@ -1,6 +1,6 @@
 import Benchmark from "benchmark";
-import { createRandomArgs, IRandomArgObject } from "./BenchmarkUtils";
-import { produce, setAutoFreeze } from "immer";
+import { createRandomArgs } from "./BenchmarkUtils";
+import { setAutoFreeze } from "immer";
 import { Store } from "../../src";
 
 const amount = 10;
