@@ -1,5 +1,5 @@
 import { clientStores, IPullstateAllStores, PullstateContext } from "./PullstateCore";
-import { Fragment, MutableRefObject, useContext, useEffect, useRef, useState } from "react";
+import { MutableRefObject, useContext, useEffect, useRef, useState } from "react";
 import {
   EAsyncEndTags,
   EPostActionContext,
@@ -1246,7 +1246,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         return func(result.payload);
       }
 
-      return Fragment;
+      return <></>;
     };
 
     return {

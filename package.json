@@ -1,6 +1,6 @@
 {
   "name": "pullstate",
-  "version": "2.0.0-pre.4",
+  "version": "2.0.0-pre.6",
   "description": "Simple state stores using immer and React hooks",
   "type": "module",
   "main": "dist/index.js",
@@ -19,6 +19,7 @@
     "package.json"
   ],
   "scripts": {
+    "clean-files": "bunx glcl",
     "generate-typedoc": "typedoc src/index.ts",
     "test": "jest",
     "test-watch": "jest --watch",
@@ -73,8 +74,8 @@
     "lodash": "^4.17.21",
     "minified-size": "^3.0.0",
     "prettier": "^2.8.0",
-    "react": "19.1.0",
-    "react-dom": "19.1.0",
+    "react": "19.0.0",
+    "react-dom": "19.0.0",
     "react-test-renderer": "^18.2.0",
     "rollup": "^3.5.0",
     "rollup-plugin-terser": "^7.0.2",
@@ -92,5 +93,9 @@
   },
   "peerDependencies": {
     "react": "^19.1.0"
+  },
+  "overrides": {
+    "react": "19.0.0",
+    "react-dom": "19.0.0"
   }
 }
