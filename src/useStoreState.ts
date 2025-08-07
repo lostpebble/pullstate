@@ -1,4 +1,4 @@
-import isEqual from "fast-deep-equal/es6";
+import { deepEqual } from "fast-equals";
 // S = State
 // SS = Sub-state
 import { useEffect, useRef, useState } from "react";
@@ -52,7 +52,7 @@ function useStoreState(store: Store, getSubState?: (state: any) => any, deps?: R
           ? getSubState(store.getRawState())
           : store.getRawState();
 
-        if (!isEqual(updateRef.current.state, nextSubState)) {
+        if (!deepEqual(updateRef.current.state, nextSubState)) {
           // final check again before actually running state update (might prevent no-op errors with React)
           if (effectState.shouldUpdate) {
             updateRef.current.state = nextSubState;
@@ -75,7 +75,7 @@ function useStoreState(store: Store, getSubState?: (state: any) => any, deps?: R
 
   if (deps !== undefined) {
     const prevDeps = useRef<ReadonlyArray<any>>(deps);
-    if (!isEqual(deps, prevDeps)) {
+    if (!deepEqual(deps, prevDeps)) {
       updateRef.current.state = getSubState!(store.getRawState());
     }
   }

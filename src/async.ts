@@ -1,5 +1,5 @@
 import { clientStores, IPullstateAllStores, PullstateContext } from "./PullstateCore";
-import React, { MutableRefObject, useContext, useEffect, useRef, useState } from "react";
+import { Fragment, MutableRefObject, useContext, useEffect, useRef, useState } from "react";
 import {
   EAsyncEndTags,
   EPostActionContext,
@@ -37,8 +37,7 @@ import {
 } from "./async-types";
 // @ts-ignore
 import produce, { Draft } from "immer";
-
-import isEqual from "fast-deep-equal/es6";
+import { deepEqual } from "fast-equals";
 // const isEqual = require("fast-deep-equal/es6");
 
 export const clientAsyncCache: IPullstateAsyncCache = {
@@ -578,13 +577,13 @@ further looping. Fix in your cacheBreakHook() is needed.`);
   ) => {
     const key = _createKey(args, customKey);
 
-    const cache: IPullstateAsyncCache = onServer ? useContext(PullstateContext)!._asyncCache : clientAsyncCache;
+    const cache: IPullstateAsyncCache = onServer ? useContext<any>(PullstateContext)!._asyncCache : clientAsyncCache;
 
     let stores: S;
     let customContext: any;
 
     if (onServer || forceContext) {
-      const pullstateContext = useContext(PullstateContext)!;
+      const pullstateContext = useContext<any>(PullstateContext)!;
       stores = pullstateContext.stores as S;
       customContext = pullstateContext.customContext;
     } else if (clientStores.loaded) {
@@ -710,13 +709,13 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     }
     // console.log(`[${key}][${watchId.current}] Starting useWatch()`);
 
-    const cache: IPullstateAsyncCache = onServer ? useContext(PullstateContext)!._asyncCache : clientAsyncCache;
+    const cache: IPullstateAsyncCache = onServer ? useContext<any>(PullstateContext)!._asyncCache : clientAsyncCache;
 
     let stores: S;
     let customContext: any;
 
     if (onServer || forceContext) {
-      const pullstateContext = useContext(PullstateContext)!;
+      const pullstateContext = useContext<any>(PullstateContext)!;
       stores = pullstateContext.stores as S;
       customContext = pullstateContext.customContext;
     } else if (clientStores.loaded) {
@@ -743,7 +742,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         console.log(responseRef.current);
         console.log(cache.results[key]);
         console.log(cache);*/
-        if (shouldUpdate[key][watchId.current] && !isEqual(responseRef.current, cache.results[key])) {
+        if (shouldUpdate[key][watchId.current] && !deepEqual(responseRef.current, cache.results[key])) {
           const nextResponse = checkKeyAndReturnResponse(
             {
               key,
@@ -1051,7 +1050,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
     const { notify = true, key: customKey } = options || {};
     const key = _createKey(args, customKey);
 
-    const cache: IPullstateAsyncCache = onServer ? useContext(PullstateContext)!._asyncCache : clientAsyncCache;
+    const cache: IPullstateAsyncCache = onServer ? useContext<any>(PullstateContext)!._asyncCache : clientAsyncCache;
 
     cache.results[key] = [true, true, result, false, Date.now()];
     if (notify) {
@@ -1069,7 +1068,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
     const key = _createKey(args, customKey);
 
-    const cache: IPullstateAsyncCache = onServer ? useContext(PullstateContext)!._asyncCache : clientAsyncCache;
+    const cache: IPullstateAsyncCache = onServer ? useContext<any>(PullstateContext)!._asyncCache : clientAsyncCache;
 
     if (cache.results.hasOwnProperty(key) && !cache.results[key][2].error) {
       const currentCached: R = cache.results[key][2].payload;
@@ -1117,7 +1116,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
 
       if (checkCacheBreak && finalizedCacheBreakHook !== undefined) {
         const stores = onServer
-          ? (useContext(PullstateContext)!.stores as S)
+          ? (useContext<any>(PullstateContext)!.stores as S)
           : clientStores.loaded
             ? (clientStores.stores as S)
             : (storeErrorProxy as S);
@@ -1247,7 +1246,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
         return func(result.payload);
       }
 
-      return React.Fragment;
+      return Fragment;
     };
 
     return {
@@ -1376,7 +1375,7 @@ further looping. Fix in your cacheBreakHook() is needed.`);
               currentValue.current = options.equality;
               executionOrd.current += 1;
             }
-          } else if (!isEqual(currentValue.current, args)) {
+          } else if (!deepEqual(currentValue.current, args)) {
             currentValue.current = args;
             executionOrd.current += 1;
           }

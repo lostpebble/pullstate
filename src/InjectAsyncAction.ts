@@ -1,4 +1,3 @@
-import React from "react";
 import {
   IAsyncActionBeckonOptions,
   IAsyncActionWatchOptions,
@@ -7,6 +6,7 @@ import {
   TPullstateAsyncWatchResponse
 } from "./async-types";
 import { IPullstateAllStores } from "./PullstateCore";
+import { ReactElement } from "react";
 
 export enum EAsyncActionInjectType {
   WATCH = "watch",
@@ -22,13 +22,13 @@ export interface IPropsInjectAsyncActionBeckon<A = any, R = any, T extends strin
   extends IPropsInjectAsyncActionBase<A, R, T, N> {
   type: EAsyncActionInjectType.BECKON;
   options?: IAsyncActionBeckonOptions<A, R, T, N, S>;
-  children: (response: TPullstateAsyncBeckonResponse<R, T>) => React.ReactElement;
+  children: (response: TPullstateAsyncBeckonResponse<R, T>) => ReactElement;
 }
 
 export interface IPropsInjectAsyncActionWatch<A = any, R = any, T extends string = string, N = any, S extends IPullstateAllStores = IPullstateAllStores>
   extends IPropsInjectAsyncActionBase<A, R, T, N> {
   type: EAsyncActionInjectType.WATCH;
-  children: (response: TPullstateAsyncWatchResponse<R, T, N>) => React.ReactElement;
+  children: (response: TPullstateAsyncWatchResponse<R, T, N>) => ReactElement;
   options?: IAsyncActionWatchOptions<A, R, T, N, S>;
 }
 
@@ -36,7 +36,7 @@ export type TInjectAsyncActionProps = IPropsInjectAsyncActionBeckon | IPropsInje
 
 export function InjectAsyncAction(
   props: TInjectAsyncActionProps
-): React.ReactElement {
+): ReactElement {
   if (props.type === EAsyncActionInjectType.BECKON) {
     const response = props.action.useBeckon(props.args, props.options);
     return props.children(response);

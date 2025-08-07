@@ -1,3 +1,4 @@
+/*
 import { Store } from "./Store";
 import { useEffect, useRef, useState } from "react";
 import { IUpdateRef } from "./useStoreState";
@@ -66,3 +67,4 @@ function useStoreStateOpt<
 }
 
 export { useStoreStateOpt };
+*/

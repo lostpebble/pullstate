@@ -1,8 +1,7 @@
 // @ts-ignore
 import { applyPatches, Draft, enablePatches, Patch, PatchListener, produce, produceWithPatches } from "immer";
 import { useStoreState } from "./useStoreState";
-
-import isEqual from "fast-deep-equal/es6";
+import { deepEqual } from "fast-equals";
 import { useLocalStore } from "./useLocalStore";
 import { globalClientState } from "./globalClientState";
 
@@ -50,7 +49,7 @@ function makeSubscriptionFunction<S extends object, T>(
     const currentState = store.getRawState();
     const nextWatchState = watch(currentState);
 
-    if (!isEqual(nextWatchState, lastWatchState)) {
+    if (!deepEqual(nextWatchState, lastWatchState)) {
       listener(nextWatchState, currentState, lastWatchState);
       lastWatchState = nextWatchState;
     }
@@ -69,7 +68,7 @@ function makeReactionFunctionCreator<S extends object, T>(
 
       const nextWatchState = watch(currentState);
 
-      if (forceRun || !isEqual(nextWatchState, lastWatchState)) {
+      if (forceRun || !deepEqual(nextWatchState, lastWatchState)) {
         if (store._optListenerCount > 0) {
           const [nextState, patches, inversePatches] = produceWithPatches(currentState as any, (s: S) =>
             reaction(nextWatchState, s as Draft<S>, currentState, lastWatchState)

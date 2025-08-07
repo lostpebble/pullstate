@@ -2,7 +2,7 @@
 
 type ExtractObj<S extends object, K> = K extends keyof S ? S[K] : never
 
-export type ObjectPath<S extends object, T extends readonly unknown[]> =
+export type ObjectPath<S extends object, T extends readonly any[]> =
   T extends readonly [infer T0, ...infer TR]
     ? TR extends []
       ? ExtractObj<S, T0> extends never

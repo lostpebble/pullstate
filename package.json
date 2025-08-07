@@ -1,15 +1,22 @@
 {
   "name": "pullstate",
-  "version": "2.0.0-pre.0",
+  "version": "2.0.0-pre.3",
   "description": "Simple state stores using immer and React hooks",
+  "type": "module",
   "main": "dist/index.js",
-  "module": "dist/index.es.js",
-  "esnext": "dist/index.es.js",
-  "main:umd": "dist/pullstate.umd.js",
-  "main:umd:min": "dist/pullstate.umd.min.js",
+  "module": "dist/index.js",
+  "esnext": "dist/index.js",
   "types": "dist/index.d.ts",
+  "exports": {
+    ".": {
+      "import": "./dist/index.js",
+      "require": "./dist/index.js",
+      "types": "./dist/index.d.ts"
+    }
+  },
   "files": [
-    "dist"
+    "dist",
+    "package.json"
   ],
   "scripts": {
     "generate-typedoc": "typedoc src/index.ts",
@@ -17,6 +24,7 @@
     "test-watch": "jest --watch",
     "clean": "rimraf ./dist",
     "build": "npm run clean && rollup -c --bundleConfigAsCjs",
+    "build-tsdown": "tsdown",
     "uglify": "terser ./dist/index.js -o ./dist/index.js",
     "check-size": "minified-size ./dist/index.es.js",
     "check-size-cjs": "minified-size ./dist/index.js",
@@ -26,7 +34,8 @@
     "benchmark-all-immer": "cross-env TS_NODE_PROJECT=./test/tsconfig.json node -r ts-node/register --max-old-space-size=4096  test/benchmark/benchmark-all-immer.ts",
     "benchmark-immer-without-stores": "cross-env TS_NODE_PROJECT=./test/tsconfig.json node -r ts-node/register --max-old-space-size=4096  test/benchmark/benchmark-immer-without-stores.ts",
     "benchmark-immer-with-stores": "cross-env TS_NODE_PROJECT=./test/tsconfig.json node -r ts-node/register --max-old-space-size=4096 test/benchmark/benchmark-immer-with-stores.ts",
-    "type-check": "tsc --noEmit"
+    "type-check": "tsc --noEmit",
+    "type-check-watch": "tsc --noEmit --watch"
   },
   "keywords": [
     "immer",
@@ -38,8 +47,8 @@
   "author": "Paul Myburgh",
   "license": "MIT",
   "dependencies": {
-    "fast-deep-equal": "^3.1.3",
-    "immer": "^9.0.16"
+    "fast-equals": "^5.2.2",
+    "immer": "^10.1.1"
   },
   "repository": "https://github.com/lostpebble/pullstate",
   "devDependencies": {
@@ -74,9 +83,10 @@
     "ts-jest": "^29.0.3",
     "ts-loader": "^9.4.1",
     "ts-node": "^10.9.1",
+    "tsdown": "^0.13.3",
     "type-fest": "^3.3.0",
     "typedoc": "^0.23.21",
-    "typescript": "4.9.3",
+    "typescript": "5.9.2",
     "webpack": "^4.44.2",
     "webpack-cli": "^3.3.12"
   },

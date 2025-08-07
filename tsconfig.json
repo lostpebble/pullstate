@@ -1,10 +1,11 @@
 {
   "compilerOptions": {
-    "jsx": "react",
+    "jsx": "react-jsx",
     "module": "esnext",
     "esModuleInterop": true,
-    "target": "ES2019",
+    "target": "ES2022",
     "sourceMap": true,
+    "allowSyntheticDefaultImports":  false,
     "inlineSourceMap": false,
     "sourceRoot": "src",
     "rootDir": "./src",
@@ -13,13 +14,9 @@
     "removeComments": true,
     "skipLibCheck": true,
     "strict": true,
-    "lib": [
-      "dom"
-    ],
-    "moduleResolution": "Node"
+    "lib": ["dom"],
+    "moduleResolution": "bundler"
   },
-  "exclude": [
-    "./test",
-    "website"
-  ]
+  "include": ["src"],
+  "exclude": ["./test", "website"]
 }

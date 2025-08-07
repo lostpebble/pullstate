@@ -1,4 +1,4 @@
-import React, { useContext } from "react";
+import { createContext, useContext } from "react";
 import { Store, TUpdateFunction } from "./Store";
 import { clientAsyncCache, createAsyncAction, createAsyncActionDirect } from "./async";
 import {
@@ -16,7 +16,7 @@ export interface IPullstateAllStores {
   [storeName: string]: Store<any>;
 }
 
-export const PullstateContext = React.createContext<PullstateInstance<any> | null>(null);
+export const PullstateContext = createContext<PullstateInstance<any> | null>(null);
 
 export const PullstateProvider = <T extends IPullstateAllStores>(
   {
@@ -300,9 +300,9 @@ export function createPullstateCore<T extends IPullstateAllStores = IPullstateAl
 }
 
 export function useStores<T extends IPullstateAllStores = {}>() {
-  return useContext(PullstateContext)!.stores as T;
+  return useContext<any>(PullstateContext)!.stores as T;
 }
 
 export function useInstance<T extends IPullstateAllStores = IPullstateAllStores>(): PullstateInstance<T> {
-  return useContext(PullstateContext)! as PullstateInstance<T>;
+  return useContext<any>(PullstateContext)! as PullstateInstance<T>;
 }
