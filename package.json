@@ -1,6 +1,6 @@
 {
   "name": "pullstate",
-  "version": "2.0.0-pre.7",
+  "version": "2.0.0-pre.8",
   "description": "Simple state stores using immer and React hooks",
   "type": "module",
   "main": "dist/index.js",
@@ -49,7 +49,8 @@
   "license": "MIT",
   "dependencies": {
     "fast-equals": "^5.2.2",
-    "immer": "^10.1.1"
+    "immer": "^10.1.1",
+    "react": "^19.0.0"
   },
   "repository": "https://github.com/lostpebble/pullstate",
   "devDependencies": {
@@ -74,8 +75,6 @@
     "lodash": "^4.17.21",
     "minified-size": "^3.0.0",
     "prettier": "^2.8.0",
-    "react": "19.0.0",
-    "react-dom": "19.0.0",
     "react-test-renderer": "^18.2.0",
     "rollup": "^3.5.0",
     "rollup-plugin-terser": "^7.0.2",
@@ -92,10 +91,6 @@
     "webpack-cli": "^3.3.12"
   },
   "peerDependencies": {
-    "react": "^19.1.0"
-  },
-  "overrides": {
-    "react": "19.0.0",
-    "react-dom": "19.0.0"
+    "react": "^19.0.0"
   }
 }
