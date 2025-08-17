@@ -300,9 +300,18 @@ export function createPullstateCore<T extends IPullstateAllStores = IPullstateAl
 }
 
 export function useStores<T extends IPullstateAllStores = {}>() {
-  return useContext<any>(PullstateContext)!.stores as T;
+  return useInstance().stores as T;
 }
 
 export function useInstance<T extends IPullstateAllStores = IPullstateAllStores>(): PullstateInstance<T> {
-  return useContext<any>(PullstateContext)! as PullstateInstance<T>;
+  const context = useContext<any>(PullstateContext);
+
+  if (context == null) {
+    console.error(
+      `Pullstate: useStores() - Should only be called from within a PullstateProvider component.`
+    );
+    return {} as PullstateInstance<T>;
+  }
+
+  return context as PullstateInstance<T>;
 }
