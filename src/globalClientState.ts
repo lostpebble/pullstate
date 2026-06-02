@@ -1,7 +1,7 @@
 import { Store } from "./Store";
 
 export const globalClientState: {
-  storeOrdinal: number,
+  storeOrdinal: number;
   batching: boolean;
   flushStores: {
     [storeName: number]: Store<any>;
@@ -9,5 +9,5 @@ export const globalClientState: {
 } = {
   storeOrdinal: 0,
   batching: false,
-  flushStores: {}
+  flushStores: {},
 };

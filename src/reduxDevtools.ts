@@ -32,7 +32,7 @@ export function registerInDevtools(stores: IPullstateAllStores, { namespace = ""
             return;
           }
           devTools.send("Change", watched);
-        }
+        },
       );
 
       devTools.subscribe((message: { type: string; state: any }) => {

@@ -1,12 +1,12 @@
+import { ReactElement } from "react";
 import {
   IAsyncActionBeckonOptions,
   IAsyncActionWatchOptions,
   IOCreateAsyncActionOutput,
   TPullstateAsyncBeckonResponse,
-  TPullstateAsyncWatchResponse
+  TPullstateAsyncWatchResponse,
 } from "./async-types";
 import { IPullstateAllStores } from "./PullstateCore";
-import { ReactElement } from "react";
 
 export enum EAsyncActionInjectType {
   WATCH = "watch",
@@ -18,15 +18,25 @@ interface IPropsInjectAsyncActionBase<A, R, T extends string, N> {
   args?: A;
 }
 
-export interface IPropsInjectAsyncActionBeckon<A = any, R = any, T extends string = string, N = any, S extends IPullstateAllStores = IPullstateAllStores>
-  extends IPropsInjectAsyncActionBase<A, R, T, N> {
+export interface IPropsInjectAsyncActionBeckon<
+  A = any,
+  R = any,
+  T extends string = string,
+  N = any,
+  S extends IPullstateAllStores = IPullstateAllStores,
+> extends IPropsInjectAsyncActionBase<A, R, T, N> {
   type: EAsyncActionInjectType.BECKON;
   options?: IAsyncActionBeckonOptions<A, R, T, N, S>;
   children: (response: TPullstateAsyncBeckonResponse<R, T>) => ReactElement;
 }
 
-export interface IPropsInjectAsyncActionWatch<A = any, R = any, T extends string = string, N = any, S extends IPullstateAllStores = IPullstateAllStores>
-  extends IPropsInjectAsyncActionBase<A, R, T, N> {
+export interface IPropsInjectAsyncActionWatch<
+  A = any,
+  R = any,
+  T extends string = string,
+  N = any,
+  S extends IPullstateAllStores = IPullstateAllStores,
+> extends IPropsInjectAsyncActionBase<A, R, T, N> {
   type: EAsyncActionInjectType.WATCH;
   children: (response: TPullstateAsyncWatchResponse<R, T, N>) => ReactElement;
   options?: IAsyncActionWatchOptions<A, R, T, N, S>;
@@ -34,9 +44,7 @@ export interface IPropsInjectAsyncActionWatch<A = any, R = any, T extends string
 
 export type TInjectAsyncActionProps = IPropsInjectAsyncActionBeckon | IPropsInjectAsyncActionWatch;
 
-export function InjectAsyncAction(
-  props: TInjectAsyncActionProps
-): ReactElement {
+export function InjectAsyncAction(props: TInjectAsyncActionProps): ReactElement {
   if (props.type === EAsyncActionInjectType.BECKON) {
     const response = props.action.useBeckon(props.args, props.options);
     return props.children(response);

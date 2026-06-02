@@ -1,5 +1,4 @@
 import { createContext, useContext } from "react";
-import { Store, TUpdateFunction } from "./Store";
 import { clientAsyncCache, createAsyncAction, createAsyncActionDirect } from "./async";
 import {
   IAsyncActionRunOptions,
@@ -9,8 +8,9 @@ import {
   IPullstateAsyncCache,
   IPullstateAsyncResultState,
   TPullstateAsyncAction,
-  TPullstateAsyncRunResponse
+  TPullstateAsyncRunResponse,
 } from "./async-types";
+import { Store, TUpdateFunction } from "./Store";
 
 export interface IPullstateAllStores {
   [storeName: string]: Store<any>;
@@ -18,14 +18,13 @@ export interface IPullstateAllStores {
 
 export const PullstateContext = createContext<PullstateInstance<any> | null>(null);
 
-export const PullstateProvider = <T extends IPullstateAllStores>(
-  {
-    instance,
-    children
-  }: {
-    instance: PullstateInstance<T>;
-    children?: any;
-  }) => {
+export const PullstateProvider = <T extends IPullstateAllStores>({
+  instance,
+  children,
+}: {
+  instance: PullstateInstance<T>;
+  children?: any;
+}) => {
   return <PullstateContext.Provider value={instance}>{children}</PullstateContext.Provider>;
 };
 
@@ -38,11 +37,13 @@ export const clientStores: {
 } = {
   internalClientStores: true,
   loaded: false,
-  stores: {}
+  stores: {},
 };
 
-export type TMultiStoreAction<P extends PullstateSingleton<S>,
-  S extends IPullstateAllStores = P extends PullstateSingleton<infer ST> ? ST : any> = (update: TMultiStoreUpdateMap<S>) => void;
+export type TMultiStoreAction<
+  P extends PullstateSingleton<S>,
+  S extends IPullstateAllStores = P extends PullstateSingleton<infer ST> ? ST : any,
+> = (update: TMultiStoreUpdateMap<S>) => void;
 
 interface IPullstateSingletonOptions {
   asyncActions?: {
@@ -59,7 +60,7 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
   constructor(allStores: S, options: IPullstateSingletonOptions = {}) {
     if (singleton !== null) {
       console.error(
-        `Pullstate: createPullstate() - Should not be creating the core Pullstate class more than once! In order to re-use pull state, you need to call instantiate() on your already created object.`
+        `Pullstate: createPullstate() - Should not be creating the core Pullstate class more than once! In order to re-use pull state, you need to call instantiate() on your already created object.`,
       );
     }
 
@@ -70,12 +71,15 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
     this.options = options;
   }
 
-  instantiate(
-    {
-      hydrateSnapshot,
-      ssr = false,
-      customContext
-    }: { hydrateSnapshot?: IPullstateSnapshot; ssr?: boolean, customContext?: any } = {}): PullstateInstance<S> {
+  instantiate({
+    hydrateSnapshot,
+    ssr = false,
+    customContext,
+  }: {
+    hydrateSnapshot?: IPullstateSnapshot;
+    ssr?: boolean;
+    customContext?: any;
+  } = {}): PullstateInstance<S> {
     if (!ssr) {
       const instantiated = new PullstateInstance<S>(clientStores.stores as S, false, customContext);
 
@@ -92,18 +96,18 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
     for (const storeName of Object.keys(clientStores.stores)) {
       if (hydrateSnapshot == null) {
         newStores[storeName] = new Store(clientStores.stores[storeName]._getInitialState());
-      } else if (hydrateSnapshot.hasOwnProperty(storeName)) {
+      } else if (Object.hasOwn(hydrateSnapshot, storeName)) {
         newStores[storeName] = new Store(hydrateSnapshot.allState[storeName]);
       } else {
         newStores[storeName] = new Store(clientStores.stores[storeName]._getInitialState());
         console.warn(
-          `Pullstate (instantiate): store [${storeName}] didn't hydrate any state (data was non-existent on hydration object)`
+          `Pullstate (instantiate): store [${storeName}] didn't hydrate any state (data was non-existent on hydration object)`,
         );
       }
 
       newStores[storeName]._setInternalOptions({
         ssr,
-        reactionCreators: clientStores.stores[storeName]._getReactionCreators()
+        reactionCreators: clientStores.stores[storeName]._getReactionCreators(),
       });
     }
 
@@ -151,9 +155,9 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
     };
   }*/
 
-  createAsyncActionDirect<A extends any = any, R extends any = any, N extends any = any>(
+  createAsyncActionDirect<A = any, R = any, N = any>(
     action: (args: A) => Promise<R>,
-    options: ICreateAsyncActionOptions<A, R, string, N, S> = {}
+    options: ICreateAsyncActionOptions<A, R, string, N, S> = {},
   ): IOCreateAsyncActionOutput<A, R, string, N, S> {
     return createAsyncActionDirect(action, options);
     // return createAsyncAction<A, R, string, S>(async (args: A) => {
@@ -161,10 +165,10 @@ export class PullstateSingleton<S extends IPullstateAllStores = IPullstateAllSto
     // }, options);
   }
 
-  createAsyncAction<A = any, R = any, T extends string = string, N extends any = any>(
+  createAsyncAction<A = any, R = any, T extends string = string, N = any>(
     action: TPullstateAsyncAction<A, R, T, N, S>,
     // options: Omit<ICreateAsyncActionOptions<A, R, T, S>, "clientStores"> = {}
-    options: ICreateAsyncActionOptions<A, R, T, N, S> = {}
+    options: ICreateAsyncActionOptions<A, R, T, N, S> = {},
   ): IOCreateAsyncActionOutput<A, R, T, N, S> {
     // options.clientStores = this.originStores;
     if (this.options.asyncActions?.defaultCachingSeconds && !options.cacheBreakHook) {
@@ -200,12 +204,13 @@ export interface IPullstateInstanceConsumable<T extends IPullstateAllStores = IP
   runAsyncAction<A, R, X extends string, N>(
     asyncAction: IOCreateAsyncActionOutput<A, R, X, N, T>,
     args?: A,
-    runOptions?: Pick<IAsyncActionRunOptions<A, R, X, N, T>, "ignoreShortCircuit" | "respectCache">
+    runOptions?: Pick<IAsyncActionRunOptions<A, R, X, N, T>, "ignoreShortCircuit" | "respectCache">,
   ): TPullstateAsyncRunResponse<R, X, N>;
 }
 
 class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores>
-  implements IPullstateInstanceConsumable<T> {
+  implements IPullstateInstanceConsumable<T>
+{
   private _ssr: boolean = false;
   private _customContext: any;
   private readonly _stores: T = {} as T;
@@ -213,7 +218,7 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores>
     listeners: {},
     results: {},
     actions: {},
-    actionOrd: {}
+    actionOrd: {},
   };
 
   constructor(allStores: T, ssr: boolean, customContext: any) {
@@ -267,7 +272,7 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores>
   async runAsyncAction<A, R, X extends string, N>(
     asyncAction: IOCreateAsyncActionOutput<A, R, X, N, T>,
     args: A = {} as A,
-    runOptions: Pick<IAsyncActionRunOptions<A, R, X, N, T>, "ignoreShortCircuit" | "respectCache"> = {}
+    runOptions: Pick<IAsyncActionRunOptions<A, R, X, N, T>, "ignoreShortCircuit" | "respectCache"> = {},
   ): TPullstateAsyncRunResponse<R, X, N> {
     if (this._ssr) {
       (runOptions as IAsyncActionRunOptions<A, R, X, N, T>)._asyncCache = this._asyncCache;
@@ -280,7 +285,7 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores>
 
   hydrateFromSnapshot(snapshot: IPullstateSnapshot) {
     for (const storeName of Object.keys(this._stores)) {
-      if (snapshot.allState.hasOwnProperty(storeName)) {
+      if (Object.hasOwn(snapshot.allState, storeName)) {
         this._stores[storeName]._updateStateWithoutReaction(snapshot.allState[storeName]);
       } else {
         console.warn(`${storeName} didn't hydrate any state (data was non-existent on hydration object)`);
@@ -294,7 +299,7 @@ class PullstateInstance<T extends IPullstateAllStores = IPullstateAllStores>
 
 export function createPullstateCore<T extends IPullstateAllStores = IPullstateAllStores>(
   allStores: T = {} as T,
-  options: IPullstateSingletonOptions = {}
+  options: IPullstateSingletonOptions = {},
 ) {
   return new PullstateSingleton<T>(allStores, options);
 }
@@ -307,9 +312,7 @@ export function useInstance<T extends IPullstateAllStores = IPullstateAllStores>
   const context = useContext<any>(PullstateContext);
 
   if (context == null) {
-    console.error(
-      `Pullstate: useStores() - Should only be called from within a PullstateProvider component.`
-    );
+    console.error(`Pullstate: useStores() - Should only be called from within a PullstateProvider component.`);
     return {} as PullstateInstance<T>;
   }
 

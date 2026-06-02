@@ -10,11 +10,7 @@
     "declaration": true,
     "removeComments": true,
     "strict": true,
-    "lib": [
-      "dom"
-    ]
+    "lib": ["dom"]
   },
-  "exclude": [
-    "./test"
-  ]
+  "exclude": ["./test"]
 }

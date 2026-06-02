@@ -1,19 +1,18 @@
 // prettier-ignore
 
-type ExtractObj<S extends object, K> = K extends keyof S ? S[K] : never
+type ExtractObj<S extends object, K> = K extends keyof S ? S[K] : never;
 
-export type ObjectPath<S extends object, T extends readonly any[]> =
-  T extends readonly [infer T0, ...infer TR]
-    ? TR extends []
-      ? ExtractObj<S, T0> extends never
+export type ObjectPath<S extends object, T extends readonly any[]> = T extends readonly [infer T0, ...infer TR]
+  ? TR extends []
+    ? ExtractObj<S, T0> extends never
+      ? readonly []
+      : readonly [T0]
+    : ExtractObj<S, T0> extends object
+      ? readonly [T0, ...ObjectPath<ExtractObj<S, T0>, TR>]
+      : ExtractObj<S, T0> extends never
         ? readonly []
         : readonly [T0]
-      : ExtractObj<S, T0> extends object
-        ? readonly [T0, ...ObjectPath<ExtractObj<S, T0>, TR>]
-        : ExtractObj<S, T0> extends never
-          ? readonly []
-          : readonly [T0]
-    : readonly []
+  : readonly [];
 
 /*
 export interface DeepKeyOfArray<O> extends Array<string | number> {

@@ -15,7 +15,7 @@ console.log("\n");
 const suiteName = "Destructuring";
 
 new Benchmark.Suite(suiteName)
-  .add(`array destructuring`, function() {
+  .add(`array destructuring`, () => {
     const allUseIt: any[] = [];
 
     for (const arg of argsArrays) {
@@ -26,7 +26,7 @@ new Benchmark.Suite(suiteName)
 
     return allUseIt;
   })
-  .add(`object destructuring (no renames)`, function() {
+  .add(`object destructuring (no renames)`, () => {
     const allUseIt: any[] = [];
 
     for (const arg of argsObjects) {
@@ -37,7 +37,7 @@ new Benchmark.Suite(suiteName)
 
     return allUseIt;
   })
-  .add(`object destructuring with renaming`, function() {
+  .add(`object destructuring with renaming`, () => {
     const allUseIt: any[] = [];
 
     for (const arg of argsObjectsTwo) {
@@ -53,14 +53,14 @@ new Benchmark.Suite(suiteName)
 
     return allUseIt;
   })
-  .on("error", function(event) {
+  .on("error", (event) => {
     console.log(`An error occurred`);
     console.log(String(event.target));
   })
-  .on("cycle", function(event) {
+  .on("cycle", (event) => {
     console.log(String(event.target));
   })
-  .on("complete", function() {
+  .on("complete", function () {
     console.log(`\n${suiteName} - Fastest is ` + this.filter("fastest").map("name"));
   })
   .run();

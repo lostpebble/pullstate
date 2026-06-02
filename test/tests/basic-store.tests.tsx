@@ -1,4 +1,4 @@
-import { setupBatch, Store } from "../../src";
+import { Store, setupBatch } from "../../src";
 
 interface ITestStore {
   eggs: string[];
@@ -18,13 +18,13 @@ describe("Store operations", () => {
 
     const mockSubscribe = jest.fn();
 
-    store.subscribe(s => s.touched, mockSubscribe);
+    store.subscribe((s) => s.touched, mockSubscribe);
 
-    store.update(s => {
+    store.update((s) => {
       s.touched = true;
     });
 
-    store.update(s => {
+    store.update((s) => {
       s.touched = false;
     });
 
@@ -35,12 +35,15 @@ describe("Store operations", () => {
   it("Should give the previous value when subscription gets a new value", () => {
     const store = getNewStore();
 
-    store.subscribe(s => s.touched, (watched, all, prevWatched) => {
-      expect(watched).toEqual(true);
-      expect(prevWatched).toEqual(false);
-    });
+    store.subscribe(
+      (s) => s.touched,
+      (watched, all, prevWatched) => {
+        expect(watched).toEqual(true);
+        expect(prevWatched).toEqual(false);
+      },
+    );
 
-    store.update(s => {
+    store.update((s) => {
       s.touched = true;
     });
   });

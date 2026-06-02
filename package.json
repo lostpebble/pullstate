@@ -22,6 +22,7 @@
     "clean-files": "bunx glcl",
     "generate-typedoc": "typedoc src/index.ts",
     "format": "biome check --write .",
+    "format-unsafe": "biome check --write --unsafe .",
     "test": "jest",
     "test-watch": "jest --watch",
     "clean": "rimraf ./dist",

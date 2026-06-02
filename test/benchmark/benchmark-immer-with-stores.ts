@@ -1,7 +1,7 @@
 import Benchmark from "benchmark";
-import { createRandomArgs } from "./BenchmarkUtils";
 import { setAutoFreeze } from "immer";
 import { Store } from "../../src";
+import { createRandomArgs } from "./BenchmarkUtils";
 
 const amount = 10;
 
@@ -34,10 +34,10 @@ console.log("\n");
 const suiteName = "Immer with stores updates";
 
 new Benchmark.Suite(suiteName)
-  .add(`with default auto-freeze (true) and no original`, function() {
+  .add(`with default auto-freeze (true) and no original`, () => {
     setAutoFreeze(true);
 
-    FirstStore.update(s => {
+    FirstStore.update((s) => {
       for (const [index, arg] of s.objectSet.entries()) {
         const randomChanges = firstStoreObjectSetChanges[index];
 
@@ -48,10 +48,10 @@ new Benchmark.Suite(suiteName)
       }
     });
   })
-  .add(`with no auto-freeze (false) and no original`, function() {
+  .add(`with no auto-freeze (false) and no original`, () => {
     setAutoFreeze(false);
 
-    SecondStore.update(s => {
+    SecondStore.update((s) => {
       for (const [index, arg] of s.objectSet.entries()) {
         const randomChanges = secondStoreObjectSetChanges[index];
 
@@ -62,7 +62,7 @@ new Benchmark.Suite(suiteName)
       }
     });
   })
-  .add(`with default auto-freeze (true) and using original`, function() {
+  .add(`with default auto-freeze (true) and using original`, () => {
     setAutoFreeze(true);
 
     ThirdStore.update((s, original) => {
@@ -83,7 +83,7 @@ new Benchmark.Suite(suiteName)
       }
     });
   })
-  .add(`with no auto-freeze (false) and using original`, function() {
+  .add(`with no auto-freeze (false) and using original`, () => {
     setAutoFreeze(false);
 
     FourthStore.update((s, original) => {
@@ -104,7 +104,7 @@ new Benchmark.Suite(suiteName)
       }
     });
   })
-  .add(`with default auto-freeze (true) and full array change using original`, function() {
+  .add(`with default auto-freeze (true) and full array change using original`, () => {
     setAutoFreeze(true);
 
     ThirdStore.update((s, original) => {
@@ -120,7 +120,7 @@ new Benchmark.Suite(suiteName)
       });
     });
   })
-  .add(`with no auto-freeze (false) and full array change using original`, function() {
+  .add(`with no auto-freeze (false) and full array change using original`, () => {
     setAutoFreeze(false);
 
     FourthStore.update((s, original) => {
@@ -136,14 +136,14 @@ new Benchmark.Suite(suiteName)
       });
     });
   })
-  .on("error", function(event) {
+  .on("error", (event) => {
     console.log(`An error occurred`);
     console.log(event);
   })
-  .on("cycle", function(event) {
+  .on("cycle", (event) => {
     console.log(String(event.target));
   })
-  .on("complete", function() {
+  .on("complete", function () {
     console.log(`\n${suiteName} - Fastest is ` + this.filter("fastest").map("name"));
   })
   .run({ async: true });

@@ -15,5 +15,5 @@ export const TestUIStore = new Store<ITestUIStore>({
   internal: {
     lekker: true,
     berries: ["blue", "red", "black"],
-  }
+  },
 });

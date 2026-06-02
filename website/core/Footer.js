@@ -5,20 +5,20 @@
  * LICENSE file in the root directory of this source tree.
  */
 
-const React = require('react');
+const React = require("react");
 
 class Footer extends React.Component {
   docUrl(doc, language) {
     const baseUrl = this.props.config.baseUrl;
     const docsUrl = this.props.config.docsUrl;
-    const docsPart = `${docsUrl ? `${docsUrl}/` : ''}`;
-    const langPart = `${language ? `${language}/` : ''}`;
+    const docsPart = `${docsUrl ? `${docsUrl}/` : ""}`;
+    const langPart = `${language ? `${language}/` : ""}`;
     return `${baseUrl}${docsPart}${langPart}${doc}`;
   }
 
   pageUrl(doc, language) {
     const baseUrl = this.props.config.baseUrl;
-    return baseUrl + (language ? `${language}/` : '') + doc;
+    return baseUrl + (language ? `${language}/` : "") + doc;
   }
 
   render() {
@@ -37,32 +37,24 @@ class Footer extends React.Component {
           </a>
           <div>
             <h5>Docs</h5>
-            <a href={this.docUrl('installation.html')}>
-              Installation
-            </a>
-            <a href={this.docUrl('quick-example.html')}>
-              A Quick Example
-            </a>
-            <a href={this.docUrl('use-store-state-hook.html')}>
-              More
-            </a>
+            <a href={this.docUrl("installation.html")}>Installation</a>
+            <a href={this.docUrl("quick-example.html")}>A Quick Example</a>
+            <a href={this.docUrl("use-store-state-hook.html")}>More</a>
           </div>
           <div>
             <h5>Community</h5>
-            <a href="https://github.com/lostpebble/pullstate" target={"_blank"}>GitHub</a>
+            <a href="https://github.com/lostpebble/pullstate" target={"_blank"} rel="noopener">
+              GitHub
+            </a>
           </div>
         </section>
         <a
           href="https://github.com/lostpebble/pullstate"
           target="_blank"
           rel="noreferrer noopener"
-          className="pullstate-logo">
-          <img
-            src={`${this.props.config.baseUrl}img/logo-ondark-small.png`}
-            alt="Pullstate"
-            width="210"
-            height="141"
-          />
+          className="pullstate-logo"
+        >
+          <img src={`${this.props.config.baseUrl}img/logo-ondark-small.png`} alt="Pullstate" width="210" height="141" />
         </a>
         <section className="copyright">{this.props.config.copyright}</section>
       </footer>

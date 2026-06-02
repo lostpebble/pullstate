@@ -19,9 +19,9 @@ class HomeSplash extends React.Component {
     const { baseUrl, docsUrl } = siteConfig;
     const docsPart = `${docsUrl ? `${docsUrl}/` : ""}`;
     const langPart = `${language ? `${language}/` : ""}`;
-    const docUrl = doc => `${baseUrl}${docsPart}${langPart}${doc}`;
+    const docUrl = (doc) => `${baseUrl}${docsPart}${langPart}${doc}`;
 
-    const SplashContainer = props => (
+    const SplashContainer = (props) => (
       <div className="homeContainer">
         <div className="homeSplashFade">
           <div className="wrapper homeWrapper">{props.children}</div>
@@ -29,7 +29,7 @@ class HomeSplash extends React.Component {
       </div>
     );
 
-    const Logo = props => (
+    const Logo = (props) => (
       <div>
         <img src={props.img_src} alt="Project Logo" />
       </div>
@@ -42,7 +42,7 @@ class HomeSplash extends React.Component {
       </h2>
     );
 
-    const PromoSection = props => (
+    const PromoSection = (props) => (
       <div className="section promoSection">
         <div className="promoRow">
           <div className="pluginRowBlock">{props.children}</div>
@@ -50,7 +50,7 @@ class HomeSplash extends React.Component {
       </div>
     );
 
-    const Button = props => (
+    const Button = (props) => (
       <div className="pluginWrapper buttonWrapper">
         <a className="button" href={props.href} target={props.target}>
           {props.children}
@@ -70,12 +70,12 @@ class HomeSplash extends React.Component {
             alignItems: "center",
             justifyContent: "center",
             flexDirection: "column",
-          }}>
+          }}
+        >
           {/*<ProjectTitle siteConfig={siteConfig} />*/}
           <div>
             <div style={{ maxWidth: "35em", padding: "1em 2em", opacity: 0.8 }}>
-              Ridiculously simple state stores with performant retrieval anywhere in your React tree using
-              React hooks
+              Ridiculously simple state stores with performant retrieval anywhere in your React tree using React hooks
             </div>
             {/*<div style={{ maxWidth: "35em", padding: "3em 2em", opacity: 1 }}>
               <div style={{ fontSize: "2em", color: "#9f59f2" }}>

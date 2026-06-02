@@ -1,5 +1,5 @@
-import { waitSeconds } from "./TestUtils";
 import { createAsyncAction, createPullstateCore, Store, successResult } from "../../src";
+import { waitSeconds } from "./TestUtils";
 
 const names = ["Paul", "Dave", "Michel"];
 const userNames = ["lostpebble", "davej", "mweststrate"];
@@ -37,17 +37,20 @@ export function createTestBasics() {
     };
   }
 
-  const ChangeToNewUserAsyncAction = createAsyncAction<IOGetUserInput, IUser>(async opt => {
-    return successResult(await getNewUserObject(opt));
-  }, {
-    postActionHook: ({ result }) => {
-      if (!result.error) {
-        UserStore.update(s => {
-          s.user = result.payload;
-        });
-      }
-    }
-  });
+  const ChangeToNewUserAsyncAction = createAsyncAction<IOGetUserInput, IUser>(
+    async (opt) => {
+      return successResult(await getNewUserObject(opt));
+    },
+    {
+      postActionHook: ({ result }) => {
+        if (!result.error) {
+          UserStore.update((s) => {
+            s.user = result.payload;
+          });
+        }
+      },
+    },
+  );
 
   const PullstateCore = createPullstateCore({
     UserStore,

@@ -1,6 +1,6 @@
-import { Store } from "./Store";
-import { useRef } from "react";
 import { deepEqual } from "fast-equals";
+import { useRef } from "react";
+import { Store } from "./Store";
 
 function useLocalStore<S extends object>(initialState: (() => S) | S, deps?: ReadonlyArray<any>): Store<S> {
   const storeRef = useRef<Store<S>>();

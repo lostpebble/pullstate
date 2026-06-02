@@ -24,6 +24,4 @@ describe("Server-side rendering Async Tests", () => {
   });
 });
 
-describe("It Should be able to hydrate async state previously resolved, on first render", () => {
-
-});
+describe("It Should be able to hydrate async state previously resolved, on first render", () => {});

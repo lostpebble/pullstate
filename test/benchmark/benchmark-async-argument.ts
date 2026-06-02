@@ -38,9 +38,9 @@ function keyFromObjectOld(jsonObject: any): string {
     return JSON.stringify(jsonObject);
   }
 
-  let props = Object.keys(jsonObject)
+  const props = Object.keys(jsonObject)
     .sort()
-    .map(key => `${key}:${keyFromObjectOld(jsonObject[key])}`)
+    .map((key) => `${key}:${keyFromObjectOld(jsonObject[key])}`)
     .join(",");
   return `${props}`;
 }
@@ -57,7 +57,7 @@ function pullstateCustomKeyCreator(json: any): string {
 
     if (typeof json[key] == null) {
       prefix += JSON.stringify(json[key]);
-    } else if (typeof json[key] === "string" ) {
+    } else if (typeof json[key] === "string") {
       prefix += `~${json[key]}~`;
     } else if (typeof json[key] === "boolean" || typeof json[key] === "number") {
       prefix += json[key];
@@ -80,11 +80,10 @@ function runKeyCreator(func: (json: any) => string, args: any[]): [number, strin
   return [Date.now() - timeStart, keys];
 }
 
-
 const args = createRandomArgs(200);
 
 function jsonStringifyReplaceQuotes(obj: any) {
-  return JSON.stringify(obj).replace("\"", "-");
+  return JSON.stringify(obj).replace('"', "-");
 }
 
 console.log("\n");
@@ -92,7 +91,7 @@ console.log("\n");
 const suiteName = "Async Arguments to Key String";
 
 new Benchmark.Suite(suiteName)
-  .add(`JSON.stringify()`, function() {
+  .add(`JSON.stringify()`, () => {
     runKeyCreator(JSON.stringify, args);
   })
   // .add(`JSON.stringify()-replace-quotes`, function() {
@@ -101,23 +100,23 @@ new Benchmark.Suite(suiteName)
   // .add(`keyFromObjectOld()`, function() {
   //   runKeyCreator(keyFromObjectOld, args);
   // })
-  .add(`pullstateCustomKeyCreator()`, function() {
+  .add(`pullstateCustomKeyCreator()`, () => {
     runKeyCreator(pullstateCustomKeyCreator, args);
   })
-  .add(`keyFromObjectConcat()`, function() {
+  .add(`keyFromObjectConcat()`, () => {
     runKeyCreator(keyFromObjectImplementations.keyFromObjectConcat, args);
   })
-  .add(`keyFromObjectTemplate()`, function() {
+  .add(`keyFromObjectTemplate()`, () => {
     runKeyCreator(keyFromObjectImplementations.keyFromObjectTemplate, args);
   })
-  .add(`keyFromObjectConcatNew()`, function() {
+  .add(`keyFromObjectConcatNew()`, () => {
     runKeyCreator(keyFromObjectImplementations.keyFromObjectConcatNew, args);
   })
-  .on("cycle", function(event) {
+  .on("cycle", (event) => {
     // console.log(event);
     console.log(String(event.target));
   })
-  .on("complete", function() {
+  .on("complete", function () {
     console.log(`\n${suiteName} - Fastest is ` + this.filter("fastest").map("name"));
   })
   .run();
