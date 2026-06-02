@@ -21,6 +21,7 @@
   "scripts": {
     "clean-files": "bunx glcl",
     "generate-typedoc": "typedoc src/index.ts",
+    "format": "biome check --write .",
     "test": "jest",
     "test-watch": "jest --watch",
     "clean": "rimraf ./dist",
@@ -54,6 +55,7 @@
   },
   "repository": "https://github.com/lostpebble/pullstate",
   "devDependencies": {
+    "@biomejs/biome": "^2.4.13",
     "@rollup/plugin-commonjs": "^23.0.3",
     "@rollup/plugin-node-resolve": "^15.0.1",
     "@rollup/plugin-typescript": "^10.0.0",

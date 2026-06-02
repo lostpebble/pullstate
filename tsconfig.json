@@ -5,7 +5,6 @@
     "esModuleInterop": true,
     "target": "ES2022",
     "sourceMap": true,
-    "allowSyntheticDefaultImports":  false,
     "inlineSourceMap": false,
     "sourceRoot": "src",
     "rootDir": "./src",
@@ -14,9 +13,16 @@
     "removeComments": true,
     "skipLibCheck": true,
     "strict": true,
-    "lib": ["dom"],
+    "lib": [
+      "dom"
+    ],
     "moduleResolution": "bundler"
   },
-  "include": ["src"],
-  "exclude": ["./test", "website"]
+  "include": [
+    "src"
+  ],
+  "exclude": [
+    "./test",
+    "website"
+  ]
 }

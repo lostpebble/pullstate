@@ -1,0 +1,97 @@
+{
+  "$schema": "./node_modules/@biomejs/biome/configuration_schema.json",
+  "assist": { "actions": { "source": { "organizeImports": "on" } } },
+  "formatter": {
+    "enabled": true,
+    "indentStyle": "space",
+    "lineWidth": 120,
+    "lineEnding": "lf",
+    "bracketSpacing": true
+  },
+  "css": {
+    "formatter": {
+      "enabled": false
+    },
+    "linter": {
+      "enabled": false
+    }
+  },
+  "linter": {
+    "enabled": true,
+    "rules": {
+      "style": {
+        "noNonNullAssertion": "off",
+        "noInferrableTypes": "off",
+        "useImportType": "off",
+        "useExportType": "off",
+        "useNodejsImportProtocol": "off",
+        "noParameterAssign": "off"
+      },
+      "recommended": true,
+      "suspicious": {
+        "noConfusingVoidType": "off",
+        "noArrayIndexKey": "warn",
+        "noExplicitAny": "off",
+        "noEmptyInterface": "off",
+        "noVar": "off",
+        "noRedeclare": "off"
+      },
+      "a11y": {
+        "noStaticElementInteractions": "off",
+        "useMediaCaption": "off",
+        "noPositiveTabindex": "off",
+        "noAutofocus": "off",
+        "useButtonType": "off",
+        "useValidAnchor": "off",
+        "useAltText": "off",
+        "useKeyWithClickEvents": "off",
+        "noSvgWithoutTitle": "off"
+      },
+      "complexity": {
+        "noUselessConstructor": "off",
+        "noStaticOnlyClass": "off",
+        "useLiteralKeys": "off",
+        "noBannedTypes": "off",
+        "noUselessFragments": "off"
+      },
+      "correctness": {
+        "useExhaustiveDependencies": "warn",
+        "noUnusedImports": "error"
+      },
+      "performance": {
+        "noDelete": "off"
+      }
+    }
+  },
+  "javascript": {
+    "parser": {
+      "unsafeParameterDecoratorsEnabled": true
+    },
+    "formatter": {
+      "enabled": true,
+      "bracketSpacing": true
+    }
+  },
+  "json": {
+    "parser": {
+      "allowComments": true
+    },
+    "formatter": {
+      "enabled": true,
+      "lineWidth": 100
+    }
+  },
+  "files": {
+    "maxSize": 4000000,
+    "ignoreUnknown": true,
+    "includes": [
+      "**",
+      "!**/node_modules",
+      "!**/dist",
+      "!**/build",
+      "!**/.tamagui",
+      "!**/*.gen.ts",
+      "!**/.wrangler/**/*"
+    ]
+  }
+}
