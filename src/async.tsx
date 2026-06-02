@@ -1,5 +1,4 @@
 import { deepEqual } from "fast-equals";
-// @ts-expect-error
 import { Draft, produce } from "immer";
 import { MutableRefObject, useContext, useEffect, useRef, useState } from "react";
 import {

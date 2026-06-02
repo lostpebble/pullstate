@@ -13,7 +13,7 @@
     "removeComments": true,
     "skipLibCheck": true,
     "strict": true,
-    "lib": ["dom"],
+    "lib": ["dom", "ES2024"],
     "moduleResolution": "bundler"
   },
   "include": ["src"],

@@ -1,5 +1,3 @@
-// @ts-expect-error
-
 import { deepEqual } from "fast-equals";
 import { applyPatches, Draft, enablePatches, Patch, PatchListener, produce, produceWithPatches } from "immer";
 import { globalClientState } from "./globalClientState";
