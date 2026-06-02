@@ -15,7 +15,7 @@
     "lib": [
       "dom"
     ],
-    "moduleResolution": "Node"
+    "moduleResolution": "bundler"
   },
   "exclude": [
     "./test",
