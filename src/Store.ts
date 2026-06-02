@@ -6,15 +6,6 @@ import { useStoreState } from "./useStoreState";
 
 enablePatches();
 
-// const isEqual = require("fast-deep-equal/es6");
-// import produce, { applyPatches, produceWithPatches } from "immer";
-
-// const Immer = require("immer");
-
-// const produce = Immer.produce;
-// const produceWithPatches = Immer.produceWithPatches;
-// const applyPatches = Immer.applyPatches;
-
 export type TPullstateUpdateListener = () => void;
 
 export interface IStoreInternalOptions<S extends object> {
@@ -356,39 +347,6 @@ export class Store<S extends object = object> {
   useLocalCopySnapshot(deps?: ReadonlyArray<any>): Store<S> {
     return useLocalStore(this.currentState, deps);
   }
-
-  /*action<A extends Array<any>>(
-    action: (...args: A) => TStoreAction<S>
-  ): (...args: A) => TStoreAction<S> {
-    return action;
-  }*/
-
-  /*act(action: TStoreAction<S>): void {
-    action((u, p) => this.batch(u, p));
-    this.flushBatch(true);
-  }
-
-  batch(
-    updater: TUpdateFunction<S> | TUpdateFunction<S>[],
-    patchesCallback?: (patches: Patch[], inversePatches: Patch[]) => void,
-  ): void {
-    if (this.batchState === undefined) {
-      this.batchState = this.currentState;
-    }
-
-    const func = typeof updater === "function";
-    const [nextState, patches, inversePatches] = runUpdates(this.batchState, updater, func);
-
-    if (patches.length > 0 && (this._patchListeners.length > 0 || patchesCallback)) {
-      if (patchesCallback) {
-        patchesCallback(patches, inversePatches);
-      }
-
-      this._patchListeners.forEach((listener) => listener(patches, inversePatches));
-    }
-
-    this.batchState = nextState;
-  }*/
 
   flushBatch(ignoreError = false) {
     if (this.batchState !== undefined) {
